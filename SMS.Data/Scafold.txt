@@ -1,0 +1,2 @@
+﻿scaffold-dbcontext "Server=.;Initial Catalog=SMSDb;Integrated Security=True;MultipleActiveResultSets=True;Connection Timeout=30;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -context SMSDbContext -outputdir Entities -project SMS.Data -force -namespace SMS.Data
+add-migration -context SMSDbContext`

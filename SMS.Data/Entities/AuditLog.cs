@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace SMS.Data;
+
+public partial class AuditLog
+{
+    public Guid Id { get; set; }
+
+    public Guid UserId { get; set; }
+
+    public string EntityType { get; set; } = null!;
+
+    public Guid EntityId { get; set; }
+
+    public string Action { get; set; } = null!;
+
+    public string BeforeValue { get; set; } = null!;
+
+    public string AfterValue { get; set; } = null!;
+
+    public DateTime TimeStamp { get; set; }
+
+    public virtual User User { get; set; } = null!;
+}

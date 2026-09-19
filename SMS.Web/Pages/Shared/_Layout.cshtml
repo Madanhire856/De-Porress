@@ -1,0 +1,88 @@
+﻿@{
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    var hasPageTitle = ViewData["PageTitle"] != null;
+    var hasSubTitle = ViewData["PageSubTitle"] != null;
+    var useFullWidthLayout = !isAuthenticated; 
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SMS.Web</title>
+    
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/SMS.Web.styles.css" asp-append-version="true" />
+    
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+    @if (useFullWidthLayout)
+    {
+        <!-- PUBLIC / LOGIN LAYOUT -->
+        <div class="public-wrapper">
+            <main role="main" class="container mt-5">
+                @if (hasPageTitle || hasSubTitle)
+                {
+                    <div class="mb-4 text-center">
+                        @if (hasPageTitle) { <h2 class="fw-bold mb-2">@ViewData["PageTitle"]</h2> }
+                        @if (hasSubTitle) { <p class="text-muted mb-0">@ViewData["PageSubTitle"]</p> }
+                    </div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    }
+    else
+    {
+        <!-- AUTHENTICATED DASHBOARD LAYOUT -->
+        <div class="container-fluid">
+            <div class="row g-0">
+                
+                <!-- SIDEBAR (Now called from a Partial View) -->
+  <aside class="sidebar col-2">
+    @await Html.PartialAsync("SideBars/_staff")
+</aside>
+
+                <!-- MAIN CONTENT -->
+                <div class="main-content col-10">
+                    <main role="main" class="p-4">
+                        
+                        <!-- Page Header & Action Bar -->
+                        <div class="d-flex justify-content-between align-items-start mb-4">
+                            <div>
+                                @if (hasPageTitle) { <h3 class="fw-bold text-dark mb-1">@ViewData["PageTitle"]</h3> }
+                                @if (hasSubTitle) { <p class="text-muted mb-0">@ViewData["PageSubTitle"]</p> }
+                            </div>
+
+                            <div class="action-bar">
+                                @if (IsSectionDefined("actionbar")) { @RenderSection("actionbar") }
+                            </div>
+                        </div>
+
+                        <!-- Main Body -->
+                        <div class="row g-4">
+                            <div class="@(IsSectionDefined("sidebar") ? "col-lg-9" : "col-12")">
+                                @RenderBody()
+                            </div>
+                            @if (IsSectionDefined("sidebar"))
+                            {
+                                <div class="col-lg-3"> @RenderSection("sidebar") </div>
+                            }
+                        </div>
+                    </main>
+                </div>
+            </div>
+        </div>
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
