@@ -11,6 +11,8 @@ public partial class UserGroup
 
     public string? Description { get; set; }
 
+    public long? RightsId { get; set; }
+
     public DateTime CreationDate { get; set; }
 
     public Guid CreatorId { get; set; }

@@ -1,7 +1,25 @@
 ﻿@page
-@model IndexModel
+@model SMS.Web.Pages.IndexModel
 @{
+    ViewData["Title"] = "Home";
+
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+
+    string dashboardPartial;
+    bool usePublicLayout;
+
+    if (!isAuthenticated)
+    {
+        dashboardPartial = "_landing";
+        usePublicLayout = true;
+    }
+    else
+    {
+        dashboardPartial = "_staff";
+        usePublicLayout = false;
+    }
+
+    ViewData["UseFullWidthLayout"] = usePublicLayout;
 }
 
-
-
+@await Html.PartialAsync($"~/Pages/Shared/Dashboards/{dashboardPartial}.cshtml")

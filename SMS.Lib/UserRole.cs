@@ -11,7 +11,9 @@ namespace SMS.Lib
         HEAD = 1<<1,
         DEPUTY_HEAD = 1 << 2,
         BURSER = 1 << 3,
-        PARENT = 1<<4
+        PARENT = 1<<4,
+        STAFF = 1<<5,
+        ADMIN = 1 << 6,
 
     }
 }

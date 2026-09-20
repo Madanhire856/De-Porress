@@ -1,4 +1,4 @@
-﻿@* Pages/Shared/SideBars/staff.cshtml *@
+﻿@* Pages/Shared/SideBars/_staff.cshtml *@
 @using System.Security.Claims
 
 @{
@@ -28,7 +28,7 @@
     // Sports Group (Standalone)
     var isSports = currentPage.StartsWith("/sports");
 
-    // Configuration Group (NEW)
+    // Configuration Group
     var isUsers = currentPage.StartsWith("/users");
     var isStaff = currentPage.StartsWith("/staff");
     var isUserGroups = currentPage.StartsWith("/usergroups");
@@ -36,12 +36,13 @@
     var isHouses = currentPage.StartsWith("/houses");
     var isMessageTemplates = currentPage.StartsWith("/messagetemplates");
 
-    // Note: isSubjects, isClasses, and isSports are already defined above, so we reuse them.
-    // Check if any config page is active to open the dropdown automatically
     var isConfigSection = isUsers || isStaff || isSubjects || isClasses || isUserGroups || isEmails || isSports || isHouses || isMessageTemplates;
 
     var currentDisplayName = User.FindFirstValue(ClaimTypes.Name) ?? "Head Teacher";
     var initialMarker = currentDisplayName.Length >= 1 ? currentDisplayName.Substring(0, 1).ToUpper() : "U";
+    var currentEmail = User.FindFirstValue("preferred_username")
+                       ?? User.FindFirstValue(ClaimTypes.Email)
+                       ?? "";
 }
 
 <div class="sidebar-wrapper">
@@ -138,7 +139,7 @@
                 </div>
             </div>
 
-            <!-- CONFIGURATION DROPDOWN (NEW) -->
+            <!-- CONFIGURATION DROPDOWN -->
             <div class="sidebar-dropdown">
                 <a class="sidebar-dropdown-toggle @(isConfigSection ? "active" : "")"
                    data-bs-toggle="collapse" href="#configMenu" role="button"
@@ -167,14 +168,47 @@
         </div>
     </div>
 
+    <!-- ============================================================
+         USER PROFILE + LOGOUT DROPDOWN
+         ============================================================ -->
     <div class="sidebar-bottom">
-        <div class="sidebar-user">
-            <div class="sidebar-avatar">@initialMarker</div>
-            <div class="sidebar-user-info">
-                <div class="sidebar-user-name">@currentDisplayName</div>
-                <div class="sidebar-user-role">Head Teacher</div>
+        <div class="dropdown dropup w-100">
+
+            <!-- Trigger: click the user card to open the menu -->
+            <div class="sidebar-user" data-bs-toggle="dropdown" aria-expanded="false" role="button">
+                <div class="sidebar-avatar">@initialMarker</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name">@currentDisplayName</div>
+                    <div class="sidebar-user-role">Head Teacher</div>
+                </div>
+                <i class="fas fa-chevron-up sidebar-user-chevron"></i>
             </div>
-            <i class="fas fa-chevron-down text-muted ms-auto" style="font-size: 0.8rem;"></i>
+
+            <!-- Menu (opens upward) -->
+            <ul class="dropdown-menu sidebar-user-menu">
+                <li>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-user-circle"></i>
+                        <span>My Profile</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-key"></i>
+                        <span>Change Password</span>
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+               <li>
+    <form method="post" asp-area="Identity"
+              asp-page="/Account/Logout" class="m-0">
+        <button type="submit" class="dropdown-item">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
+    </form>
+</li>
+            </ul>
         </div>
     </div>
 </div>

@@ -1,0 +1,144 @@
+﻿@* ============================================================
+   PUBLIC LANDING PAGE (Partial View)
+   Rendered from Pages/Index.cshtml for anonymous visitors.
+   ============================================================ *@
+
+<!-- ===== PUBLIC NAVIGATION ===== -->
+<nav class="public-nav">
+    <a href="/" class="public-nav-brand">
+        <img src="~/images/logo.jpeg" alt="Logo" class="public-nav-logo" />
+        St Martin De Porres Primary School
+    </a>
+    <ul class="public-nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#academics">Academics</a></li>
+        <li><a href="#admissions">Admissions</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="public-nav-actions">
+        <a href="/Identity/Account/SignUp" class="btn btn-outline">
+            <i class="fa-solid fa-user-plus"></i> Sign Up
+        </a>
+        <a href="/Identity/Account/StaffLogin" class="btn btn-gold">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
+        </a>
+    </div>
+</nav>
+
+<!-- ===== HERO SECTION ===== -->
+<header class="hero-section">
+    <img src="~/images/church.jpg" alt="Church" class="hero-background" />
+    <div class="hero-content">
+        <div class="hero-tagline">"If knowledge is power, then education is the source."</div>
+        <h1 class="hero-title">Rooted in faith, growing in knowledge — at Zhombe Mission.</h1>
+        <p class="hero-subtitle">
+            A Roman Catholic primary school serving the Zhombe community with quality
+            education, daily liturgical life, and a caring, rural family spirit.
+        </p>
+
+        <!-- Hero CTA buttons -->
+        <div class="hero-actions">
+            <a href="/Identity/Account/EmployeeLogin" class="btn btn-gold">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> Staff Sign In
+            </a>
+            <a href="/Identity/Account/SignUp" class="btn btn-ghost">
+                <i class="fa-solid fa-user-plus"></i> Request Access
+            </a>
+        </div>
+
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="hero-stat-number">612</span>
+                <span class="hero-stat-label">Students</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-number">32</span>
+                <span class="hero-stat-label">Teachers</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-number">18</span>
+                <span class="hero-stat-label">Classes</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-number">1962</span>
+                <span class="hero-stat-label">Founded</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ===== FEATURES SECTION ===== -->
+<section class="features-section" id="about">
+    <h2 class="section-title">A School Built on Faith and Community</h2>
+    <p class="section-subtitle">Everything a parent or donor needs to know about life at St Martin De Porres</p>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h3 class="feature-title">Academic Excellence</h3>
+            <p class="feature-desc">AI-assisted timetabling and dedicated teachers across Infant, Junior and Senior classes.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fa-solid fa-church"></i></div>
+            <h3 class="feature-title">Catholic Identity</h3>
+            <p class="feature-desc">Daily Mass Monday to Friday, guided by the Catholic Liturgical Calendar and our chaplaincy.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fa-solid fa-futbol"></i></div>
+            <h3 class="feature-title">Sport & Houses</h3>
+            <p class="feature-desc">Four competing houses and representative teams competing up to Catholic Games level.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fa-solid fa-school"></i></div>
+            <h3 class="feature-title">Growing Campus</h3>
+            <p class="feature-desc">Track our live development projects — from solar power to new classrooms — below.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== PROJECTS BANNER ===== -->
+<section class="projects-section" id="projects">
+    <div class="projects-banner">
+        <div class="projects-text">
+            <h3>See our development projects</h3>
+            <p>Follow progress on the solar installation, new classroom block, and garden expansion.</p>
+        </div>
+        <a href="#" class="btn btn-gold">
+            <i class="fa-solid fa-arrow-right"></i> View Public Dashboard
+        </a>
+    </div>
+</section>
+
+<!-- ===== CONTACT SECTION ===== -->
+<section class="contact-section" id="contact">
+    <h2 class="section-title">Visit or Enquire</h2>
+    <p class="section-subtitle">Zhombe Mission, Kwekwe District, Zimbabwe</p>
+
+    <div class="contact-grid">
+        <div class="contact-card">
+            <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
+            <h3 class="contact-title">Call Us</h3>
+            <p class="contact-detail">
+                +263 77 XXX XXXX<br />
+                Mon-Fri, 7:30 AM – 4:00 PM
+            </p>
+        </div>
+        <div class="contact-card">
+            <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
+            <h3 class="contact-title">Email</h3>
+            <p class="contact-detail">info@stmartindeporres.ac.zw</p>
+        </div>
+        <div class="contact-card">
+            <div class="contact-icon"><i class="fa-solid fa-user-plus"></i></div>
+            <h3 class="contact-title">Admissions</h3>
+            <p class="contact-detail">Enquire about enrolment for the next intake.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="public-footer">
+    <div>© @DateTime.Now.Year St Martin De Porres Primary School — Zhombe Mission</div>
+    <div>A Roman Catholic School in the Diocese</div>
+</footer>

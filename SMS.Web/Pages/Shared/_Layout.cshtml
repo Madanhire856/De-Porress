@@ -2,7 +2,7 @@
     var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
     var hasPageTitle = ViewData["PageTitle"] != null;
     var hasSubTitle = ViewData["PageSubTitle"] != null;
-    var useFullWidthLayout = false;
+    var useFullWidthLayout = ViewData["UseFullWidthLayout"] as bool? ?? false;
 }
 
 <!DOCTYPE html>
@@ -10,9 +10,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
+    <title>@ViewData["Title"] - St Martin De Porres</title>
 
-    <!-- Keep Bootstrap JS for dropdowns, but we are NOT using its CSS for layout -->
+    <!-- Bootstrap CSS kept for utility classes used in some pages -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/lib/font-awesome/css/all.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -23,35 +23,25 @@
 
     @if (useFullWidthLayout)
     {
-        <!-- PUBLIC / LOGIN LAYOUT -->
+       @*  <!-- ============================================================
+             PUBLIC / LANDING / LOGIN LAYOUT
+             Full-width, scrollable, no sidebar.
+             ============================================================ --> *@
         <div class="public-wrapper">
-            <main role="main" class="container mt-5">
-                @if (hasPageTitle || hasSubTitle)
-                {
-                    <div class="mb-4 text-center">
-                        @if (hasPageTitle)
-                        {
-                            <h2 class="fw-bold mb-2">@ViewData["PageTitle"]</h2>
-                        }
-                        @if (hasSubTitle)
-                        {
-                            <p class="text-muted mb-0">@ViewData["PageSubTitle"]</p>
-                        }
-                    </div>
-                }
-                @RenderBody()
-            </main>
+            @RenderBody()
         </div>
     }
     else
     {
-        <!-- AUTHENTICATED DASHBOARD LAYOUT (PURE FLEXBOX) -->
+       @*  <!-- ============================================================
+             AUTHENTICATED DASHBOARD LAYOUT (Sidebar + Main Content)
+             ====================================================@* ======== --> *@
         <div class="app-layout">
 
-            <!-- Hidden Checkbox for CSS-only Sidebar Toggle -->
+           @*  <!-- Hidden Checkbox for CSS-only Sidebar Toggle (mobile) --> *@
             <input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-checkbox" />
 
-            <!-- Mobile Top Bar (Hamburger Menu) -->
+           @*@ <!-- Mobile Top Bar with Hamburger Menu --> *@
             <div class="mobile-top-bar">
                 <label for="sidebar-toggle" class="menu-toggle-btn">
                     <i class="fas fa-bars"></i>
@@ -59,19 +49,19 @@
                 <span class="mobile-brand">St. Martin De Porres</span>
             </div>
 
-            <!-- Overlay (Appears when sidebar is open on mobile) -->
+           @*  <!-- Overlay (Appears when sidebar is open on mobile) --> *@
             <label for="sidebar-toggle" class="sidebar-overlay"></label>
 
-            <!-- SIDEBAR -->
+          @*   <!-- SIDEBAR --> *@
             <aside class="app-sidebar">
                 @await Html.PartialAsync("SideBars/_staff")
             </aside>
 
-            <!-- MAIN CONTENT -->
+           @*  <!-- MAIN CONTENT --> *@
             <div class="app-main">
                 <main class="app-content">
 
-                    <!-- Page Header & Action Bar -->
+                   @*  <!-- Page Header & Action Bar --> *@
                     <div class="page-header">
                         <div class="header-text">
                             @if (hasPageTitle)
@@ -92,7 +82,7 @@
                         </div>
                     </div>
 
-                    <!-- Main Body -->
+                    @* <!-- Main Body --> *@
                     @RenderBody()
 
                 </main>
