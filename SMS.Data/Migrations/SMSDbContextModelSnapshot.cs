@@ -448,9 +448,6 @@ namespace SMS.Data.Migrations
                     b.Property<DateOnly>("LiturgicalDate")
                         .HasColumnType("date");
 
-                    b.Property<int>("TypeId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Venue")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -774,7 +771,7 @@ namespace SMS.Data.Migrations
                     b.Property<int>("Age")
                         .HasColumnType("int");
 
-                    b.Property<int>("Category")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("DateJoined")
@@ -785,7 +782,7 @@ namespace SMS.Data.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<int>("Gender")
+                    b.Property<int>("GenderId")
                         .HasColumnType("int");
 
                     b.Property<string>("IdNumber")
@@ -796,7 +793,7 @@ namespace SMS.Data.Migrations
                     b.Property<bool?>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<int>("MaritalStatus")
+                    b.Property<int>("MaritalStatusId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -804,7 +801,7 @@ namespace SMS.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("Qualification")
+                    b.Property<int>("QualificationId")
                         .HasColumnType("int");
 
                     b.Property<string>("Surname")

@@ -15,15 +15,15 @@ public partial class Staff
 
     public string Surname { get; set; } = null!;
 
-    public int Category { get; set; }
+    public int CategoryId { get; set; }
 
     public int Age { get; set; }
 
-    public int MaritalStatus { get; set; }
+    public int MaritalStatusId { get; set; }
 
-    public int Gender { get; set; }
+    public int GenderId { get; set; }
 
-    public int Qualification { get; set; }
+    public int QualificationId { get; set; }
 
     public DateTime DateJoined { get; set; }
 

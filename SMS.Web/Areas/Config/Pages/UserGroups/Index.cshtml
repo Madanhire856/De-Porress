@@ -1,0 +1,93 @@
+﻿@page
+@model SMS.Web.Areas.Config.Pages.UserGroups.IndexModel
+@{
+    ViewData["Title"] = "User Groups";
+    ViewData["PageTitle"] = "User Groups";
+    ViewData["PageSubTitle"] = "Manage system roles and permissions";
+}
+
+@section actionbar {
+    <button class="btn btn-gold">
+        <i class="fa-solid fa-plus"></i> Create
+    </button>
+}
+
+<div class="table-card">
+    <!-- Table Toolbar (Search & Filter) -->
+    <form method="get" class="table-toolbar">
+        <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" asp-for="SearchTerm" class="search-input" placeholder="Search user groups..." />
+        </div>
+        <div class="filter-wrapper">
+            <select asp-for="StatusFilter" class="filter-dropdown">
+                <option value="All">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+        </div>
+    </form>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Group Name</th>
+                <th>Description</th>
+                <th>Created By</th>
+                <th>Date Created</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.UserGroups != null && Model.UserGroups.Any())
+            {
+                @foreach (var group in Model.UserGroups)
+                {
+                    <tr>
+                        <td>
+                            <a href="#" class="reg-link">
+                                @group.Name
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </td>
+                        <td>
+                            @if (string.IsNullOrEmpty(group.Description))
+                            {
+                                <span class="sponsor-empty">—</span>
+                            }
+                            else
+                            {
+                                @group.Description
+                            }
+                        </td>
+                        <td>
+                            @if (group.Creator != null)
+                            {
+                                @group.Creator.Email
+                            }
+                            else
+                            {
+                                <span class="sponsor-empty">—</span>
+                            }
+                        </td>
+                        <td>@group.CreationDate.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            <span class="status-badge status-active">Active</span>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        No user groups found matching your criteria.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="table-footer">
+        Showing @(Model.UserGroups?.Count ?? 0) user groups. Click a group name to view full details.
+    </div>
+</div>
