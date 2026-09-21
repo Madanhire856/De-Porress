@@ -12,10 +12,6 @@
     </a>
 }
 
-<div class="table-count">
-    Showing @(Model.UserGroups?.Count ?? 0) user groups.
-</div>
-
 <div class="table-card">
     <!-- Table Toolbar (Search & Filter) -->
     <form method="get" class="table-toolbar">
@@ -30,9 +26,9 @@
                 <option value="Inactive">Inactive</option>
             </select>
         </div>
+        <input type="hidden" asp-for="PageSize" />
     </form>
 
-    <!-- Added 'table-compact' class here -->
     <table class="data-table table-compact">
         <thead>
             <tr>
@@ -92,4 +88,51 @@
             }
         </tbody>
     </table>
+
+    <!-- PAGINATION — centered, just below the rows -->
+    <div class="table-pagination">
+        <div class="pagination-info">
+            Showing
+            <strong>@(((Model.PageNumber - 1) * Model.PageSize) + 1)</strong>
+            –
+            <strong>@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))</strong>
+            of
+            <strong>@Model.TotalCount</strong> user groups.
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="pagination-nav">
+                <a class="page-link @(Model.PageNumber == 1 ? "disabled" : "")"
+                   asp-page="./Index"
+                   asp-route-PageNumber="@(Model.PageNumber - 1)"
+                   asp-route-PageSize="@Model.PageSize"
+                   asp-route-SearchTerm="@Model.SearchTerm"
+                   asp-route-StatusFilter="@Model.StatusFilter">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a class="page-link @(i == Model.PageNumber ? "active" : "")"
+                       asp-page="./Index"
+                       asp-route-PageNumber="@i"
+                       asp-route-PageSize="@Model.PageSize"
+                       asp-route-SearchTerm="@Model.SearchTerm"
+                       asp-route-StatusFilter="@Model.StatusFilter">
+                        @i
+                    </a>
+                }
+
+                <a class="page-link @(Model.PageNumber == Model.TotalPages ? "disabled" : "")"
+                   asp-page="./Index"
+                   asp-route-PageNumber="@(Model.PageNumber + 1)"
+                   asp-route-PageSize="@Model.PageSize"
+                   asp-route-SearchTerm="@Model.SearchTerm"
+                   asp-route-StatusFilter="@Model.StatusFilter">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            </nav>
+        }
+    </div>
 </div>
