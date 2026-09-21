@@ -8,14 +8,12 @@
     // Dashboard
     var isDashboard = string.IsNullOrEmpty(currentArea) && (currentPage == "/index" || currentPage.StartsWith("/dashboard"));
 
-    // Academics Group (top-level)
-    var isStaff = currentPage.StartsWith("/staff");         // 👈 moved from Config
-    var isClasses = currentPage.StartsWith("/classes");
+    // Academics Group (top-level) — people & activities only
+    var isStaff = currentPage.StartsWith("/staff");
     var isStudents = currentPage.StartsWith("/students");
-    var isSubjects = currentPage.StartsWith("/subjects");
     var isTimetable = currentPage.StartsWith("/timetable");
     var isPrefects = currentPage.StartsWith("/prefects");
-    var isAcademicsSection = isStaff || isClasses || isStudents || isSubjects || isPrefects;
+    var isAcademicsSection = isStaff || isStudents || isTimetable || isPrefects;
 
     // Finance Group (top-level)
     var isFees = currentPage.StartsWith("/fees");
@@ -38,6 +36,8 @@
 
     // -- Nested subgroup: Academic Setup --
     var isGrades = currentPage.StartsWith("/grades");
+    var isClasses = currentPage.StartsWith("/classes");
+    var isSubjects = currentPage.StartsWith("/subjects");
     var isTerms = currentPage.StartsWith("/terms");
     var isAcademicSetup =
         isGrades || isClasses || isSubjects || isTerms;
@@ -95,12 +95,9 @@
                 </a>
                 <div class="collapse @(isAcademicsSection ? "show" : "")" id="academicsMenu">
                     <div class="sidebar-submenu">
-                        <a asp-area="" asp-page="/Classes/Index" class="sidebar-sublink @(isClasses ? "active" : "")">Classes</a>
-                        <a asp-area="" asp-page="/Subjects/Index" class="sidebar-sublink @(isSubjects ? "active" : "")">Subjects</a>
-                        <a asp-area="" asp-page="/Subjects/Index" class="sidebar-sublink @(isTimetable ? "active" : "")">Timetable</a>
                         <a asp-area="" asp-page="/Students/Index" class="sidebar-sublink @(isStudents ? "active" : "")">Students</a>
-                        <!-- 👇 Staff now lives in the Academics area -->
                         <a asp-area="Academics" asp-page="/Staff/Index" class="sidebar-sublink @(isStaff ? "active" : "")">Staff</a>
+                        <a asp-area="" asp-page="/Timetable/Index" class="sidebar-sublink @(isTimetable ? "active" : "")">Timetable</a>
                         <a asp-area="" asp-page="/Prefects/Index" class="sidebar-sublink @(isPrefects ? "active" : "")">Prefects</a>
                     </div>
                 </div>
