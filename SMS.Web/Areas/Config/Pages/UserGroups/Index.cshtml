@@ -13,7 +13,14 @@
 }
 
 <div class="table-card">
-    <!-- Table Toolbar (Search & Filter) -->
+
+    <!-- 👇 Record count on top -->
+    <div class="table-count">
+        <i class="fa-solid fa-list-ul me-2"></i>
+        Total: <strong>@Model.Pagination.TotalCount</strong>
+        @(Model.Pagination.TotalCount == 1 ? "user group" : "user groups")
+    </div>
+
     <form method="get" class="table-toolbar">
         <div class="search-wrapper">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -32,6 +39,7 @@
     <table class="data-table table-compact">
         <thead>
             <tr>
+                <th>UG ID</th>
                 <th>Group Name</th>
                 <th>Description</th>
                 <th>Created By</th>
@@ -40,99 +48,36 @@
             </tr>
         </thead>
         <tbody>
-            @if (Model.UserGroups != null && Model.UserGroups.Any())
+            @if (Model.UserGroups.Any())
             {
                 @foreach (var group in Model.UserGroups)
                 {
                     <tr>
                         <td>
-                            <a asp-area="Config" asp-page="/UserGroups/Details" asp-route-id="@group.Id" class="reg-link">
-                                @group.Name
+                            <a asp-area="Config"
+                               asp-page="/UserGroups/Details"
+                               asp-route-id="@group.Id"
+                               class="reg-link">
+                                @group.UserGroupNumber
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
                             </a>
                         </td>
-                        <td>
-                            @if (string.IsNullOrEmpty(group.Description))
-                            {
-                                <span class="sponsor-empty">—</span>
-                            }
-                            else
-                            {
-                                @group.Description
-                            }
-                        </td>
-                        <td>
-                            @if (group.Creator != null)
-                            {
-                                @group.Creator.Email
-                            }
-                            else
-                            {
-                                <span class="sponsor-empty">—</span>
-                            }
-                        </td>
+                        <td>@group.Name</td>
+                        <td>@(string.IsNullOrEmpty(group.Description) ? "—" : group.Description)</td>
+                        <td>@(group.Creator?.Email ?? "—")</td>
                         <td>@group.CreationDate.ToString("MMM dd, yyyy")</td>
-                        <td>
-                            <span class="status-badge status-active">Active</span>
-                        </td>
+                        <td><span class="status-badge status-active">Active</span></td>
                     </tr>
                 }
             }
             else
             {
                 <tr>
-                    <td colspan="5" class="empty-state">
-                        No user groups found matching your criteria.
-                    </td>
+                    <td colspan="6" class="empty-state">No user groups found matching your criteria.</td>
                 </tr>
             }
         </tbody>
     </table>
 
-    <!-- PAGINATION — centered, just below the rows -->
-    <div class="table-pagination">
-        <div class="pagination-info">
-            Showing
-            <strong>@(((Model.PageNumber - 1) * Model.PageSize) + 1)</strong>
-            –
-            <strong>@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))</strong>
-            of
-            <strong>@Model.TotalCount</strong> user groups.
-        </div>
-
-        @if (Model.TotalPages > 1)
-        {
-            <nav class="pagination-nav">
-                <a class="page-link @(Model.PageNumber == 1 ? "disabled" : "")"
-                   asp-page="./Index"
-                   asp-route-PageNumber="@(Model.PageNumber - 1)"
-                   asp-route-PageSize="@Model.PageSize"
-                   asp-route-SearchTerm="@Model.SearchTerm"
-                   asp-route-StatusFilter="@Model.StatusFilter">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </a>
-
-                @for (int i = 1; i <= Model.TotalPages; i++)
-                {
-                    <a class="page-link @(i == Model.PageNumber ? "active" : "")"
-                       asp-page="./Index"
-                       asp-route-PageNumber="@i"
-                       asp-route-PageSize="@Model.PageSize"
-                       asp-route-SearchTerm="@Model.SearchTerm"
-                       asp-route-StatusFilter="@Model.StatusFilter">
-                        @i
-                    </a>
-                }
-
-                <a class="page-link @(Model.PageNumber == Model.TotalPages ? "disabled" : "")"
-                   asp-page="./Index"
-                   asp-route-PageNumber="@(Model.PageNumber + 1)"
-                   asp-route-PageSize="@Model.PageSize"
-                   asp-route-SearchTerm="@Model.SearchTerm"
-                   asp-route-StatusFilter="@Model.StatusFilter">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </a>
-            </nav>
-        }
-    </div>
+    <partial name="~/Pages/Shared/Pagination/_pagination.cshtml" model="Model.Pagination" />
 </div>

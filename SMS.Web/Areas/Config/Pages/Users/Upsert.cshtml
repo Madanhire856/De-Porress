@@ -1,0 +1,117 @@
+﻿@page "{id:guid?}"
+@model SMS.Web.Areas.Config.Pages.Users.UpsertModel
+@using SMS.Lib
+@{
+    ViewData["PageTitle"] = Model.user.LoginId != null ? "Edit User" : "Add User";
+    ViewData["PageSubTitle"] = "Create or modify a system user and assign their role and user group";
+}
+
+<form method="post" class="form-compact">
+    <div class="form-card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <!-- Hidden identifier — no need to bind, id travels in the URL -->
+            <input type="hidden" asp-for="user.Id" />
+
+            <!-- ===== ACCOUNT DETAILS ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-user"></i> Account Details
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="user.LoginId">
+                        Login ID <span class="required">*</span>
+                    </label>
+                    <input asp-for="user.LoginId" class="form-control" placeholder="e.g. jdoe" required />
+                    <span asp-validation-for="user.LoginId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="user.Name">
+                        Full Name <span class="required">*</span>
+                    </label>
+                    <input asp-for="user.Name" class="form-control" placeholder="e.g. John Doe" required />
+                    <span asp-validation-for="user.Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="user.Email">
+                        Email Address <span class="required">*</span>
+                    </label>
+                    <input asp-for="user.Email" type="email" class="form-control" placeholder="user@school.com" required />
+                    <span asp-validation-for="user.Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="user.Mobile">Mobile Number</label>
+                    <input asp-for="user.Mobile" class="form-control" placeholder="+263 77 000 0000" />
+                    <span asp-validation-for="user.Mobile" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- ===== ROLE & GROUP ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-shield-halved"></i> Role &amp; Group
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="user.RoleId">
+                        Role <span class="required">*</span>
+                    </label>
+                    <select asp-for="user.RoleId" class="form-control" required>
+                        <option value="">— Select a role —</option>
+                        @foreach (var role in UserRoleExtensions.AllRoles())
+                        {
+                            <option value="@((int)role)">@role.ToDisplayName()</option>
+                        }
+                    </select>
+                    <span asp-validation-for="user.RoleId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="user.GroupId">User Group</label>
+                    <select asp-for="user.GroupId" class="form-control">
+                        <option value="">— No group assigned —</option>
+                        @foreach (var g in Model.UserGroups)
+                        {
+                            <option value="@g.Id">@g.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="user.GroupId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- ===== STATUS ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-toggle-on"></i> Status
+            </div>
+
+            <div class="rights-list" style="margin-top: 0.5rem;">
+                <label class="right-checkbox">
+                    <input asp-for="user.IsActive" />
+                    <span>Account is active (user can sign in)</span>
+                </label>
+            </div>
+
+            <!-- Hidden: admin-created users are considered pre-confirmed -->
+            <input type="hidden" asp-for="user.IsEmailConfirmed" value="true" />
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i>
+                @(Model.user.LoginId != null ? "Save Changes" : "Create User")
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

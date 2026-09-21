@@ -27,11 +27,11 @@ public partial class User
 
     public int RoleId { get; set; }
 
-    public int? GroupId { get; set; }
+    public Guid? GroupId { get; set; }
 
     public bool IsEmailConfirmed { get; set; }
 
-    public bool TwoFactorAuthEnabled { get; set; }
+    public bool? TwoFactorAuthEnabled { get; set; }
 
     public string? SecurityStamp { get; set; }
 
@@ -58,6 +58,8 @@ public partial class User
     public virtual ICollection<FeesStructure> FeesStructures { get; set; } = new List<FeesStructure>();
 
     public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
+
+    public virtual UserGroup? Group { get; set; }
 
     public virtual ICollection<Guardian> Guardians { get; set; } = new List<Guardian>();
 

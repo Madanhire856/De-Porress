@@ -1,0 +1,180 @@
+﻿@page "{id:guid?}"
+@model SMS.Web.Areas.Config.Pages.Staff.UpsertModel
+@{
+    ViewData["PageTitle"] = Model.staff.EcNumber != null ? "Edit Staff" : "Add Staff";
+    ViewData["PageSubTitle"] = "Create or modify a staff member's record";
+}
+
+<form method="post" class="form-compact">
+    <div class="form-card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <input type="hidden" asp-for="staff.Id" />
+
+            <!-- ===== PERSONAL DETAILS ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-user"></i> Personal Details
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="staff.Name">
+                        First Name <span class="required">*</span>
+                    </label>
+                    <input asp-for="staff.Name" class="form-control" placeholder="e.g. John" required />
+                    <span asp-validation-for="staff.Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="staff.Surname">
+                        Surname <span class="required">*</span>
+                    </label>
+                    <input asp-for="staff.Surname" class="form-control" placeholder="e.g. Doe" required />
+                    <span asp-validation-for="staff.Surname" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="staff.IdNumber">
+                        ID Number <span class="required">*</span>
+                    </label>
+                    <input asp-for="staff.IdNumber" class="form-control" placeholder="e.g. 63-1234567-A-42" required />
+                    <span asp-validation-for="staff.IdNumber" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="staff.Age">
+                        Age <span class="required">*</span>
+                    </label>
+                    <input asp-for="staff.Age" type="number" min="0" max="120" class="form-control" required />
+                    <span asp-validation-for="staff.Age" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="staff.GenderId">Gender</label>
+                    <select asp-for="staff.GenderId" asp-items="Model.Genders" class="form-control">
+                        <option value="">— Select gender —</option>
+                    </select>
+                    <span asp-validation-for="staff.GenderId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="staff.MaritalStatusId">Marital Status</label>
+                    <select asp-for="staff.MaritalStatusId" asp-items="Model.MaritalStatuses" class="form-control">
+                        <option value="">— Select status —</option>
+                    </select>
+                    <span asp-validation-for="staff.MaritalStatusId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- ===== EMPLOYMENT ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-briefcase"></i> Employment
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="staff.EcNumber">
+                        EC Number <span class="required">*</span>
+                    </label>
+                    <input asp-for="staff.EcNumber" class="form-control" placeholder="e.g. EC-00123" required />
+                    <span asp-validation-for="staff.EcNumber" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="staff.DateJoined">
+                        Date Joined <span class="required">*</span>
+                    </label>
+                    <input asp-for="staff.DateJoined"
+                           type="text"
+                           class="form-control datepicker"
+                           placeholder="yyyy-mm-dd"
+                           autocomplete="off"
+                           required />
+                    <span asp-validation-for="staff.DateJoined" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="staff.CategoryId">Category</label>
+                    <select asp-for="staff.CategoryId" asp-items="Model.Categories" class="form-control">
+                        <option value="">— Select category —</option>
+                    </select>
+                    <span asp-validation-for="staff.CategoryId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="staff.QualificationId">Qualification</label>
+                    <select asp-for="staff.QualificationId" asp-items="Model.Qualifications" class="form-control">
+                        <option value="">— Select qualification —</option>
+                    </select>
+                    <span asp-validation-for="staff.QualificationId" class="text-danger"></span>
+                </div>
+
+                <!-- Linked user account (optional, searchable) -->
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="staff.UserId">Linked User Account</label>
+                    <select asp-for="staff.UserId"
+                            asp-items="Model.Users"
+                            class="form-control select2-user">
+                        <option value="">— Search user... —</option>
+                    </select>
+                    <span asp-validation-for="staff.UserId" class="text-danger"></span>
+                    <small style="color: var(--sms-text-muted); font-size: 0.75rem;">
+                        Optional. Search and pick a user account to link, or leave blank.
+                    </small>
+                </div>
+            </div>
+
+            <!-- ===== STATUS ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-toggle-on"></i> Status
+            </div>
+
+            <div class="rights-list" style="margin-top: 0.5rem;">
+                <label class="right-checkbox">
+                    <input asp-for="staff.IsActive" type="checkbox" />
+                    <span>Staff member is active</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="card-footer">
+          
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i>
+                @(Model.staff.EcNumber != null ? "Save Changes" : "Create Staff")
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(function () {
+
+            $('.select2-user').select2({
+                placeholder: '— Search user... —',
+                width: '100%',
+                allowClear: true
+            });
+
+            // --- Datepicker ---
+            $('.datepicker').datepicker({
+                dateFormat: 'yy-mm-dd',
+                changeMonth: true,
+                changeYear: true,
+                minDate: 0,
+                showAnim: 'fadeIn'
+            });
+
+            $('.datepicker').on('keydown', function (e) {
+                e.preventDefault();
+            });
+        });
+    </script>
+}

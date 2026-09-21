@@ -1,0 +1,174 @@
+﻿@page "{id:guid}"
+@model SMS.Web.Areas.Config.Pages.Staff.DetailsModel
+@using SMS.Lib
+@{
+    ViewData["Title"] = "Staff Details";
+    ViewData["PageTitle"] = "Staff Details";
+    ViewData["PageSubTitle"] = $"Viewing details for {Model.StaffVM.Name} {Model.StaffVM.Surname}";
+}
+
+@section actionbar {
+    <a asp-page="./Upsert" asp-route-id="@Model.StaffVM.Id" class="btn btn-secondary">
+        <i class="fa-solid fa-pen-to-square"></i> Edit
+    </a>
+    <a asp-page="./Index" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Back to List
+    </a>
+}
+
+<div class="details-compact">
+    <div class="details-single">
+
+        <!-- ===== PROFILE HEADER ===== -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-user-tie"></i>
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name">@Model.StaffVM.Name @Model.StaffVM.Surname</h2>
+                <div class="profile-meta">
+                    <span class="info-value-mono">@Model.StaffVM.EcNumber</span>
+                    <span class="meta-sep">·</span>
+                    <span>@(((StaffCategory)Model.StaffVM.CategoryId).ToDisplayName())</span>
+                   
+                </div>
+                <div class="profile-badges">
+                    @if (Model.StaffVM.IsActive == true)
+                    {
+                        <span class="status-badge status-active">Active</span>
+                    }
+                    else
+                    {
+                        <span class="status-badge status-overdue">Inactive</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TWO-COLUMN BODY ===== -->
+        <div class="info-grid">
+
+            <!-- LEFT: Personal Information -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-id-card"></i>
+                    <span>Personal Information</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user"></i> First Name
+                    </div>
+                    <div class="info-value">@Model.StaffVM.Name</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user"></i> Surname
+                    </div>
+                    <div class="info-value">@Model.StaffVM.Surname</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-hashtag"></i> ID Number
+                    </div>
+                    <div class="info-value info-value-mono">@Model.StaffVM.IdNumber</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-cake-candles"></i> Age
+                    </div>
+                    <div class="info-value">@Model.StaffVM.Age</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-venus-mars"></i> Gender
+                    </div>
+                    <div class="info-value">@(((Gender)Model.StaffVM.GenderId).ToDisplayName())</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-heart"></i> Marital Status
+                    </div>
+                    <div class="info-value">@(((MaritalStatus)Model.StaffVM.MaritalStatusId).ToDisplayName())</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Employment -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-briefcase"></i>
+                    <span>Employment</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-id-badge"></i> EC Number
+                    </div>
+                    <div class="info-value info-value-mono">@Model.StaffVM.EcNumber</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar"></i> Date Joined
+                    </div>
+                    <div class="info-value">@Model.StaffVM.DateJoined.ToString("dd MMM yyyy")</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user-group"></i> Category
+                    </div>
+                    <div class="info-value">@(((StaffCategory)Model.StaffVM.CategoryId).ToDisplayName())</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-graduation-cap"></i> Qualification
+                    </div>
+                    <div class="info-value">@(((Qualification)Model.StaffVM.QualificationId).ToDisplayName())</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user-circle"></i> Linked User
+                    </div>
+                    <div class="info-value">
+                        @if (!string.IsNullOrEmpty(Model.LinkedUserEmail))
+                        {
+                            <a asp-area="Config"
+                               asp-page="/Users/Details"
+                               asp-route-id="@Model.StaffVM.UserId"
+                               class="reg-link">
+                                @Model.LinkedUserEmail
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="sponsor-empty">No user account linked</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== CARD FOOTER ===== -->
+        <div class="info-card-footer">
+            <div>
+                <span>EC Number:</span>
+                <strong>@Model.StaffVM.EcNumber</strong>
+            </div>
+            <div>
+                <span>Date Joined:</span>
+                <strong>@Model.StaffVM.DateJoined.ToString("dd MMM yyyy")</strong>
+            </div>
+        </div>
+
+    </div>
+</div>

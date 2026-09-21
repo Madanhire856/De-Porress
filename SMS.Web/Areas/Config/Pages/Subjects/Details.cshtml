@@ -1,0 +1,144 @@
+﻿@page "{id:guid}"
+@model SMS.Web.Areas.Config.Pages.Subjects.DetailsModel
+@using SMS.Lib
+@{
+    ViewData["Title"] = "Subject Details";
+    ViewData["PageTitle"] = "Subject Details";
+    ViewData["PageSubTitle"] = $"Viewing details for {Model.SubjectVM.Name}";
+}
+
+@section actionbar {
+    <a asp-page="./Upsert" asp-route-id="@Model.SubjectVM.Id" class="btn btn-secondary">
+        <i class="fa-solid fa-pen-to-square"></i> Edit
+    </a>
+    <a asp-page="./Index" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Back to List
+    </a>
+}
+
+<div class="details-compact">
+    <div class="details-single">
+
+        <!-- ===== PROFILE HEADER ===== -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-book"></i>
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name">@Model.SubjectVM.Name</h2>
+                <div class="profile-meta">
+                    <span class="info-value-mono">@Model.SubjectVM.SubjectNumber</span>
+                    <span class="meta-sep">·</span>
+                    <span class="info-value-mono">@Model.SubjectVM.Code</span>
+                    <span class="meta-sep">·</span>
+                    <span>@(((SubjectCategory)Model.SubjectVM.CategoryId).ToDisplayName())</span>
+                    <span class="meta-sep">·</span>
+                    <span>Created @Model.SubjectVM.CreationDate.ToString("dd MMM yyyy")</span>
+                </div>
+                <div class="profile-badges">
+                    @if (Model.TeacherCount > 0)
+                    {
+                        <span class="status-badge status-count">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                            @Model.TeacherCount @(Model.TeacherCount == 1 ? "teacher" : "teachers")
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TWO-COLUMN BODY ===== -->
+        <div class="info-grid">
+
+            <!-- LEFT: Subject Information -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Subject Information</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-hashtag"></i> SUB ID
+                    </div>
+                    <div class="info-value info-value-mono">@Model.SubjectVM.SubjectNumber</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-book"></i> Name
+                    </div>
+                    <div class="info-value">@Model.SubjectVM.Name</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-tag"></i> Category
+                    </div>
+                    <div class="info-value">@(((SubjectCategory)Model.SubjectVM.CategoryId).ToDisplayName())</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Metadata -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <span>Metadata</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-code"></i> Code
+                    </div>
+                    <div class="info-value info-value-mono">@Model.SubjectVM.Code</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar"></i> Creation Date
+                    </div>
+                    <div class="info-value">@Model.SubjectVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-chalkboard-user"></i> Teachers
+                    </div>
+                    <div class="info-value">
+                        @if (Model.TeacherCount == 0)
+                        {
+                            <span class="sponsor-empty">No teachers assigned</span>
+                        }
+                        else
+                        {
+                            @Model.TeacherCount
+                        }
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== CARD FOOTER ===== -->
+        <div class="info-card-footer">
+            <div>
+                <span>Created By:</span>
+                <strong>
+                    @if (!string.IsNullOrEmpty(Model.CreatorEmail))
+                    {
+                        @Model.CreatorEmail
+                    }
+                    else
+                    {
+                        <text>System Generated</text>
+                    }
+                </strong>
+            </div>
+            <div>
+                <span>Created On:</span>
+                <strong>@Model.SubjectVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</strong>
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,197 @@
+﻿@page "{id:guid}"
+@model SMS.Web.Areas.Config.Pages.Users.DetailsModel
+@using SMS.Lib
+@{
+    ViewData["Title"] = "User Details";
+    ViewData["PageTitle"] = "User Details";
+    ViewData["PageSubTitle"] = $"Viewing details for {Model.UserVM.Name ?? Model.UserVM.Email}";
+}
+
+@section actionbar {
+    <a asp-page="./Upsert" asp-route-id="@Model.UserVM.Id" class="btn btn-secondary">
+        <i class="fa-solid fa-pen-to-square"></i> Edit
+    </a>
+    <a asp-page="./Index" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Back to List
+    </a>
+}
+
+<div class="details-compact">
+    <div class="details-single">
+
+        <!-- ===== PROFILE HEADER ===== -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name">@(Model.UserVM.Name ?? Model.UserVM.Email)</h2>
+                <div class="profile-meta">
+                    <span class="info-value-mono">@Model.UserVM.UserNumber</span>
+                    <span class="meta-sep">·</span>
+                    <span>@Model.UserVM.GetRoleDisplayName()</span>
+                    <span class="meta-sep">·</span>
+                    <span>Created @Model.UserVM.CreationDate.ToString("dd MMM yyyy")</span>
+                </div>
+                <div class="profile-badges">
+                    @if (Model.UserVM.IsActive)
+                    {
+                        <span class="status-badge status-active">Active</span>
+                    }
+                    else
+                    {
+                        <span class="status-badge status-overdue">Inactive</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TWO-COLUMN BODY ===== -->
+        <div class="info-grid">
+
+            <!-- LEFT: Identity -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Identity</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-hashtag"></i> USR ID
+                    </div>
+                    <div class="info-value info-value-mono">@Model.UserVM.UserNumber</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user"></i> Full Name
+                    </div>
+                    <div class="info-value">
+                        @(string.IsNullOrEmpty(Model.UserVM.Name) ? "—" : Model.UserVM.Name)
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-id-badge"></i> Login ID
+                    </div>
+                    <div class="info-value info-value-mono">@Model.UserVM.LoginId</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-envelope"></i> Email
+                    </div>
+                    <div class="info-value">@Model.UserVM.Email</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-mobile-screen"></i> Mobile
+                    </div>
+                    <div class="info-value">
+                        @(string.IsNullOrEmpty(Model.UserVM.Mobile) ? "—" : Model.UserVM.Mobile)
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-shield-halved"></i> Role
+                    </div>
+                    <div class="info-value">@Model.UserVM.GetRoleDisplayName()</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-users"></i> User Group
+                    </div>
+                    <div class="info-value">
+                        @if (!string.IsNullOrEmpty(Model.GroupName))
+                        {
+                            <a asp-area="Config" asp-page="/UserGroups/Details" asp-route-id="@Model.UserVM.GroupId"
+                               class="reg-link">
+                                @Model.GroupName
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="sponsor-empty">No group assigned</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Account -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Account</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-circle-check"></i> Status
+                    </div>
+                    <div class="info-value">
+                        @if (Model.UserVM.IsActive)
+                        {
+                            <span class="status-badge status-active">Active</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-overdue">Inactive</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-envelope-circle-check"></i> Email Confirmed
+                    </div>
+                    <div class="info-value">@(Model.UserVM.IsEmailConfirmed ? "Yes" : "No")</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Last Login
+                    </div>
+                    <div class="info-value">
+                        @(Model.UserVM.LastLoginDate?.ToString("dd MMM yyyy, HH:mm") ?? "Never")
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-lock"></i> Password Set
+                    </div>
+                    <div class="info-value">
+                        @if (string.IsNullOrEmpty(Model.UserVM.PasswordHash))
+                        {
+                            <span class="sponsor-empty">Not set (pending activation)</span>
+                        }
+                        else
+                        {
+                            <span>Yes</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== CARD FOOTER ===== -->
+        <div class="info-card-footer">
+            <div>
+                <span>Created By:</span>
+                <strong>@(string.IsNullOrEmpty(Model.CreatorEmail) ? "System Generated" : Model.CreatorEmail)</strong>
+            </div>
+            <div>
+                <span>Created On:</span>
+                <strong>@Model.UserVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</strong>
+            </div>
+        </div>
+
+    </div>
+</div>

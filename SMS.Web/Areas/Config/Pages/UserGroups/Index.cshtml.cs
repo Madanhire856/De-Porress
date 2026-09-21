@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SMS.Data;
-using System;
+using SMS.Web.Pages.GeneratedNumbers; 
+using SMS.Web.Pages.Shared.Pagination;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,6 +19,7 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
         }
 
         public List<UserGroup> UserGroups { get; set; } = new();
+        public PaginationInfo Pagination { get; set; } = new();
 
         [BindProperty(SupportsGet = true)]
         public string? SearchTerm { get; set; }
@@ -25,26 +27,19 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
         [BindProperty(SupportsGet = true)]
         public string? StatusFilter { get; set; }
 
-        // --- PAGINATION ---
         [BindProperty(SupportsGet = true)]
         public int PageNumber { get; set; } = 1;
 
         [BindProperty(SupportsGet = true)]
-        public int PageSize { get; set; } = 50;
-
-        public int TotalCount { get; set; }
-        public int TotalPages { get; set; }
+        public int PageSize { get; set; } = 10;
 
         public void OnGet()
         {
-            if (PageNumber < 1) PageNumber = 1;
-            if (PageSize < 1) PageSize = 10;
-
             var query = _context.UserGroups
                 .Include(g => g.Creator)
+                .OrderBy(g => g.Name)
                 .AsQueryable();
 
-            // Search filter
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
                 query = query.Where(g =>
@@ -52,23 +47,14 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                     (g.Description != null && g.Description.Contains(SearchTerm)));
             }
 
-            if (!string.IsNullOrWhiteSpace(StatusFilter) && StatusFilter != "All")
-            {
-                // query = query.Where(g => g.IsActive == (StatusFilter == "Active"));
-            }
+            // One-liner pagination
+            var result = query.Paginate(PageNumber, PageSize, "user groups");
 
-            // Total counts
-            TotalCount = query.Count();
-            TotalPages = (int)Math.Ceiling(TotalCount / (double)PageSize);
+            UserGroups = result.Items;
+            Pagination = result.Pagination;
 
-            if (TotalPages > 0 && PageNumber > TotalPages) PageNumber = TotalPages;
-
-            // Apply paging
-            UserGroups = query
-                .OrderBy(g => g.Name)
-                .Skip((PageNumber - 1) * PageSize)
-                .Take(PageSize)
-                .ToList();
+            // 👇 Apply display numbers to the current page
+            _context.ApplyUserGroupNumbers(UserGroups);
         }
     }
 }

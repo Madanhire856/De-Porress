@@ -1,0 +1,64 @@
+﻿@model SMS.Web.Pages.Shared.Pagination.PaginationInfo
+
+@{
+    var currentPath = Context.Request.Path.Value ?? "";
+
+    // Preserve any existing query string (search, filter, etc.) — only swap PageNumber/PageSize
+    var existingQuery = Context.Request.Query
+        .Where(kvp => kvp.Key != "PageNumber"
+                   && kvp.Key != "PageSize"
+                   && !string.IsNullOrEmpty(kvp.Value))
+        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString());
+
+    string BuildUrl(int pageNumber)
+    {
+        var dict = new Dictionary<string, string>(existingQuery)
+        {
+            ["PageNumber"] = pageNumber.ToString(),
+            ["PageSize"] = Model.PageSize.ToString()
+        };
+        var qs = string.Join("&",
+            dict.Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value)}"));
+        return string.IsNullOrEmpty(qs) ? currentPath : $"{currentPath}?{qs}";
+    }
+}
+
+<div class="table-pagination">
+    <div class="pagination-info">
+        @if (Model.TotalCount == 0)
+        {
+            <span>No @Model.ItemName to display.</span>
+        }
+        else
+        {
+            <span>
+                Showing
+                <strong>@Model.FirstItemNumber</strong>
+                –
+                <strong>@Model.LastItemNumber</strong>
+                of
+                <strong>@Model.TotalCount</strong> @Model.ItemName.
+            </span>
+        }
+    </div>
+
+    <nav class="pagination-nav">
+        <a class="page-link @(Model.HasPrevious ? "" : "disabled")"
+           href="@BuildUrl(Model.PageNumber - 1)">
+            <i class="fa-solid fa-chevron-left"></i>
+        </a>
+
+        @for (int i = 1; i <= Math.Max(Model.TotalPages, 1); i++)
+        {
+            <a class="page-link @(i == Model.PageNumber ? "active" : "")"
+               href="@BuildUrl(i)">
+                @i
+            </a>
+        }
+
+        <a class="page-link @(Model.HasNext ? "" : "disabled")"
+           href="@BuildUrl(Model.PageNumber + 1)">
+            <i class="fa-solid fa-chevron-right"></i>
+        </a>
+    </nav>
+</div>

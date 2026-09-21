@@ -1,4 +1,146 @@
 ﻿@page
+@using SMS.Lib
 @model SMS.Web.Areas.Config.Pages.Users.IndexModel
 @{
+    ViewData["Title"] = "Users";
+    ViewData["PageTitle"] = "Users";
+    ViewData["PageSubTitle"] = "Manage system users and their access";
+}
+
+@section actionbar {
+    <a asp-page="./Upsert" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> Create
+    </a>
+}
+
+<div class="table-card">
+
+    <!-- Record count on top -->
+    <div class="table-count">
+        <i class="fa-solid fa-list-ul me-2"></i>
+        Total: <strong>@Model.Pagination.TotalCount</strong>
+        @(Model.Pagination.TotalCount == 1 ? "user" : "users")
+    </div>
+
+    <form method="get" class="table-toolbar" id="filterForm">
+        <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text"
+                   asp-for="SearchTerm"
+                   class="search-input"
+                   placeholder="Search users..."
+                   id="searchInput"
+                   autocomplete="off" />
+        </div>
+        <div class="filter-wrapper">
+            <select asp-for="StatusFilter" class="filter-dropdown" id="statusFilter">
+                <option value="All">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+        </div>
+        <input type="hidden" asp-for="PageSize" />
+        <input type="hidden" asp-for="PageNumber" value="1" id="pageNumberHidden" />
+    </form>
+
+    <table class="data-table table-compact">
+        <thead>
+            <tr>
+                <th>USR ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Created By</th>
+                <th>Date Created</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Users.Any())
+            {
+                @foreach (var user in Model.Users)
+                {
+                    <tr>
+                        <td>
+                            <a asp-area="Config"
+                               asp-page="/Users/Details"
+                               asp-route-id="@user.Id"
+                               class="reg-link">
+                                @user.UserNumber
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </td>
+                        <td>@(string.IsNullOrEmpty(user.Name) ? "—" : user.Name)</td>
+                        <td>@user.Email</td>
+                        <td>@user.GetRoleDisplayName()</td>
+                        <td>
+                            @if (user.CreatorId.HasValue && Model.CreatorEmails.TryGetValue(user.CreatorId.Value, out var email))
+                            {
+                                @email
+                            }
+                            else
+                            {
+                                <span class="sponsor-empty">System Generated</span>
+                            }
+                        </td>
+                        <td>@user.CreationDate.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            @if (user.IsActive)
+                            {
+                                <span class="status-badge status-active">Active</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge status-overdue">Inactive</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="empty-state">No users found matching your criteria.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <partial name="~/Pages/Shared/Pagination/_pagination.cshtml" model="Model.Pagination" />
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const form = document.getElementById('filterForm');
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            const pageNumberHidden = document.getElementById('pageNumberHidden');
+
+            if (!form || !searchInput || !statusFilter) return;
+
+            // --- Instant search with debounce ---
+            let debounceTimer = null;
+            const DEBOUNCE_MS = 400; 
+
+            searchInput.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () {
+                    if (pageNumberHidden) pageNumberHidden.value = '1';
+                    form.submit();
+                }, DEBOUNCE_MS);
+            });
+
+            statusFilter.addEventListener('change', function () {
+                if (pageNumberHidden) pageNumberHidden.value = '1';
+                form.submit();
+            });
+
+            if (searchInput.value) {
+                searchInput.focus();
+                const len = searchInput.value.length;
+                searchInput.setSelectionRange(len, len);
+            }
+        })();
+    </script>
 }

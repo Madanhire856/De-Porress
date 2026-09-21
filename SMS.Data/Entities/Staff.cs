@@ -7,9 +7,9 @@ public partial class Staff
 {
     public Guid Id { get; set; }
 
-    public Guid UserId { get; set; }
+    public Guid? UserId { get; set; }
 
-    public string EcNumber { get; set; } = null!;
+    public string? EcNumber { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -43,5 +43,5 @@ public partial class Staff
 
     public virtual ICollection<TeacherSubject> TeacherSubjects { get; set; } = new List<TeacherSubject>();
 
-    public virtual User User { get; set; } = null!;
+    public virtual User? User { get; set; }
 }

@@ -538,7 +538,6 @@ public partial class SMSDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.Staff)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Staff_User");
         });
 
@@ -719,6 +718,10 @@ public partial class SMSDbContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("Password_Hash");
             entity.Property(e => e.SecurityStamp).HasMaxLength(256);
+
+            entity.HasOne(d => d.Group).WithMany(p => p.Users)
+                .HasForeignKey(d => d.GroupId)
+                .HasConstraintName("FK_User_UserGroup");
         });
 
         modelBuilder.Entity<UserGroup>(entity =>

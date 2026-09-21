@@ -1104,8 +1104,8 @@ namespace SMS.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("GroupId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("GroupId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -1144,10 +1144,12 @@ namespace SMS.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<bool>("TwoFactorAuthEnabled")
+                    b.Property<bool?>("TwoFactorAuthEnabled")
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
 
                     b.ToTable("User", (string)null);
                 });
@@ -1676,6 +1678,16 @@ namespace SMS.Data.Migrations
                     b.Navigation("Creator");
                 });
 
+            modelBuilder.Entity("SMS.Data.User", b =>
+                {
+                    b.HasOne("SMS.Data.UserGroup", "Group")
+                        .WithMany("Users")
+                        .HasForeignKey("GroupId")
+                        .HasConstraintName("FK_User_UserGroup");
+
+                    b.Navigation("Group");
+                });
+
             modelBuilder.Entity("SMS.Data.UserGroup", b =>
                 {
                     b.HasOne("SMS.Data.User", "Creator")
@@ -1833,6 +1845,11 @@ namespace SMS.Data.Migrations
                     b.Navigation("UserGroups");
 
                     b.Navigation("Villages");
+                });
+
+            modelBuilder.Entity("SMS.Data.UserGroup", b =>
+                {
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("SMS.Data.Village", b =>
