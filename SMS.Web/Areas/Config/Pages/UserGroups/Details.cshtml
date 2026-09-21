@@ -7,177 +7,147 @@
 }
 
 @section actionbar {
-    <a asp-page="./Upsert" asp-route-id="@Model.UserGroup.Id" class="btn btn-outline">
+    <a asp-page="./Upsert" asp-route-id="@Model.UserGroup.Id" class="btn btn-secondary">
         <i class="fa-solid fa-pen-to-square"></i> Edit
     </a>
-    <a asp-page="./Index" class="btn btn-gold">
+    <a asp-page="./Index" class="btn btn-primary">
         <i class="fa-solid fa-arrow-left"></i> Back to List
     </a>
 }
 
-<!-- ===== PROFILE CARD ===== -->
-<div class="profile-card">
-    <div class="profile-avatar">
-        <i class="fa-solid fa-users"></i>
-    </div>
-    <div class="profile-info">
-        <h2 class="profile-name">@Model.UserGroup.Name</h2>
-        <div class="profile-meta">
-            <span>Created @Model.UserGroup.CreationDate.ToString("dd MMM yyyy")</span>
-            @if (Model.UserGroup.Creator != null)
-            {
-                <span class="meta-sep">·</span>
-                <span>by @(!string.IsNullOrEmpty(Model.UserGroup.Creator.Name) 
-                            ? Model.UserGroup.Creator.Name 
-                            : Model.UserGroup.Creator.Email)</span>
-            }
-        </div>
-        <div class="profile-badges">
-            <span class="status-badge status-active">Active</span>
-            @if (Model.TotalRightsGranted > 0)
-            {
-                <span class="status-badge status-count">
-                    <i class="fa-solid fa-key"></i> @Model.TotalRightsGranted rights
-                </span>
-            }
-        </div>
-    </div>
-</div>
+<div class="details-compact">
 
-<!-- ===== TWO-COLUMN INFO GRID ===== -->
-<div class="info-grid">
-
-    <!-- LEFT: Group Information -->
-    <div class="info-card">
-        <div class="info-card-header">
-            <i class="fa-solid fa-circle-info"></i>
-            <span>Group Information</span>
+    <div class="profile-card">
+        <div class="profile-avatar">
+            <i class="fa-solid fa-users"></i>
         </div>
-
-        <div class="info-row">
-            <div class="info-label">
-                <i class="fa-solid fa-tag"></i>
-                Group Name
-            </div>
-            <div class="info-value">@Model.UserGroup.Name</div>
-        </div>
-
-        <div class="info-row">
-            <div class="info-label">
-                <i class="fa-solid fa-align-left"></i>
-                Description
-            </div>
-            <div class="info-value">
-                @if (string.IsNullOrEmpty(Model.UserGroup.Description))
-                {
-                    <span class="sponsor-empty">—</span>
-                }
-                else
-                {
-                    @Model.UserGroup.Description
-                }
-            </div>
-        </div>
-
-        <div class="info-row">
-            <div class="info-label">
-                <i class="fa-solid fa-user"></i>
-                Created By
-            </div>
-            <div class="info-value">
+        <div class="profile-info">
+            <h2 class="profile-name">@Model.UserGroup.Name</h2>
+            <div class="profile-meta">
+                <span>Created @Model.UserGroup.CreationDate.ToString("dd MMM yyyy")</span>
                 @if (Model.UserGroup.Creator != null)
                 {
-                    @(!string.IsNullOrEmpty(Model.UserGroup.Creator.Name) 
-                        ? Model.UserGroup.Creator.Name 
-                        : Model.UserGroup.Creator.Email)
+                    <span class="meta-sep">·</span>
+                    <span>by @(!string.IsNullOrEmpty(Model.UserGroup.Creator.Name) 
+                                ? Model.UserGroup.Creator.Name 
+                                : Model.UserGroup.Creator.Email)</span>
                 }
-                else
+            </div>
+            <div class="profile-badges">
+                <span class="status-badge status-active">Active</span>
+                @if (Model.TotalRightsGranted > 0)
                 {
-                    <span class="sponsor-empty">—</span>
+                    <span class="status-badge status-count">
+                        <i class="fa-solid fa-key"></i> @Model.TotalRightsGranted rights
+                    </span>
                 }
             </div>
-        </div>
-
-        <div class="info-row">
-            <div class="info-label">
-                <i class="fa-solid fa-envelope"></i>
-                Creator Email
-            </div>
-            <div class="info-value">
-                @if (Model.UserGroup.Creator != null)
-                {
-                    @Model.UserGroup.Creator.Email
-                }
-                else
-                {
-                    <span class="sponsor-empty">—</span>
-                }
-            </div>
-        </div>
-
-        <div class="info-row">
-            <div class="info-label">
-                <i class="fa-solid fa-calendar"></i>
-                Created On
-            </div>
-            <div class="info-value">@Model.UserGroup.CreationDate.ToString("dd MMM yyyy, HH:mm")</div>
-        </div>
-
-        <div class="info-row">
-            <div class="info-label">
-                <i class="fa-solid fa-fingerprint"></i>
-                Group ID
-            </div>
-            <div class="info-value info-value-mono">@Model.UserGroup.Id</div>
         </div>
     </div>
 
-    <!-- RIGHT: Access Rights -->
-    <div class="info-card">
-        <div class="info-card-header">
-            <i class="fa-solid fa-key"></i>
-            <span>Access Rights</span>
-            <span class="info-card-badge">@Model.TotalRightsGranted / @Model.TotalPossibleRights</span>
-        </div>
+    <div class="info-grid">
 
-        @if (Model.TotalRightsGranted == 0)
-        {
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Group Information</span>
+            </div>
+
             <div class="info-row">
                 <div class="info-label">
-                    <i class="fa-solid fa-ban"></i>
-                    Rights
+                    <i class="fa-solid fa-tag"></i>
+                    Group Name
+                </div>
+                <div class="info-value">@Model.UserGroup.Name</div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fa-solid fa-align-left"></i>
+                    Description
                 </div>
                 <div class="info-value">
-                    <span class="sponsor-empty">No rights assigned to this group</span>
-                </div>
-            </div>
-        }
-        else
-        {
-            @foreach (var cat in Model.RightsByCategory)
-            {
-                <div class="rights-block">
-                    <div class="rights-block-header">
-                        <i class="fa-solid @cat.Icon"></i>
-                        <span>@cat.Title</span>
-                        <span class="rights-block-count @(cat.Granted.Count == 0 ? "is-empty" : "")">
-                            @cat.Granted.Count / @cat.Total
-                        </span>
-                    </div>
-                    @if (cat.Granted.Count > 0)
+                    @if (string.IsNullOrEmpty(Model.UserGroup.Description))
                     {
-                        <div class="rights-pills">
-                            @foreach (var r in cat.Granted)
-                            {
-                                <span class="right-pill">
-                                    <i class="fa-solid fa-check"></i> @r
-                                </span>
-                            }
-                        </div>
+                        <span class="sponsor-empty">—</span>
+                    }
+                    else
+                    {
+                        @Model.UserGroup.Description
                     }
                 </div>
-            }
-        }
-    </div>
+            </div>
 
+
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fa-solid fa-envelope"></i>
+                    Created By
+                </div>
+                <div class="info-value">
+
+                        @Model.UserGroup.Creator.Email
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fa-solid fa-calendar"></i>
+                    Creation Date
+                </div>
+                <div class="info-value">@Model.UserGroup.CreationDate.ToString("dd MMM yyyy, HH:mm")</div>
+            </div>
+
+           
+        </div>
+
+        <!-- RIGHT: Access Rights -->
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="fa-solid fa-key"></i>
+                <span>Access Rights</span>
+                <span class="info-card-badge">@Model.TotalRightsGranted / @Model.TotalPossibleRights</span>
+            </div>
+
+            @if (Model.TotalRightsGranted == 0)
+            {
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-ban"></i>
+                        Rights
+                    </div>
+                    <div class="info-value">
+                        <span class="sponsor-empty">No rights assigned to this group</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                @foreach (var cat in Model.RightsByCategory)
+                {
+                    <div class="rights-block">
+                        <div class="rights-block-header">
+                            <i class="fa-solid @cat.Icon"></i>
+                            <span>@cat.Title</span>
+                            <span class="rights-block-count @(cat.Granted.Count == 0 ? "is-empty" : "")">
+                                @cat.Granted.Count / @cat.Total
+                            </span>
+                        </div>
+                        @if (cat.Granted.Count > 0)
+                        {
+                            <div class="rights-pills">
+                                @foreach (var r in cat.Granted)
+                                {
+                                    <span class="right-pill">
+                                        <i class="fa-solid fa-check"></i> @r
+                                    </span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+
+    </div>
 </div>

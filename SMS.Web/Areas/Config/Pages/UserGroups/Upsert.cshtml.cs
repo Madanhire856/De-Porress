@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace SMS.Web.Areas.Config.Pages.UserGroups
 {
@@ -15,7 +16,7 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
     public class UpsertModel : PageModel
     {
         private readonly SMSDbContext _context;
-        private readonly ICurrentUserService _currentUser;   // ✅ Interface, not the concrete class
+        private readonly ICurrentUserService _currentUser;
 
         public UpsertModel(SMSDbContext context, ICurrentUserService currentUser)
         {
@@ -45,7 +46,7 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                 {
                     Id = Guid.NewGuid(),
                     CreationDate = DateTime.UtcNow,
-                    CreatorId = _currentUser.UserId ?? Guid.Empty   // ✅ Safe null-coalescing
+                    CreatorId = _currentUser.UserId ?? Guid.Empty
                 };
                 return;
             }
@@ -73,7 +74,7 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
             }
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync(Guid id)
         {
             ModelState.Remove("UserGroupVM.Creator");
             RightsCategories = RightsCatalog.GetCategories();
@@ -98,7 +99,7 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
             {
                 // INSERT
                 UserGroupVM.CreationDate = DateTime.UtcNow;
-                UserGroupVM.CreatorId = _currentUser.UserId ?? Guid.Empty; 
+                UserGroupVM.CreatorId = _currentUser.UserId ?? Guid.Empty;
                 _context.UserGroups.Add(UserGroupVM);
             }
             else
@@ -110,8 +111,11 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                 // Do NOT touch CreatorId or CreationDate on update
             }
 
+            // ✅ Save once for both Insert and Update
             await _context.SaveChangesAsync();
-            return RedirectToPage("./Index");
+
+            // ✅ Redirect once, using UserGroupVM.Id (works for both new and existing records)
+            return RedirectToPage("./Details", new { area = "Config", id = UserGroupVM.Id });
         }
     }
 }

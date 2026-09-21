@@ -7,10 +7,14 @@
 }
 
 @section actionbar {
-    <button class="btn btn-gold">
+    <a asp-page="./Upsert" class="btn btn-primary">
         <i class="fa-solid fa-plus"></i> Create
-    </button>
+    </a>
 }
+
+<div class="table-count">
+    Showing @(Model.UserGroups?.Count ?? 0) user groups.
+</div>
 
 <div class="table-card">
     <!-- Table Toolbar (Search & Filter) -->
@@ -28,7 +32,8 @@
         </div>
     </form>
 
-    <table class="data-table">
+    <!-- Added 'table-compact' class here -->
+    <table class="data-table table-compact">
         <thead>
             <tr>
                 <th>Group Name</th>
@@ -87,7 +92,4 @@
             }
         </tbody>
     </table>
-    <div class="table-footer">
-        Showing @(Model.UserGroups?.Count ?? 0) user groups. Click a group name to view full details.
-    </div>
 </div>

@@ -372,33 +372,37 @@ body {
         font-size: 0.85rem;
     }
 
-.btn-outline {
+/* Primary — main action */
+.btn-primary {
+    background-color: var(--sms-gold);
+    color: #FFFFFF;
+}
+
+    .btn-primary:hover {
+        background-color: var(--sms-gold-hover);
+    }
+
+/* Secondary — default / outline action */
+.btn-secondary {
     background-color: #FFFFFF;
     border-color: #D1D5DB;
     color: #374151;
 }
 
-    .btn-outline:hover {
+    .btn-secondary:hover {
         background-color: #F9FAFB;
         border-color: #9CA3AF;
+        color: #374151;
     }
 
-.btn-gold {
-    background-color: var(--sms-gold);
-    color: #FFFFFF;
-}
-
-    .btn-gold:hover {
-        background-color: var(--sms-gold-hover);
-    }
-
-.btn-ghost {
+/* Tertiary — low emphasis / dark surface action */
+.btn-tertiary {
     background-color: transparent;
     border-color: rgba(255, 255, 255, 0.4);
     color: #FFFFFF;
 }
 
-    .btn-ghost:hover {
+    .btn-tertiary:hover {
         background-color: rgba(255, 255, 255, 0.1);
         border-color: rgba(255, 255, 255, 0.7);
     }
@@ -415,11 +419,17 @@ body {
     border: 1px solid var(--sms-border);
 }
 
+/* --- TABLE PADDING MODIFIERS --- */
+.data-table.table-compact th,
+.data-table.table-compact td {
+    padding: 0.3rem 0.65rem;
+}
+
 .table-toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.5rem;
+    padding: 1rem 0.65rem;
     border-bottom: 1px solid var(--sms-border);
     background-color: #FFFFFF;
     gap: 1rem;
@@ -489,30 +499,37 @@ body {
     text-align: left;
 }
 
-    .data-table th {
-        padding: 1rem 1.5rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        color: var(--sms-text-muted);
-        border-bottom: 1px solid var(--sms-border);
-        letter-spacing: 0.05em;
-    }
+.table-count {
+    padding: 1rem 0.65rem;
+    font-size: 0.875rem;
+    color: var(--sms-text-muted);
+    background-color: #F9FAFB;
+}
 
-    .data-table td {
-        padding: 1rem 1.5rem;
-        font-size: 0.875rem;
-        color: var(--sms-text-main);
-        border-bottom: 1px solid var(--sms-border);
-    }
+.data-table th {
+    padding: 1rem 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--sms-text-muted);
+    border-bottom: 1px solid var(--sms-border);
+    letter-spacing: 0.05em;
+}
 
-    .data-table tbody tr:last-child td {
-        border-bottom: none;
-    }
+.data-table td {
+    padding: 1rem 1.5rem;
+    font-size: 0.875rem;
+    color: var(--sms-text-main);
+    border-bottom: 1px solid var(--sms-border);
+}
 
-    .data-table tbody tr:hover td {
-        background-color: #F9FAFB;
-    }
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tbody tr:hover td {
+    background-color: #F9FAFB;
+}
 
 .reg-link {
     color: #0066CC;
@@ -559,14 +576,6 @@ body {
 .status-overdue {
     background-color: var(--status-overdue-bg);
     color: var(--status-overdue-text);
-}
-
-.table-footer {
-    padding: 1rem 1.5rem;
-    font-size: 0.875rem;
-    color: var(--sms-text-muted);
-    border-top: 1px solid var(--sms-border);
-    background-color: #F9FAFB;
 }
 
 /* ==========================================================
@@ -787,7 +796,7 @@ textarea.form-control {
     border-radius: 6px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border: 1px solid var(--sms-border);
-    padding: 1.75rem 2rem;
+    padding: 1.7rem 2rem;
     display: flex;
     align-items: center;
     gap: 1.5rem;
@@ -1006,6 +1015,49 @@ textarea.form-control {
     .right-pill i {
         font-size: 0.6rem;
     }
+
+/* --- DETAILS PAGE PADDING MODIFIERS --- */
+.details-compact .profile-card {
+    padding: 0.5rem 1rem;
+}
+
+.details-compact .info-card-header {
+    padding: 0.3rem 1rem;
+}
+
+.details-compact .info-row {
+    padding: 0.5rem 1rem;
+}
+
+.details-compact .rights-block {
+    padding: 0.5rem 0.65rem;
+}
+
+/* --- INFO CARD FOOTER (Creation Info) --- */
+.info-card-footer {
+    justify-content: space-between;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.875rem;
+    color: var(--sms-text-muted);
+    background-color: #F9FAFB;
+    border-top: 1px solid var(--sms-border);
+}
+
+    .info-card-footer strong {
+        color: var(--sms-text-main);
+        font-weight: 600;
+        margin-left: 0.25rem;
+    }
+
+    .info-card-footer div {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+.details-compact .info-card-footer {
+    padding: 0.5rem 1rem;
+}
 
 /* ==========================================================
    PUBLIC LANDING PAGE
@@ -1595,6 +1647,13 @@ textarea.form-control {
     .right-pill {
         font-size: 0.7rem;
         padding: 0.2rem 0.5rem;
+    }
+
+    /* ---- Info Card Footer (Mobile) ---- */
+    .info-card-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
     }
 
     /* ---- Landing Page ---- */
