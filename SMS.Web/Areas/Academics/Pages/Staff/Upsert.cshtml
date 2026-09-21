@@ -1,5 +1,5 @@
 ﻿@page "{id:guid?}"
-@model SMS.Web.Areas.Config.Pages.Staff.UpsertModel
+@model SMS.Web.Areas.Academics.Pages.Staff.UpsertModel
 @{
     ViewData["PageTitle"] = Model.staff.EcNumber != null ? "Edit Staff" : "Add Staff";
     ViewData["PageSubTitle"] = "Create or modify a staff member's record";
@@ -142,7 +142,6 @@
         </div>
 
         <div class="card-footer">
-          
             <button type="submit" class="btn btn-primary">
                 <i class="fa-solid fa-floppy-disk"></i>
                 @(Model.staff.EcNumber != null ? "Save Changes" : "Create Staff")

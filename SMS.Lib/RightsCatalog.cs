@@ -33,130 +33,130 @@ namespace SMS.Lib
                 },
                 new RightCategory
                 {
-                    Title = "Configuration",
-                    Icon = "fa-cogs",
+                    Title = "System",
+                    Icon = "fa-server",
                     Rights = new()
                     {
-                        new() { Right = AccessRights.ConfigClasses,  DisplayName = "Configure Classes" },
-                        new() { Right = AccessRights.ConfigStaff,    DisplayName = "Configure Staff" },
-                        new() { Right = AccessRights.ConfigFees,     DisplayName = "Configure Fees" },
-                        new() { Right = AccessRights.ConfigMass,     DisplayName = "Configure Mass & Liturgy" },
-                        new() { Right = AccessRights.ConfigSports,   DisplayName = "Configure Sports" },
-                        new() { Right = AccessRights.ConfigSyllabus, DisplayName = "Configure Syllabus Repository" },
-                        new() { Right = AccessRights.ConfigSystem,   DisplayName = "System Configuration" }
+                        new() { Right = AccessRights.SystemSettings,   DisplayName = "System Settings" },
+                        new() { Right = AccessRights.ViewAuditLogs,    DisplayName = "View Audit Logs" },
+                        new() { Right = AccessRights.CreateBackups,    DisplayName = "Create Backups" },
+                        new() { Right = AccessRights.RestoreBackups,   DisplayName = "Restore Backups" },
+                        new() { Right = AccessRights.DeleteBackups,    DisplayName = "Delete Backups" },
+                        new() { Right = AccessRights.TriggerSync,      DisplayName = "Trigger Sync" },
+                        new() { Right = AccessRights.ConfigureSync,    DisplayName = "Configure Sync" }
                     }
                 },
                 new RightCategory
                 {
-                    Title = "Academics & Learners",
-                    Icon = "fa-user-graduate",
+                    Title = "Users",
+                    Icon = "fa-users",
                     Rights = new()
                     {
-                        new() { Right = AccessRights.ViewLearners,       DisplayName = "View Learners" },
-                        new() { Right = AccessRights.EditLearners,       DisplayName = "Edit Learners" },
-                        new() { Right = AccessRights.MarkAttendance,     DisplayName = "Mark Attendance" },
-                        new() { Right = AccessRights.GenerateReportCards,DisplayName = "Generate Report Cards" },
-                        new() { Right = AccessRights.ViewAllClasses,     DisplayName = "View All Classes" },
-                        new() { Right = AccessRights.ViewOwnClass,       DisplayName = "View Own Class Only" },
-                        new() { Right = AccessRights.ProcessPromotions,  DisplayName = "Process Promotions" },
-                        new() { Right = AccessRights.ProcessTransfers,   DisplayName = "Process Transfers" }
+                        new() { Right = AccessRights.ViewUsers,   DisplayName = "View Users" },
+                        new() { Right = AccessRights.CreateUsers, DisplayName = "Create Users" },
+                        new() { Right = AccessRights.EditUsers,   DisplayName = "Edit Users" }
                     }
                 },
                 new RightCategory
                 {
-                    Title = "Fees & Finance",
-                    Icon = "fa-hand-holding-usd",
-                    Rights = new()
-                    {
-                        new() { Right = AccessRights.ViewFeeBalances, DisplayName = "View Fee Balances" },
-                        new() { Right = AccessRights.RecordPayments,  DisplayName = "Record Payments" },
-                        new() { Right = AccessRights.GenerateInvoices,DisplayName = "Generate Invoices" },
-                        new() { Right = AccessRights.WaiveFees,       DisplayName = "Waive Fees" },
-                        new() { Right = AccessRights.ViewFeeReports,  DisplayName = "View Fee Reports" }
-                    }
-                },
-                new RightCategory
-                {
-                    Title = "Mass & Liturgy",
-                    Icon = "fa-church",
-                    Rights = new()
-                    {
-                        new() { Right = AccessRights.ViewMassSchedule,          DisplayName = "View Mass Schedule" },
-                        new() { Right = AccessRights.CreateMassRota,            DisplayName = "Create Mass Rota" },
-                        new() { Right = AccessRights.EditMassRota,              DisplayName = "Edit Mass Rota" },
-                        new() { Right = AccessRights.DeleteMassRota,            DisplayName = "Delete Mass Rota" },
-                        new() { Right = AccessRights.RecordSacraments,          DisplayName = "Record Sacraments" },
-                        new() { Right = AccessRights.CreateLiturgicalCalendar,  DisplayName = "Create Liturgical Calendar" },
-                        new() { Right = AccessRights.EditLiturgicalCalendar,    DisplayName = "Edit Liturgical Calendar" },
-                        new() { Right = AccessRights.DeleteLiturgicalCalendar,  DisplayName = "Delete Liturgical Calendar" }
-                    }
-                },
-                new RightCategory
-                {
-                    Title = "Sports & Co-Curricular",
-                    Icon = "fa-futbol",
-                    Rights = new()
-                    {
-                        new() { Right = AccessRights.ViewSports,           DisplayName = "View Sports" },
-                        new() { Right = AccessRights.CreateSportsEvents,   DisplayName = "Create Sports Events" },
-                        new() { Right = AccessRights.EditSportsEvents,     DisplayName = "Edit Sports Events" },
-                        new() { Right = AccessRights.DeleteSportsEvents,   DisplayName = "Delete Sports Events" },
-                        new() { Right = AccessRights.RecordSportsResults,  DisplayName = "Record Sports Results" },
-                        new() { Right = AccessRights.CreateEquipment,      DisplayName = "Create Equipment" },
-                        new() { Right = AccessRights.EditEquipment,        DisplayName = "Edit Equipment" },
-                        new() { Right = AccessRights.DeleteEquipment,      DisplayName = "Delete Equipment" },
-                        new() { Right = AccessRights.CheckoutEquipment,    DisplayName = "Checkout Equipment" }
-                    }
-                },
-                new RightCategory
-                {
-                    Title = "Syllabus Repository",
-                    Icon = "fa-book",
-                    Rights = new()
-                    {
-                        new() { Right = AccessRights.UploadSyllabus, DisplayName = "Upload Syllabus" },
-                        new() { Right = AccessRights.ViewSyllabus,   DisplayName = "View Syllabus" }
-                    }
-                },
-                new RightCategory
-                {
-                    Title = "AI Features",
-                    Icon = "fa-robot",
-                    Rights = new()
-                    {
-                        new() { Right = AccessRights.UseLessonNotes, DisplayName = "Use AI Lesson Notes" }
-                    }
-                },
-                new RightCategory
-                {
-                    Title = "User Management",
+                    Title = "User Groups",
                     Icon = "fa-users-cog",
                     Rights = new()
                     {
-                        new() { Right = AccessRights.CreateUsers,    DisplayName = "Create Users" },
-                        new() { Right = AccessRights.EditUsers,      DisplayName = "Edit Users" },
-                        new() { Right = AccessRights.DeleteUsers,    DisplayName = "Delete Users" },
-                        new() { Right = AccessRights.ViewUsers,      DisplayName = "View Users" },
-                        new() { Right = AccessRights.ResetPasswords, DisplayName = "Reset Passwords" }
+                        new() { Right = AccessRights.ViewUserGroups,   DisplayName = "View User Groups" },
+                        new() { Right = AccessRights.CreateUserGroups, DisplayName = "Create User Groups" },
+                        new() { Right = AccessRights.EditUserGroups,   DisplayName = "Edit User Groups" }
                     }
                 },
                 new RightCategory
                 {
-                    Title = "Welfare & Pastoral",
-                    Icon = "fa-heart",
+                    Title = "Staff",
+                    Icon = "fa-user-tie",
                     Rights = new()
                     {
-                        new() { Right = AccessRights.ViewWelfareData, DisplayName = "View Welfare Data" }
+                        new() { Right = AccessRights.ViewStaff,   DisplayName = "View Staff" },
+                        new() { Right = AccessRights.CreateStaff, DisplayName = "Create Staff" },
+                        new() { Right = AccessRights.EditStaff,   DisplayName = "Edit Staff" }
                     }
                 },
                 new RightCategory
                 {
-                    Title = "Reports",
-                    Icon = "fa-chart-bar",
+                    Title = "Grades",
+                    Icon = "fa-layer-group",
                     Rights = new()
                     {
-                        new() { Right = AccessRights.ViewSchoolReports, DisplayName = "View School Reports" },
-                        new() { Right = AccessRights.ExportReports,     DisplayName = "Export Reports" }
+                        new() { Right = AccessRights.ViewGrades,   DisplayName = "View Grades" },
+                        new() { Right = AccessRights.CreateGrades, DisplayName = "Create Grades" },
+                        new() { Right = AccessRights.EditGrades,   DisplayName = "Edit Grades" }
+                    }
+                },
+                new RightCategory
+                {
+                    Title = "Classes",
+                    Icon = "fa-chalkboard",
+                    Rights = new()
+                    {
+                        new() { Right = AccessRights.ViewClasses,   DisplayName = "View Classes" },
+                        new() { Right = AccessRights.CreateClasses, DisplayName = "Create Classes" },
+                        new() { Right = AccessRights.EditClasses,   DisplayName = "Edit Classes" }
+                    }
+                },
+                new RightCategory
+                {
+                    Title = "Subjects",
+                    Icon = "fa-book",
+                    Rights = new()
+                    {
+                        new() { Right = AccessRights.ViewSubjects,   DisplayName = "View Subjects" },
+                        new() { Right = AccessRights.CreateSubjects, DisplayName = "Create Subjects" },
+                        new() { Right = AccessRights.EditSubjects,   DisplayName = "Edit Subjects" }
+                    }
+                },
+                new RightCategory
+                    {
+                        Title = "Terms",
+                        Icon = "fa-calendar",
+                        Rights = new()
+                        {
+                            new() { Right = AccessRights.ViewTerms,   DisplayName = "View Terms" },
+                            new() { Right = AccessRights.CreateTerms, DisplayName = "Create Terms" },
+                            new() { Right = AccessRights.EditTerms,   DisplayName = "Edit Terms" }
+                        }
+                    },
+
+                new RightCategory
+                {
+                    Title = "Currencies",
+                    Icon = "fa-coins",
+                    Rights = new()
+                    {
+                        new() { Right = AccessRights.ViewCurrencies,   DisplayName = "View Currencies" },
+                        new() { Right = AccessRights.CreateCurrencies, DisplayName = "Create Currencies" },
+                        new() { Right = AccessRights.EditCurrencies,   DisplayName = "Edit Currencies" }
+                    }
+                },
+                new RightCategory
+                {
+                    Title = "Timetable",
+                    Icon = "fa-calendar-alt",
+                    Rights = new()
+                    {
+                        new() { Right = AccessRights.ViewTimetable,   DisplayName = "View Timetable" },
+                        new() { Right = AccessRights.CreateTimetable, DisplayName = "Create Timetable" },
+                        new() { Right = AccessRights.EditTimetable,   DisplayName = "Edit Timetable" }
+                    }
+                },
+                new RightCategory
+                {
+                    Title = "Learners",
+                    Icon = "fa-user-graduate",
+                    Rights = new()
+                    {
+                        new() { Right = AccessRights.ViewLearners,        DisplayName = "View Learners" },
+                        new() { Right = AccessRights.CreateLearners,      DisplayName = "Create Learners" },
+                        new() { Right = AccessRights.EditLearners,        DisplayName = "Edit Learners" },
+                        new() { Right = AccessRights.MarkAttendance,      DisplayName = "Mark Attendance" },
+                        new() { Right = AccessRights.GenerateReportCards, DisplayName = "Generate Report Cards" }
                     }
                 },
                 new RightCategory
@@ -165,9 +165,33 @@ namespace SMS.Lib
                     Icon = "fa-shield-alt",
                     Rights = new()
                     {
+                        new() { Right = AccessRights.ViewHouses,   DisplayName = "View Houses" },
                         new() { Right = AccessRights.CreateHouses, DisplayName = "Create Houses" },
-                        new() { Right = AccessRights.EditHouses,   DisplayName = "Edit Houses" },
-                        new() { Right = AccessRights.DeleteHouses, DisplayName = "Delete Houses" }
+                        new() { Right = AccessRights.EditHouses,   DisplayName = "Edit Houses" }
+                    }
+                },
+                new RightCategory
+                {
+                    Title = "Villages",
+                    Icon = "fa-map-marker-alt",
+                    Rights = new()
+                    {
+                        new() { Right = AccessRights.ViewVillages,   DisplayName = "View Villages" },
+                        new() { Right = AccessRights.CreateVillages, DisplayName = "Create Villages" },
+                        new() { Right = AccessRights.EditVillages,   DisplayName = "Edit Villages" }
+                    }
+                },
+                new RightCategory
+                {
+                    Title = "Fees & Finance",
+                    Icon = "fa-hand-holding-usd",
+                    Rights = new()
+                    {
+                        new() { Right = AccessRights.ViewFeeBalances,  DisplayName = "View Fee Balances" },
+                        new() { Right = AccessRights.RecordPayments,   DisplayName = "Record Payments" },
+                        new() { Right = AccessRights.GenerateInvoices, DisplayName = "Generate Invoices" },
+                        new() { Right = AccessRights.WaiveFees,        DisplayName = "Waive Fees" },
+                        new() { Right = AccessRights.ViewFeeReports,   DisplayName = "View Fee Reports" }
                     }
                 },
                 new RightCategory
@@ -176,24 +200,18 @@ namespace SMS.Lib
                     Icon = "fa-handshake",
                     Rights = new()
                     {
+                        new() { Right = AccessRights.ViewSponsors,   DisplayName = "View Sponsors" },
                         new() { Right = AccessRights.CreateSponsors, DisplayName = "Create Sponsors" },
-                        new() { Right = AccessRights.EditSponsors,   DisplayName = "Edit Sponsors" },
-                        new() { Right = AccessRights.DeleteSponsors, DisplayName = "Delete Sponsors" }
+                        new() { Right = AccessRights.EditSponsors,   DisplayName = "Edit Sponsors" }
                     }
                 },
                 new RightCategory
                 {
-                    Title = "System Administration",
-                    Icon = "fa-server",
+                    Title = "Sponsorships",
+                    Icon = "fa-link",
                     Rights = new()
                     {
-                        new() { Right = AccessRights.ViewAuditLogs,    DisplayName = "View Audit Logs" },
-                        new() { Right = AccessRights.CreateBackups,    DisplayName = "Create Backups" },
-                        new() { Right = AccessRights.RestoreBackups,   DisplayName = "Restore Backups" },
-                        new() { Right = AccessRights.DeleteBackups,    DisplayName = "Delete Backups" },
-                        new() { Right = AccessRights.TriggerSync,      DisplayName = "Trigger Sync" },
-                        new() { Right = AccessRights.ConfigureSync,    DisplayName = "Configure Sync" },
-                        new() { Right = AccessRights.SystemSettings,   DisplayName = "System Settings" }
+                        new() { Right = AccessRights.ViewSponsorships, DisplayName = "View Sponsorships" }
                     }
                 }
             };

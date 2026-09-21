@@ -1,0 +1,55 @@
+﻿@page "{id:guid?}"
+@model SMS.Web.Areas.Config.Pages.Grades.UpsertModel
+@{
+    ViewData["PageTitle"] = Model.grade.Name != null ? "Edit Grade" : "Add Grade";
+    ViewData["PageSubTitle"] = "Create or modify a grade";
+}
+
+<form method="post" class="form-compact">
+    <div class="form-card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <input type="hidden" asp-for="grade.Id" />
+
+            <!-- ===== GRADE DETAILS ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-layer-group"></i> Grade Details
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="grade.Name">
+                        Grade Name <span class="required">*</span>
+                    </label>
+                    <input asp-for="grade.Name" class="form-control" placeholder="e.g. Grade 7" required />
+                    <span asp-validation-for="grade.Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="grade.GradeLevelId">
+                        Grade Level <span class="required">*</span>
+                    </label>
+                    <select asp-for="grade.GradeLevelId" asp-items="Model.Levels" class="form-control" required>
+                        <option value="">— Select level —</option>
+                    </select>
+                    <span asp-validation-for="grade.GradeLevelId" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+        
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i>
+                @(Model.grade.Name != null ? "Save Changes" : "Create Grade")
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

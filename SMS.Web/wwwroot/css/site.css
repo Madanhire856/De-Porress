@@ -209,6 +209,58 @@ body {
         font-weight: 600;
     }
 
+/* ==========================================================
+   NESTED SIDEBAR SUBGROUPS
+   ========================================================== */
+
+.sidebar-subgroup-toggle {
+    color: #A0AEC0;
+    padding: 0.5rem 1.5rem 0.5rem 2.2rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+    .sidebar-subgroup-toggle:hover {
+        color: #FFFFFF;
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-subgroup-toggle.active {
+        color: #FFFFFF;
+    }
+
+    .sidebar-subgroup-toggle .subgroup-chevron {
+        font-size: 0.65rem;
+        width: 12px;
+        text-align: center;
+        margin-right: 0.6rem;
+        transition: transform 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .sidebar-subgroup-toggle[aria-expanded="true"] .subgroup-chevron {
+        transform: rotate(90deg);
+    }
+
+/* Deeper indent for nested items under subgroups */
+.sidebar-subgroup .sidebar-sublink {
+    padding-left: 4rem;
+    font-size: 0.82rem;
+}
+
+/* Thin divider between groups */
+.sidebar-divider {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.08);
+    margin: 0.4rem 1rem;
+}
+
 .sidebar-bottom {
     border-top: 1px solid rgba(255,255,255,0.1);
     background-color: rgba(0,0,0,0.2);
@@ -1231,7 +1283,6 @@ textarea.form-control {
     overflow: hidden;
 }
 
-    /* Profile card inside the wrapper loses its own chrome */
     .details-single .profile-card {
         border: 0;
         border-radius: 0;
@@ -1240,7 +1291,6 @@ textarea.form-control {
         border-bottom: 1px solid var(--sms-border);
     }
 
-    /* Two-column body: no outer padding, columns pad themselves */
     .details-single .info-grid {
         padding: 0;
         gap: 0;
@@ -1254,12 +1304,10 @@ textarea.form-control {
         flex-direction: column;
     }
 
-        /* Divider between the two columns */
         .details-single .info-column + .info-column {
             border-left: 1px solid var(--sms-border);
         }
 
-    /* Column heading */
     .details-single .info-column-header {
         display: flex;
         align-items: center;
@@ -1279,12 +1327,10 @@ textarea.form-control {
             font-size: 0.8rem;
         }
 
-        /* Badge inside the column header — pushes to the right edge */
         .details-single .info-column-header .info-card-badge {
             margin-left: auto;
         }
 
-    /* Rows inside the columns */
     .details-single .info-row {
         padding: 0.6rem 1.5rem;
         border-bottom: 1px solid #F3F4F6;
@@ -1294,7 +1340,6 @@ textarea.form-control {
             border-bottom: none;
         }
 
-    /* Footer at the bottom of the card */
     .details-single .info-card-footer {
         display: flex;
         justify-content: space-between;
@@ -1319,7 +1364,6 @@ textarea.form-control {
             align-items: center;
         }
 
-/* Mobile — stack the columns */
 @media (max-width: 768px) {
     .details-single .info-grid {
         grid-template-columns: 1fr;

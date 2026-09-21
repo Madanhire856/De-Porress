@@ -296,7 +296,7 @@ namespace SMS.Data.Migrations
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("GradeLevel")
+                    b.Property<int>("GradeLevelId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -778,7 +778,6 @@ namespace SMS.Data.Migrations
                         .HasColumnType("datetime");
 
                     b.Property<string>("EcNumber")
-                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
@@ -809,7 +808,7 @@ namespace SMS.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -1557,7 +1556,6 @@ namespace SMS.Data.Migrations
                     b.HasOne("SMS.Data.User", "User")
                         .WithMany("Staff")
                         .HasForeignKey("UserId")
-                        .IsRequired()
                         .HasConstraintName("FK_Staff_User");
 
                     b.Navigation("User");

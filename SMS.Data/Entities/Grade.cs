@@ -9,7 +9,7 @@ public partial class Grade
 
     public string Name { get; set; } = null!;
 
-    public int GradeLevel { get; set; }
+    public int GradeLevelId { get; set; }
 
     public DateTime CreationDate { get; set; }
 

@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Text.RegularExpressions;
 
 namespace SMS.Web.Areas.Config.Pages.UserGroups
 {
@@ -34,11 +33,15 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
 
         public bool IsEditMode { get; set; }
 
-        public void OnGet(Guid? id)
+        public async Task<IActionResult> OnGetAsync(Guid? id)
         {
-            RightsCategories = RightsCatalog.GetCategories();
+            // ---- Rights guard ----
+            if (id == null && !_currentUser.HasRight(AccessRights.CreateUserGroups))
+                return Forbid();
+            if (id != null && !_currentUser.HasRight(AccessRights.EditUserGroups))
+                return Forbid();
 
-            // --- CREATE MODE ---
+            RightsCategories = RightsCatalog.GetCategories();
             if (id == null || id == Guid.Empty)
             {
                 IsEditMode = false;
@@ -48,18 +51,19 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                     CreationDate = DateTime.UtcNow,
                     CreatorId = _currentUser.UserId ?? Guid.Empty
                 };
-                return;
+                return Page();
             }
 
             // --- EDIT MODE ---
             IsEditMode = true;
-            var existing = _context.UserGroups.FirstOrDefault(g => g.Id == id);
+            var existing = await _context.UserGroups
+                .FirstOrDefaultAsync(g => g.Id == id);
 
-            if (existing == null) return;
+            if (existing == null)
+                return NotFound();
 
             UserGroupVM = existing;
 
-            // Unpack the bitmask into individual checkboxes
             if (existing.RightsId.HasValue)
             {
                 long rightsValue = existing.RightsId.Value;
@@ -72,10 +76,19 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                     }
                 }
             }
+
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(Guid id)
         {
+            // ---- Same guard on POST ----
+            bool isEdit = id != Guid.Empty;
+            if (!isEdit && !_currentUser.HasRight(AccessRights.CreateUserGroups))
+                return Forbid();
+            if (isEdit && !_currentUser.HasRight(AccessRights.EditUserGroups))
+                return Forbid();
+
             ModelState.Remove("UserGroupVM.Creator");
             RightsCategories = RightsCatalog.GetCategories();
 
@@ -85,7 +98,6 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                 return Page();
             }
 
-            // Combine all selected rights into a single long bitmask
             long combinedRights = 0;
             if (SelectedRights != null)
                 foreach (var value in SelectedRights) combinedRights |= value;
@@ -104,17 +116,13 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
             }
             else
             {
-                // UPDATE
                 existing.Name = UserGroupVM.Name;
                 existing.Description = UserGroupVM.Description;
                 existing.RightsId = UserGroupVM.RightsId;
-                // Do NOT touch CreatorId or CreationDate on update
             }
 
-            // ✅ Save once for both Insert and Update
             await _context.SaveChangesAsync();
 
-            // ✅ Redirect once, using UserGroupVM.Id (works for both new and existing records)
             return RedirectToPage("./Details", new { area = "Config", id = UserGroupVM.Id });
         }
     }

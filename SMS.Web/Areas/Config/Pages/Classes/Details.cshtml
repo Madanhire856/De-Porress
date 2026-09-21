@@ -1,0 +1,185 @@
+﻿@page "{id:guid}"
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Config.Pages.Classes.DetailsModel
+@{
+    ViewData["Title"] = "Class Details";
+    ViewData["PageTitle"] = "Class Details";
+    ViewData["PageSubTitle"] = $"Viewing details for {Model.ClassVM.Name}";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.EditClasses))
+    {
+        <a asp-page="./Upsert" asp-route-id="@Model.ClassVM.Id" class="btn btn-secondary">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+        </a>
+    }
+    <a asp-page="./Index" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Back to List
+    </a>
+}
+
+<div class="details-compact">
+    <div class="details-single">
+
+        <!-- ===== PROFILE HEADER ===== -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-chalkboard"></i>
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name">@Model.ClassVM.Name</h2>
+                <div class="profile-meta">
+                    <span class="info-value-mono">@Model.ClassVM.ClassNumber</span>
+                    <span class="meta-sep">·</span>
+                    <span>@Model.GradeName</span>
+                    <span class="meta-sep">·</span>
+                    <span>@Model.TeacherName</span>
+                    <span class="meta-sep">·</span>
+                    <span>Created @Model.ClassVM.CreationDate.ToString("dd MMM yyyy")</span>
+                </div>
+                <div class="profile-badges">
+                    @if (Model.StudentCount > 0)
+                    {
+                        <span class="status-badge status-count">
+                            <i class="fa-solid fa-user-graduate"></i>
+                            @Model.StudentCount / @Model.ClassVM.Capacity enrolled
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TWO-COLUMN BODY ===== -->
+        <div class="info-grid">
+
+            <!-- LEFT: Class Information -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Class Information</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-hashtag"></i> CLS ID
+                    </div>
+                    <div class="info-value info-value-mono">@Model.ClassVM.ClassNumber</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-chalkboard"></i> Name
+                    </div>
+                    <div class="info-value">@Model.ClassVM.Name</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-layer-group"></i> Grade
+                    </div>
+                    <div class="info-value">
+                        @if (!string.IsNullOrEmpty(Model.GradeName))
+                        {
+                            <a asp-area="Config"
+                               asp-page="/Grades/Details"
+                               asp-route-id="@Model.ClassVM.GradeId"
+                               class="reg-link">
+                                @Model.GradeName
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="sponsor-empty">—</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user-tie"></i> Class Teacher
+                    </div>
+                    <div class="info-value">
+                        @if (!string.IsNullOrEmpty(Model.TeacherName))
+                        {
+                            <a asp-area="Config"
+                               asp-page="/Staff/Details"
+                               asp-route-id="@Model.ClassVM.ClassTeacherId"
+                               class="reg-link">
+                                @Model.TeacherName
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="sponsor-empty">No teacher assigned</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Metadata -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <span>Metadata</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-users"></i> Capacity
+                    </div>
+                    <div class="info-value">@Model.ClassVM.Capacity</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user-graduate"></i> Enrolled Students
+                    </div>
+                    <div class="info-value">
+                        @if (Model.StudentCount == 0)
+                        {
+                            <span class="sponsor-empty">No students enrolled</span>
+                        }
+                        else
+                        {
+                            @Model.StudentCount
+                        }
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar"></i> Creation Date
+                    </div>
+                    <div class="info-value">@Model.ClassVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== CARD FOOTER ===== -->
+        <div class="info-card-footer">
+            <div>
+                <span>Created By:</span>
+                <strong>
+                    @if (!string.IsNullOrEmpty(Model.CreatorEmail))
+                    {
+                        @Model.CreatorEmail
+                    }
+                    else
+                    {
+                        <text>System Generated</text>
+                    }
+                </strong>
+            </div>
+            <div>
+                <span>Created On:</span>
+                <strong>@Model.ClassVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</strong>
+            </div>
+        </div>
+
+    </div>
+</div>

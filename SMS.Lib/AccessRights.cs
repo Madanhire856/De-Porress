@@ -6,93 +6,125 @@ namespace SMS.Lib
     public enum AccessRights : long
     {
         None = 0,
+
+        // ============================================================
+        //  SYSTEM
+        // ============================================================
         ViewDashboard = 1L << 0,
+        SystemSettings = 1L << 1,
+        ViewAuditLogs = 1L << 2,
+        CreateBackups = 1L << 3,
+        RestoreBackups = 1L << 4,
+        DeleteBackups = 1L << 5,
+        TriggerSync = 1L << 6,
+        ConfigureSync = 1L << 7,
 
-        // --- Configuration (Structural Setup) ---
-        ConfigClasses = 1L << 1,
-        ConfigStaff = 1L << 2,
-        ConfigFees = 1L << 3,
-        ConfigMass = 1L << 4,
-        ConfigSports = 1L << 5,
-        ConfigSyllabus = 1L << 6,
-        ConfigSystem = 1L << 7,
+        // ============================================================
+        //  USERS
+        // ============================================================
+        ViewUsers = 1L << 8,
+        CreateUsers = 1L << 9,
+        EditUsers = 1L << 10,
 
-        // --- Academics (Learners & Classes) ---
-        ViewLearners = 1L << 8,
-        EditLearners = 1L << 9,
-        MarkAttendance = 1L << 10,
-        GenerateReportCards = 1L << 11,
-        ViewAllClasses = 1L << 12,
-        ViewOwnClass = 1L << 13,
-        ProcessPromotions = 1L << 14,
-        ProcessTransfers = 1L << 15,
+        // ============================================================
+        //  USER GROUPS
+        // ============================================================
+        ViewUserGroups = 1L << 11,
+        CreateUserGroups = 1L << 12,
+        EditUserGroups = 1L << 13,
 
-        // --- Fees ---
-        ViewFeeBalances = 1L << 16,
-        RecordPayments = 1L << 17,
-        GenerateInvoices = 1L << 18,
-        WaiveFees = 1L << 19,
-        ViewFeeReports = 1L << 20,
+        // ============================================================
+        //  STAFF
+        // ============================================================
+        ViewStaff = 1L << 14,
+        CreateStaff = 1L << 15,
+        EditStaff = 1L << 16,
 
-        // --- Mass & Liturgy ---
-        ViewMassSchedule = 1L << 21,
-        CreateMassRota = 1L << 22,
-        EditMassRota = 1L << 23,
-        DeleteMassRota = 1L << 24,
-        RecordSacraments = 1L << 25,
-        CreateLiturgicalCalendar = 1L << 26,
-        EditLiturgicalCalendar = 1L << 27,
-        DeleteLiturgicalCalendar = 1L << 28,
+        // ============================================================
+        //  GRADES
+        // ============================================================
+        ViewGrades = 1L << 17,
+        CreateGrades = 1L << 18,
+        EditGrades = 1L << 19,
 
-        // --- Sports & Co-Curricular ---
-        ViewSports = 1L << 29,
-        CreateSportsEvents = 1L << 30,
-        EditSportsEvents = 1L << 31,
-        DeleteSportsEvents = 1L << 32,
-        RecordSportsResults = 1L << 33,
-        CreateEquipment = 1L << 34,
-        EditEquipment = 1L << 35,
-        DeleteEquipment = 1L << 36,
-        CheckoutEquipment = 1L << 37,
+        // ============================================================
+        //  CLASSES
+        // ============================================================
+        ViewClasses = 1L << 20,
+        CreateClasses = 1L << 21,
+        EditClasses = 1L << 22,
 
-        // --- Syllabus Repository ---
-        UploadSyllabus = 1L << 38,
-        ViewSyllabus = 1L << 39,
+        // ============================================================
+        //  SUBJECTS
+        // ============================================================
+        ViewSubjects = 1L << 23,
+        CreateSubjects = 1L << 24,
+        EditSubjects = 1L << 25,
 
-        // --- AI Features (Lesson Notes only) ---
-        UseLessonNotes = 1L << 40,
 
-        // --- User Management ---
-        CreateUsers = 1L << 41,
-        EditUsers = 1L << 42,
-        DeleteUsers = 1L << 43,
-        ViewUsers = 1L << 44,
-        ResetPasswords = 1L << 45,
+        // ============================================================
+        //  TIMETABLE
+        // ============================================================
+        ViewTimetable = 1L << 26,
+        CreateTimetable = 1L << 27,
+        EditTimetable = 1L << 28,
 
-        // --- System Administration ---
-        ViewAuditLogs = 1L << 46,
-        CreateBackups = 1L << 47,
-        RestoreBackups = 1L << 48,
-        DeleteBackups = 1L << 49,
-        TriggerSync = 1L << 50,
-        ConfigureSync = 1L << 51,
-        SystemSettings = 1L << 52,
+        // ============================================================
+        //  LEARNERS
+        // ============================================================
+        ViewLearners = 1L << 29,
+        CreateLearners = 1L << 30,
+        EditLearners = 1L << 31,
+        MarkAttendance = 1L << 32,
+        GenerateReportCards = 1L << 33,
 
-        // --- Welfare / Pastoral ---
-        ViewWelfareData = 1L << 53,
+        // ============================================================
+        //  HOUSES
+        // ============================================================
+        ViewHouses = 1L << 34,
+        CreateHouses = 1L << 35,
+        EditHouses = 1L << 36,
 
-        // --- Reporting ---
-        ViewSchoolReports = 1L << 54,
-        ExportReports = 1L << 55,
+        // ============================================================
+        //  VILLAGES
+        // ============================================================
+        ViewVillages = 1L << 37,
+        CreateVillages = 1L << 38,
+        EditVillages = 1L << 39,
 
-        // --- Houses ---
-        CreateHouses = 1L << 56,
-        EditHouses = 1L << 57,
-        DeleteHouses = 1L << 58,
+        // ============================================================
+        //  FEES
+        // ============================================================
+        ViewFeeBalances = 1L << 40,
+        RecordPayments = 1L << 41,
+        GenerateInvoices = 1L << 42,
+        WaiveFees = 1L << 43,
+        ViewFeeReports = 1L << 44,
 
-        // --- Sponsors ---
-        CreateSponsors = 1L << 59,
-        EditSponsors = 1L << 60,
-        DeleteSponsors = 1L << 61,
+        // ============================================================
+        //  SPONSORS
+        // ============================================================
+        ViewSponsors = 1L << 45,
+        CreateSponsors = 1L << 46,
+        EditSponsors = 1L << 47,
+
+        // ============================================================
+        //  SPONSORSHIPS
+        // ============================================================
+        ViewSponsorships = 1L << 48,
+
+        // ============================================================
+        //  TERMS
+        // ============================================================
+        ViewTerms = 1L << 49,
+        CreateTerms = 1L << 50,
+        EditTerms = 1L << 51,
+
+        // ============================================================
+        //  CURRENCIES
+        // ============================================================
+        ViewCurrencies = 1L << 52,
+        CreateCurrencies = 1L << 53,
+        EditCurrencies = 1L << 54,
     }
 }

@@ -25,12 +25,18 @@ namespace SMS.Web.Areas.Config.Pages.Users
         }
 
         [BindProperty]
-        public UserVM user { get; set; } = new(); 
+        public UserVM user { get; set; } = new();
 
         public List<UserGroup> UserGroups { get; set; } = new();
 
-        public async Task OnGetAsync(Guid? id)
+        public async Task<IActionResult> OnGetAsync(Guid? id)
         {
+            // ---- Rights guard ----
+            if (id == null && !_currentUser.HasRight(AccessRights.CreateUsers))
+                return Forbid();
+            if (id != null && !_currentUser.HasRight(AccessRights.EditUsers))
+                return Forbid();
+
             UserGroups = await _context.UserGroups
                 .AsNoTracking()
                 .OrderBy(g => g.Name)
@@ -65,10 +71,18 @@ namespace SMS.Web.Areas.Config.Pages.Users
                     IsActive = true
                 };
             }
+
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(Guid? id)
         {
+            // ---- Same guard on POST ----
+            if (id == null && !_currentUser.HasRight(AccessRights.CreateUsers))
+                return Forbid();
+            if (id != null && !_currentUser.HasRight(AccessRights.EditUsers))
+                return Forbid();
+
             UserGroups = await _context.UserGroups
                 .AsNoTracking()
                 .OrderBy(g => g.Name)

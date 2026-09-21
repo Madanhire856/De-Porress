@@ -6,7 +6,7 @@ using SMS.Data;
 using System;
 using System.Linq;
 
-namespace SMS.Web.Areas.Config.Pages.Staff
+namespace SMS.Web.Areas.Academics.Pages.Staff  
 {
     [Authorize]
     public class DetailsModel : PageModel

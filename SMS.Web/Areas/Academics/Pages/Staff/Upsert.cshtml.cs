@@ -5,22 +5,24 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SMS.Data;
 using SMS.Lib;
-using SMS.Web.Areas.Config.Pages.Staff.ViewModels;
+using SMS.Web.Areas.Academics.Pages.Staff.ViewModels; 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SMS.Web.Areas.Config.Pages.Staff
+namespace SMS.Web.Areas.Academics.Pages.Staff  
 {
     [Authorize]
     public class UpsertModel : PageModel
     {
         private readonly SMSDbContext _context;
+        private readonly ICurrentUserService _currentUser;
 
-        public UpsertModel(SMSDbContext context)
+        public UpsertModel(SMSDbContext context, ICurrentUserService currentUser)
         {
             _context = context;
+            _currentUser = currentUser;
         }
 
         [BindProperty]
@@ -32,8 +34,14 @@ namespace SMS.Web.Areas.Config.Pages.Staff
         public List<SelectListItem> Genders { get; set; } = new();
         public List<SelectListItem> Qualifications { get; set; } = new();
 
-        public async Task OnGetAsync(Guid? id)
+        public async Task<IActionResult> OnGetAsync(Guid? id)
         {
+            // ---- Rights guard ----
+            if (id == null && !_currentUser.HasRight(AccessRights.CreateStaff))
+                return Forbid();
+            if (id != null && !_currentUser.HasRight(AccessRights.EditStaff))
+                return Forbid();
+
             await LoadLookupsAsync();
 
             if (id != null)
@@ -48,7 +56,7 @@ namespace SMS.Web.Areas.Config.Pages.Staff
                     staff = new StaffVM
                     {
                         Id = entity.Id,
-                        UserId = entity.UserId,                
+                        UserId = entity.UserId,
                         EcNumber = entity.EcNumber,
                         Name = entity.Name,
                         Surname = entity.Surname,
@@ -72,10 +80,18 @@ namespace SMS.Web.Areas.Config.Pages.Staff
                     IsActive = true
                 };
             }
+
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(Guid? id)
         {
+            // ---- Same guard on POST ----
+            if (id == null && !_currentUser.HasRight(AccessRights.CreateStaff))
+                return Forbid();
+            if (id != null && !_currentUser.HasRight(AccessRights.EditStaff))
+                return Forbid();
+
             await LoadLookupsAsync();
 
             if (!ModelState.IsValid)
@@ -106,7 +122,6 @@ namespace SMS.Web.Areas.Config.Pages.Staff
             }
             else
             {
-                // Treat empty Guid as "no link"
                 staff.UserId = null;
             }
 
@@ -150,7 +165,7 @@ namespace SMS.Web.Areas.Config.Pages.Staff
             }
 
             // Map form → entity (both insert and update)
-            entity.UserId = staff.UserId;                     // Guid? → Guid?
+            entity.UserId = staff.UserId;
             entity.EcNumber = staff.EcNumber;
             entity.Name = staff.Name;
             entity.Surname = staff.Surname;
@@ -165,7 +180,8 @@ namespace SMS.Web.Areas.Config.Pages.Staff
 
             await _context.SaveChangesAsync();
 
-            return RedirectToPage("./Details", new { area = "Config", id = entity.Id });
+            // 👇 area changed from Config to Academics
+            return RedirectToPage("./Details", new { area = "Academics", id = entity.Id });
         }
 
         private async Task LoadLookupsAsync()

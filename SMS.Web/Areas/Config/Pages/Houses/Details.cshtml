@@ -1,0 +1,141 @@
+﻿@page "{id:guid}"
+@model SMS.Web.Areas.Config.Pages.Houses.DetailsModel
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@{
+    ViewData["Title"] = "House Details";
+    ViewData["PageTitle"] = "House Details";
+    ViewData["PageSubTitle"] = $"Viewing details for {Model.HouseVM.Name}";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.EditHouses))
+    {
+        <a asp-page="./Upsert" asp-route-id="@Model.HouseVM.Id" class="btn btn-secondary">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+        </a>
+    }
+    <a asp-page="./Index" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Back to List
+    </a>
+}
+
+<div class="details-compact">
+    <div class="details-single">
+
+        <!-- ===== PROFILE HEADER ===== -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-house"></i>
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name">@Model.HouseVM.Name</h2>
+                <div class="profile-meta">
+                    <span class="info-value-mono">@Model.HouseVM.HouseNumber</span>
+                    <span class="meta-sep">·</span>
+                    <span>@Model.MasterName</span>
+                    <span class="meta-sep">·</span>
+                    <span>Created @Model.HouseVM.CreationDate.ToString("dd MMM yyyy")</span>
+                </div>
+                <div class="profile-badges">
+                    <span class="status-badge status-count">
+                        <i class="fa-solid fa-palette"></i> @Model.HouseVM.Color
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TWO-COLUMN BODY ===== -->
+        <div class="info-grid">
+
+            <!-- LEFT: House Information -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>House Information</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-hashtag"></i> HSE ID
+                    </div>
+                    <div class="info-value info-value-mono">@Model.HouseVM.HouseNumber</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-house"></i> Name
+                    </div>
+                    <div class="info-value">@Model.HouseVM.Name</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-palette"></i> Color
+                    </div>
+                    <div class="info-value">@Model.HouseVM.Color</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Metadata -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <span>Metadata</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user-tie"></i> House Master
+                    </div>
+                    <div class="info-value">
+                        @if (!string.IsNullOrEmpty(Model.MasterName))
+                        {
+                            <a asp-area="Config"
+                               asp-page="/Staff/Details"
+                               asp-route-id="@Model.HouseVM.MasterId"
+                               class="reg-link">
+                                @Model.MasterName
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="sponsor-empty">No master assigned</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar"></i> Creation Date
+                    </div>
+                    <div class="info-value">@Model.HouseVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== CARD FOOTER ===== -->
+        <div class="info-card-footer">
+            <div>
+                <span>Created By:</span>
+                <strong>
+                    @if (!string.IsNullOrEmpty(Model.CreatorEmail))
+                    {
+                        @Model.CreatorEmail
+                    }
+                    else
+                    {
+                        <text>System Generated</text>
+                    }
+                </strong>
+            </div>
+            <div>
+                <span>Created On:</span>
+                <strong>@Model.HouseVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</strong>
+            </div>
+        </div>
+
+    </div>
+</div>

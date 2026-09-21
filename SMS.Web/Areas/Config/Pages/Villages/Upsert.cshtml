@@ -1,0 +1,63 @@
+﻿@page "{id:guid?}"
+@model SMS.Web.Areas.Config.Pages.Villages.UpsertModel
+@{
+    ViewData["PageTitle"] = Model.village.Name != null ? "Edit Village" : "Add Village";
+    ViewData["PageSubTitle"] = "Create or modify a village";
+}
+
+<form method="post" class="form-compact">
+    <div class="form-card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <input type="hidden" asp-for="village.Id" />
+
+            <!-- ===== VILLAGE DETAILS ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-house-chimney"></i> Village Details
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="village.Name">
+                        Village Name <span class="required">*</span>
+                    </label>
+                    <input asp-for="village.Name" class="form-control" placeholder="e.g. Chikwanha Village" required />
+                    <span asp-validation-for="village.Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="village.Headman">
+                        Headman <span class="required">*</span>
+                    </label>
+                    <input asp-for="village.Headman" class="form-control" placeholder="e.g. Mr. Chikwanha" required />
+                    <span asp-validation-for="village.Headman" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="village.Chief">
+                        Chief <span class="required">*</span>
+                    </label>
+                    <input asp-for="village.Chief" class="form-control" placeholder="e.g. Chief Nyashanu" required />
+                    <span asp-validation-for="village.Chief" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <a asp-page="./Index" class="btn btn-secondary">
+                <i class="fa-solid fa-xmark"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i>
+                @(Model.village.Name != null ? "Save Changes" : "Create Village")
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

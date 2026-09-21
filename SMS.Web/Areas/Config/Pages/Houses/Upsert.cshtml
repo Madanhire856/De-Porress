@@ -1,0 +1,63 @@
+﻿@page "{id:guid?}"
+@model SMS.Web.Areas.Config.Pages.Houses.UpsertModel
+@{
+    ViewData["PageTitle"] = Model.house.Name != null ? "Edit House" : "Add House";
+    ViewData["PageSubTitle"] = "Create or modify a house";
+}
+
+<form method="post" class="form-compact">
+    <div class="form-card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <input type="hidden" asp-for="house.Id" />
+
+            <!-- ===== HOUSE DETAILS ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-house"></i> House Details
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="house.Name">
+                        House Name <span class="required">*</span>
+                    </label>
+                    <input asp-for="house.Name" class="form-control" required />
+                    <span asp-validation-for="house.Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="house.Color">
+                        House Color <span class="required">*</span>
+                    </label>
+                    <input asp-for="house.Color" class="form-control" placeholder="e.g. Red, Blue, Green" required />
+                    <span asp-validation-for="house.Color" class="text-danger"></span>
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="house.MasterId">
+                        House Master <span class="required">*</span>
+                    </label>
+                    <select asp-for="house.MasterId" asp-items="Model.Masters" class="form-control" required>
+                        <option value="">— Select house master —</option>
+                    </select>
+                    <span asp-validation-for="house.MasterId" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+          
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i>
+                @(Model.house.Name != null ? "Save Changes" : "Create House")
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

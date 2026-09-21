@@ -1,5 +1,6 @@
 ﻿@page
 @using SMS.Lib
+@inject ICurrentUserService CurrentUser
 @model SMS.Web.Areas.Config.Pages.Subjects.IndexModel
 @{
     ViewData["Title"] = "Subjects";
@@ -8,9 +9,12 @@
 }
 
 @section actionbar {
-    <a asp-page="./Upsert" class="btn btn-primary">
-        <i class="fa-solid fa-plus"></i> Create
-    </a>
+    @if (CurrentUser.HasRight(AccessRights.CreateSubjects))
+    {
+        <a asp-page="./Upsert" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Create
+        </a>
+    }
 }
 
 <div class="table-card">

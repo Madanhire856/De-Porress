@@ -1,0 +1,140 @@
+﻿@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Academics.Pages.Staff.IndexModel
+@{
+    ViewData["Title"] = "Staff";
+    ViewData["PageTitle"] = "Staff";
+    ViewData["PageSubTitle"] = "Manage staff members and their assignments";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.CreateStaff))
+    {
+        <a asp-page="./Upsert" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Create
+        </a>
+    }
+}
+
+<div class="table-card">
+
+    <div class="table-count">
+        <i class="fa-solid fa-list-ul me-2"></i>
+        Total: <strong>@Model.Pagination.TotalCount</strong>
+        @(Model.Pagination.TotalCount == 1 ? "staff member" : "staff members")
+    </div>
+
+    <form method="get" class="table-toolbar" id="filterForm">
+        <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" asp-for="SearchTerm"
+                   class="search-input"
+                   placeholder="Search by name, EC, or ID number..."
+                   id="searchInput"
+                   autocomplete="off" />
+        </div>
+        <div class="filter-wrapper">
+            <select asp-for="StatusFilter" class="filter-dropdown" id="statusFilter">
+                <option value="All">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+        </div>
+        <input type="hidden" asp-for="PageSize" />
+        <input type="hidden" asp-for="PageNumber" value="1" id="pageNumberHidden" />
+    </form>
+
+    <table class="data-table table-compact">
+        <thead>
+            <tr>
+                <th>EC Number</th>
+                <th>Name</th>
+                <th>Surname</th>
+                <th>Category</th>
+                <th>Gender</th>
+                <th>Age</th>
+                <th>Date Joined</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Staff.Any())
+            {
+                @foreach (var s in Model.Staff)
+                {
+                    <tr>
+                        <td>
+                            <!-- 👇 asp-area changed from Config to Academics -->
+                            <a asp-area="Academics"
+                               asp-page="/Staff/Details"
+                               asp-route-id="@s.Id"
+                               class="reg-link">
+                                @s.EcNumber
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </td>
+                        <td>@s.Name</td>
+                        <td>@s.Surname</td>
+                        <td>@(((StaffCategory)s.CategoryId).ToDisplayName())</td>
+                        <td>@(((Gender)s.GenderId).ToDisplayName())</td>
+                        <td>@s.Age</td>
+                        <td>@s.DateJoined.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            @if (s.IsActive == true)
+                            {
+                                <span class="status-badge status-active">Active</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge status-overdue">Inactive</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="empty-state">No staff members found matching your criteria.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <partial name="~/Pages/Shared/Pagination/_pagination.cshtml" model="Model.Pagination" />
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const form = document.getElementById('filterForm');
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            const pageNumberHidden = document.getElementById('pageNumberHidden');
+            if (!form || !searchInput || !statusFilter) return;
+
+            let debounceTimer = null;
+            const DEBOUNCE_MS = 400;
+
+            searchInput.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () {
+                    if (pageNumberHidden) pageNumberHidden.value = '1';
+                    form.submit();
+                }, DEBOUNCE_MS);
+            });
+
+            statusFilter.addEventListener('change', function () {
+                if (pageNumberHidden) pageNumberHidden.value = '1';
+                form.submit();
+            });
+
+            if (searchInput.value) {
+                searchInput.focus();
+                const len = searchInput.value.length;
+                searchInput.setSelectionRange(len, len);
+            }
+        })();
+    </script>
+}

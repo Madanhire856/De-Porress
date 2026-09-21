@@ -81,5 +81,116 @@ namespace SMS.Web.Pages.GeneratedNumbers
             foreach (var subject in subjects)
                 db.ApplySubjectNumber(subject);
         }
+
+        // --- CLASSES ---
+        public static int GetClassSequence(this SMSDbContext db, Class cls)
+        {
+            return db.Classes
+                .AsNoTracking()
+                .Where(c => c.CreationDate <= cls.CreationDate)
+                .OrderBy(c => c.CreationDate)
+                .ThenBy(c => c.Id)
+                .Count();
+        }
+
+        public static void ApplyClassNumber(this SMSDbContext db, Class cls)
+        {
+            cls.ClassSequence = db.GetClassSequence(cls);
+        }
+
+        public static void ApplyClassNumbers(this SMSDbContext db, IEnumerable<Class> classes)
+        {
+            foreach (var c in classes)
+                db.ApplyClassNumber(c);
+        }
+
+        // --- GRADES ---
+        public static int GetGradeSequence(this SMSDbContext db, Grade grade)
+        {
+            return db.Grades
+                .AsNoTracking()
+                .Where(g => g.CreationDate <= grade.CreationDate)
+                .OrderBy(g => g.CreationDate)
+                .ThenBy(g => g.Id)
+                .Count();
+        }
+
+        public static void ApplyGradeNumber(this SMSDbContext db, Grade grade)
+        {
+            grade.GradeSequence = db.GetGradeSequence(grade);
+        }
+
+        public static void ApplyGradeNumbers(this SMSDbContext db, IEnumerable<Grade> grades)
+        {
+            foreach (var g in grades)
+                db.ApplyGradeNumber(g);
+        }
+
+        // --- HOUSES ---
+        public static int GetHouseSequence(this SMSDbContext db, House house)
+        {
+            return db.Houses
+                .AsNoTracking()
+                .Where(h => h.CreationDate <= house.CreationDate)
+                .OrderBy(h => h.CreationDate)
+                .ThenBy(h => h.Id)
+                .Count();
+        }
+
+        public static void ApplyHouseNumber(this SMSDbContext db, House house)
+        {
+            house.HouseSequence = db.GetHouseSequence(house);
+        }
+
+        public static void ApplyHouseNumbers(this SMSDbContext db, IEnumerable<House> houses)
+        {
+            foreach (var h in houses)
+                db.ApplyHouseNumber(h);
+        }
+
+        // --- VILLAGES ---
+        public static int GetVillageSequence(this SMSDbContext db, Village village)
+        {
+            return db.Villages
+                .AsNoTracking()
+                .Where(v => v.CreationDate <= village.CreationDate)
+                .OrderBy(v => v.CreationDate)
+                .ThenBy(v => v.Id)
+                .Count();
+        }
+
+        public static void ApplyVillageNumber(this SMSDbContext db, Village village)
+        {
+            village.VillageSequence = db.GetVillageSequence(village);
+        }
+
+        public static void ApplyVillageNumbers(this SMSDbContext db, IEnumerable<Village> villages)
+        {
+            foreach (var v in villages)
+                db.ApplyVillageNumber(v);
+        }
+
+
+        // --- TERMS ---
+        public static int GetTermSequence(this SMSDbContext db, Term term)
+        {
+            return db.Terms
+                .AsNoTracking()
+                .Where(t => t.CreationDate <= term.CreationDate)
+                .OrderBy(t => t.CreationDate)
+                .ThenBy(t => t.Id)
+                .Count();
+        }
+
+        public static void ApplyTermNumber(this SMSDbContext db, Term term)
+        {
+            term.TermSequence = db.GetTermSequence(term);
+        }
+
+        public static void ApplyTermNumbers(this SMSDbContext db, IEnumerable<Term> terms)
+        {
+            foreach (var t in terms)
+                db.ApplyTermNumber(t);
+        }
     }
 }

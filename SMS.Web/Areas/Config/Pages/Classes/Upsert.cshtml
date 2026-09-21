@@ -1,0 +1,72 @@
+﻿@page "{id:guid?}"
+@model SMS.Web.Areas.Config.Pages.Classes.UpsertModel
+@{
+    ViewData["PageTitle"] = Model.cls.Name != null ? "Edit Class" : "Add Class";
+    ViewData["PageSubTitle"] = "Create or modify a class";
+}
+
+<form method="post" class="form-compact">
+    <div class="form-card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <input type="hidden" asp-for="cls.Id" />
+
+            <!-- ===== CLASS DETAILS ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-chalkboard"></i> Class Details
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="cls.Name">
+                        Class Name <span class="required">*</span>
+                    </label>
+                    <input asp-for="cls.Name" class="form-control" placeholder="e.g. Grade 7A" required />
+                    <span asp-validation-for="cls.Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="cls.Capacity">
+                        Capacity <span class="required">*</span>
+                    </label>
+                    <input asp-for="cls.Capacity" type="number" min="1" max="200" class="form-control" required />
+                    <span asp-validation-for="cls.Capacity" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="cls.GradeId">
+                        Grade <span class="required">*</span>
+                    </label>
+                    <select asp-for="cls.GradeId" asp-items="Model.Grades" class="form-control" required>
+                        <option value="">— Select grade —</option>
+                    </select>
+                    <span asp-validation-for="cls.GradeId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="cls.ClassTeacherId">
+                        Class Teacher <span class="required">*</span>
+                    </label>
+                    <select asp-for="cls.ClassTeacherId" asp-items="Model.Teachers" class="form-control" required>
+                        <option value="">— Select teacher —</option>
+                    </select>
+                    <span asp-validation-for="cls.ClassTeacherId" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i>
+                @(Model.cls.Name != null ? "Save Changes" : "Create Class")
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -30,8 +30,14 @@ namespace SMS.Web.Areas.Config.Pages.Subjects
 
         public List<SelectListItem> Categories { get; set; } = new();
 
-        public async Task OnGetAsync(Guid? id)
+        public async Task<IActionResult> OnGetAsync(Guid? id)
         {
+            // ---- Rights guard ----
+            if (id == null && !_currentUser.HasRight(AccessRights.CreateSubjects))
+                return Forbid();
+            if (id != null && !_currentUser.HasRight(AccessRights.EditSubjects))
+                return Forbid();
+
             LoadLookups();
 
             if (id != null)
@@ -60,10 +66,17 @@ namespace SMS.Web.Areas.Config.Pages.Subjects
                     Id = Guid.NewGuid()
                 };
             }
+
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(Guid? id)
         {
+            if (id == null && !_currentUser.HasRight(AccessRights.CreateSubjects))
+                return Forbid();
+            if (id != null && !_currentUser.HasRight(AccessRights.EditSubjects))
+                return Forbid();
+
             LoadLookups();
 
             if (!ModelState.IsValid)
@@ -71,7 +84,6 @@ namespace SMS.Web.Areas.Config.Pages.Subjects
 
             Guid excludeId = id ?? Guid.Empty;
 
-            // Uniqueness — Code
             var clashCode = await _context.Subjects
                 .FirstOrDefaultAsync(s => s.Code == subject.Code && s.Id != excludeId);
             if (clashCode != null)
@@ -80,7 +92,7 @@ namespace SMS.Web.Areas.Config.Pages.Subjects
                 return Page();
             }
 
-            // Uniqueness — Name
+
             var clashName = await _context.Subjects
                 .FirstOrDefaultAsync(s => s.Name == subject.Name && s.Id != excludeId);
             if (clashName != null)

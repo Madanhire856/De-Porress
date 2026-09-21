@@ -1,0 +1,108 @@
+﻿@page "{code}"
+@model SMS.Web.Areas.Config.Pages.Currency.DetailsModel
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@{
+    ViewData["Title"] = "Currency Details";
+    ViewData["PageTitle"] = "Currency Details";
+    ViewData["PageSubTitle"] = $"Viewing details for {Model.CurrencyVM.Code}";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.EditCurrencies))
+    {
+        <a asp-page="./Upsert" asp-route-code="@Model.CurrencyVM.Code" class="btn btn-secondary">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+        </a>
+    }
+    <a asp-page="./Index" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Back to List
+    </a>
+}
+
+<div class="details-compact">
+    <div class="details-single">
+
+        <!-- ===== PROFILE HEADER ===== -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-coins"></i>
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name">@Model.CurrencyVM.Code — @Model.CurrencyVM.Name</h2>
+                <div class="profile-meta">
+                    <span class="info-value-mono">@Model.CurrencyVM.Symbol</span>
+                    @if (Model.CurrencyVM.CreationDate.HasValue)
+                    {
+                        <span class="meta-sep">·</span>
+                        <span>Created @Model.CurrencyVM.CreationDate.Value.ToString("dd MMM yyyy")</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TWO-COLUMN BODY ===== -->
+        <div class="info-grid">
+
+            <!-- LEFT: Currency Information -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Currency Information</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-hashtag"></i> Code
+                    </div>
+                    <div class="info-value info-value-mono">@Model.CurrencyVM.Code</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-coins"></i> Name
+                    </div>
+                    <div class="info-value">@Model.CurrencyVM.Name</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-dollar-sign"></i> Symbol
+                    </div>
+                    <div class="info-value info-value-mono">@Model.CurrencyVM.Symbol</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Metadata -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <span>Metadata</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar"></i> Creation Date
+                    </div>
+                    <div class="info-value">
+                        @(Model.CurrencyVM.CreationDate?.ToString("dd MMM yyyy, HH:mm") ?? "—")
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== CARD FOOTER ===== -->
+        <div class="info-card-footer">
+            <div>
+                <span>Created By:</span>
+                <strong>@(string.IsNullOrEmpty(Model.CreatorEmail) ? "System Generated" : Model.CreatorEmail)</strong>
+            </div>
+            <div>
+                <span>Created On:</span>
+                <strong>@(Model.CurrencyVM.CreationDate?.ToString("dd MMM yyyy, HH:mm") ?? "—")</strong>
+            </div>
+        </div>
+
+    </div>
+</div>

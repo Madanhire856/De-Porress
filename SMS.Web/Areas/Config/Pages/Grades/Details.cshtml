@@ -1,0 +1,137 @@
+﻿@page "{id:guid}"
+@model SMS.Web.Areas.Config.Pages.Grades.DetailsModel
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@{
+    ViewData["Title"] = "Grade Details";
+    ViewData["PageTitle"] = "Grade Details";
+    ViewData["PageSubTitle"] = $"Viewing details for {Model.GradeVM.Name}";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.EditGrades))
+    {
+        <a asp-page="./Upsert" asp-route-id="@Model.GradeVM.Id" class="btn btn-secondary">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+        </a>
+    }
+    <a asp-page="./Index" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Back to List
+    </a>
+}
+<div class="details-compact">
+    <div class="details-single">
+
+        <!-- ===== PROFILE HEADER ===== -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name">@Model.GradeVM.Name</h2>
+                <div class="profile-meta">
+                    <span class="info-value-mono">@Model.GradeVM.GradeNumber</span>
+                    <span class="meta-sep">·</span>
+                    <span>@(((GradeLevel)Model.GradeVM.GradeLevelId).ToDisplayName())</span>
+                    <span class="meta-sep">·</span>
+                    <span>Created @Model.GradeVM.CreationDate.ToString("dd MMM yyyy")</span>
+                </div>
+                <div class="profile-badges">
+                    @if (Model.ClassCount > 0)
+                    {
+                        <span class="status-badge status-count">
+                            <i class="fa-solid fa-chalkboard"></i>
+                            @Model.ClassCount @(Model.ClassCount == 1 ? "class" : "classes")
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="info-grid">
+
+            <!-- LEFT: Grade Information -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Grade Information</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-hashtag"></i> GRD ID
+                    </div>
+                    <div class="info-value info-value-mono">@Model.GradeVM.GradeNumber</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-layer-group"></i> Name
+                    </div>
+                    <div class="info-value">@Model.GradeVM.Name</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-tag"></i> Level
+                    </div>
+                    <div class="info-value">@(((GradeLevel)Model.GradeVM.GradeLevelId).ToDisplayName())</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Metadata -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <span>Metadata</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-chalkboard"></i> Classes
+                    </div>
+                    <div class="info-value">
+                        @if (Model.ClassCount == 0)
+                        {
+                            <span class="sponsor-empty">No classes</span>
+                        }
+                        else
+                        {
+                            @Model.ClassCount
+                        }
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar"></i> Creation Date
+                    </div>
+                    <div class="info-value">@Model.GradeVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== CARD FOOTER ===== -->
+        <div class="info-card-footer">
+            <div>
+                <span>Created By:</span>
+                <strong>
+                    @if (!string.IsNullOrEmpty(Model.CreatorEmail))
+                    {
+                        @Model.CreatorEmail
+                    }
+                    else
+                    {
+                        <text>System Generated</text>
+                    }
+                </strong>
+            </div>
+            <div>
+                <span>Created On:</span>
+                <strong>@Model.GradeVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</strong>
+            </div>
+        </div>
+
+    </div>
+</div>

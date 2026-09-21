@@ -1,0 +1,148 @@
+﻿@page "{id:guid}"
+@model SMS.Web.Areas.Config.Pages.Villages.DetailsModel
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@{
+    ViewData["Title"] = "Village Details";
+    ViewData["PageTitle"] = "Village Details";
+    ViewData["PageSubTitle"] = $"Viewing details for {Model.VillageVM.Name}";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.EditVillages))
+    {
+        <a asp-page="./Upsert" asp-route-id="@Model.VillageVM.Id" class="btn btn-secondary">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+        </a>
+    }
+    <a asp-page="./Index" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Back to List
+    </a>
+}
+
+<div class="details-compact">
+    <div class="details-single">
+
+        <!-- ===== PROFILE HEADER ===== -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-house-chimney"></i>
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name">@Model.VillageVM.Name</h2>
+                <div class="profile-meta">
+                    <span class="info-value-mono">@Model.VillageVM.VillageNumber</span>
+                    <span class="meta-sep">·</span>
+                    <span>Headman: @Model.VillageVM.Headman</span>
+                    <span class="meta-sep">·</span>
+                    <span>Chief: @Model.VillageVM.Chief</span>
+                    <span class="meta-sep">·</span>
+                    <span>Created @Model.VillageVM.CreationDate.ToString("dd MMM yyyy")</span>
+                </div>
+                <div class="profile-badges">
+                    @if (Model.StudentCount > 0)
+                    {
+                        <span class="status-badge status-count">
+                            <i class="fa-solid fa-user-graduate"></i>
+                            @Model.StudentCount @(Model.StudentCount == 1 ? "student" : "students")
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TWO-COLUMN BODY ===== -->
+        <div class="info-grid">
+
+            <!-- LEFT: Village Information -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Village Information</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-hashtag"></i> VLG ID
+                    </div>
+                    <div class="info-value info-value-mono">@Model.VillageVM.VillageNumber</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-house-chimney"></i> Name
+                    </div>
+                    <div class="info-value">@Model.VillageVM.Name</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user-tie"></i> Headman
+                    </div>
+                    <div class="info-value">@Model.VillageVM.Headman</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-crown"></i> Chief
+                    </div>
+                    <div class="info-value">@Model.VillageVM.Chief</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Metadata -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <span>Metadata</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user-graduate"></i> Students
+                    </div>
+                    <div class="info-value">
+                        @if (Model.StudentCount == 0)
+                        {
+                            <span class="sponsor-empty">No students</span>
+                        }
+                        else
+                        {
+                            @Model.StudentCount
+                        }
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar"></i> Creation Date
+                    </div>
+                    <div class="info-value">@Model.VillageVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== CARD FOOTER ===== -->
+        <div class="info-card-footer">
+            <div>
+                <span>Created By:</span>
+                <strong>
+                    @if (!string.IsNullOrEmpty(Model.CreatorEmail))
+                    {
+                        @Model.CreatorEmail
+                    }
+                    else
+                    {
+                        <text>System Generated</text>
+                    }
+                </strong>
+            </div>
+            <div>
+                <span>Created On:</span>
+                <strong>@Model.VillageVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</strong>
+            </div>
+        </div>
+
+    </div>
+</div>

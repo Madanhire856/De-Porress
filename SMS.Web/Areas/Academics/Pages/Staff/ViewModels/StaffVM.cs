@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace SMS.Web.Areas.Config.Pages.Staff.ViewModels
+namespace SMS.Web.Areas.Academics.Pages.Staff.ViewModels
 {
     public class StaffVM
     {

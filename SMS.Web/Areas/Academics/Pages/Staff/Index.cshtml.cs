@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SMS.Web.Areas.Config.Pages.Staff
+namespace SMS.Web.Areas.Academics.Pages.Staff 
 {
     public class IndexModel : PageModel
     {
@@ -40,7 +40,6 @@ namespace SMS.Web.Areas.Config.Pages.Staff
                 .ThenBy(s => s.Name)
                 .AsQueryable();
 
-            // Search
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
                 query = query.Where(s =>
@@ -50,14 +49,12 @@ namespace SMS.Web.Areas.Config.Pages.Staff
                     s.IdNumber.Contains(SearchTerm));
             }
 
-            // Status filter
             if (!string.IsNullOrWhiteSpace(StatusFilter) && StatusFilter != "All")
             {
                 bool isActive = StatusFilter == "Active";
                 query = query.Where(s => s.IsActive == isActive);
             }
 
-            // Pagination
             var result = query.Paginate(PageNumber, PageSize, "staff members");
 
             Staff = result.Items;

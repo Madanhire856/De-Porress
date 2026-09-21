@@ -12,8 +12,14 @@ namespace SMS.Lib
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly SMSDbContext _context;
 
+        // User cache
         private Guid? _cachedUserId;
+        private int? _cachedRoleId;
+        private Guid? _cachedGroupId;
         private bool _hasLookedUpUser;
+
+        // Rights cache
+        private long? _cachedRights;
 
         public CurrentUserService(IHttpContextAccessor httpContextAccessor, SMSDbContext context)
         {
@@ -37,37 +43,88 @@ namespace SMS.Lib
 
         public bool IsAuthenticated =>
             _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
+        private void EnsureUserLoaded()
+        {
+            if (_hasLookedUpUser) return;
 
+            var email = Email;
+            if (string.IsNullOrEmpty(email))
+            {
+                _hasLookedUpUser = true;
+                return;
+            }
+
+            var localUser = _context.Users
+                .AsNoTracking()
+                .FirstOrDefault(u => u.Email == email);
+
+            if (localUser != null)
+            {
+                _cachedUserId = localUser.Id;
+                _cachedRoleId = localUser.RoleId;
+                _cachedGroupId = localUser.GroupId;
+            }
+
+            _hasLookedUpUser = true;
+        }
 
         public Guid? UserId
         {
+            get { EnsureUserLoaded(); return _cachedUserId; }
+        }
+
+        public int? RoleId
+        {
+            get { EnsureUserLoaded(); return _cachedRoleId; }
+        }
+
+        public Guid? GroupId
+        {
+            get { EnsureUserLoaded(); return _cachedGroupId; }
+        }
+
+        public long Rights
+        {
             get
             {
-                if (_hasLookedUpUser) return _cachedUserId;
+                if (_cachedRights.HasValue) return _cachedRights.Value;
 
-                var email = Email;
-                if (string.IsNullOrEmpty(email))
+                EnsureUserLoaded();
+
+                long rights = 0;
+
+                // 1. Group rights (bitmask)
+                if (_cachedGroupId.HasValue)
                 {
-                    _hasLookedUpUser = true;
-                    return null;
+                    var groupRights = _context.UserGroups
+                        .AsNoTracking()
+                        .Where(g => g.Id == _cachedGroupId.Value)
+                        .Select(g => g.RightsId)
+                        .FirstOrDefault();
+
+                    if (groupRights.HasValue)
+                        rights |= groupRights.Value;
                 }
 
-                var localUser = _context.Users
-                    .AsNoTracking()
-                    .FirstOrDefault(u => u.Email == email);
+                // 2. Administrator override — grants everything
+                if (_cachedRoleId == (int)UserRole.ADMIN)
+                    rights = ~0L;
 
-                _cachedUserId = localUser?.Id;
-                _hasLookedUpUser = true;
-                return _cachedUserId;
+                _cachedRights = rights;
+                return rights;
             }
         }
 
-        // ------------------------------------------------------------
-        // GetUserIdAsync (throws if not found, no auto-create)
-        // ------------------------------------------------------------
+        public bool HasRight(AccessRights right)
+        {
+            if (right == AccessRights.None) return true;
+            return (Rights & (long)right) == (long)right;
+        }
+
         public async Task<Guid> GetUserIdAsync()
         {
-            if (_hasLookedUpUser && _cachedUserId.HasValue)
+            EnsureUserLoaded();
+            if (_cachedUserId.HasValue)
                 return _cachedUserId.Value;
 
             var email = Email;
@@ -84,18 +141,20 @@ namespace SMS.Lib
                     $"Call EnsureUserExistsAsync() first to auto-provision the account.");
 
             _cachedUserId = localUser.Id;
+            _cachedRoleId = localUser.RoleId;
+            _cachedGroupId = localUser.GroupId;
             _hasLookedUpUser = true;
             return localUser.Id;
         }
 
-     
+        // ------------------------------------------------------------
+        // EnsureUserExistsAsync (auto-provisioning on first login)
+        // ------------------------------------------------------------
         public async Task<Guid?> EnsureUserExistsAsync()
         {
-            
             if (!IsAuthenticated)
                 return null;
 
-           
             if (_hasLookedUpUser && _cachedUserId.HasValue)
                 return _cachedUserId.Value;
 
@@ -103,32 +162,29 @@ namespace SMS.Lib
             if (string.IsNullOrEmpty(email))
                 return null;
 
-            
             var localUser = await _context.Users
                 .FirstOrDefaultAsync(u => u.Email == email);
 
             if (localUser != null)
             {
-                
                 localUser.LastLoginDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
                 _cachedUserId = localUser.Id;
+                _cachedRoleId = localUser.RoleId;
+                _cachedGroupId = localUser.GroupId;
                 _hasLookedUpUser = true;
                 return localUser.Id;
             }
 
-           
+            // --- New user: provision ---
             bool isFirstUser = !await _context.Users.AnyAsync();
-
             var role = isFirstUser ? UserRole.ADMIN : UserRole.STAFF;
 
-           
             var loginId = email.Contains('@')
                 ? email.Substring(0, email.IndexOf('@'))
                 : email;
 
-           
             var baseLoginId = loginId;
             var suffix = 1;
             while (await _context.Users.AnyAsync(u => u.LoginId == loginId))
@@ -143,14 +199,14 @@ namespace SMS.Lib
                 Email = email,
                 Name = Name ?? email,
                 Mobile = null,
-                PasswordHash = null,          // Azure AD handles authentication
+                PasswordHash = null,     
                 IsActive = true,
                 ActivationDate = DateTime.UtcNow,
                 CreationDate = DateTime.UtcNow,
-                CreatorId = null,             // System-created
+                CreatorId = null,        
                 RoleId = (int)role,
-                GroupId = null,   
-                IsEmailConfirmed = true,     
+                GroupId = null,
+                IsEmailConfirmed = true,
                 TwoFactorAuthEnabled = false,
                 SecurityStamp = Guid.NewGuid().ToString(),
                 AuthRecoveryCodes = null,
@@ -163,6 +219,8 @@ namespace SMS.Lib
             await _context.SaveChangesAsync();
 
             _cachedUserId = newUser.Id;
+            _cachedRoleId = newUser.RoleId;
+            _cachedGroupId = newUser.GroupId;
             _hasLookedUpUser = true;
 
             return newUser.Id;

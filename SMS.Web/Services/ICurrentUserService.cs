@@ -13,7 +13,14 @@ namespace SMS.Lib
 
         // --- Local Database User ---
         Guid? UserId { get; }
+        int? RoleId { get; }
+        Guid? GroupId { get; }
+
         Task<Guid> GetUserIdAsync();
         Task<Guid?> EnsureUserExistsAsync();
+
+        // --- Aggregated Rights ---
+        long Rights { get; }
+        bool HasRight(AccessRights right);
     }
 }

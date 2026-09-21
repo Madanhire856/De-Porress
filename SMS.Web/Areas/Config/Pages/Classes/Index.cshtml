@@ -1,0 +1,132 @@
+﻿@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Config.Pages.Classes.IndexModel
+@{
+    ViewData["Title"] = "Classes";
+    ViewData["PageTitle"] = "Classes";
+    ViewData["PageSubTitle"] = "Manage classes and their assigned teachers";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.CreateClasses))
+    {
+        <a asp-page="./Upsert" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Create
+        </a>
+    }
+}
+
+<div class="table-card">
+
+    <div class="table-count">
+        <i class="fa-solid fa-list-ul me-2"></i>
+        Total: <strong>@Model.Pagination.TotalCount</strong>
+        @(Model.Pagination.TotalCount == 1 ? "class" : "classes")
+    </div>
+
+    <form method="get" class="table-toolbar" id="filterForm">
+        <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" asp-for="SearchTerm"
+                   class="search-input"
+                   placeholder="Search by class name..."
+                   id="searchInput"
+                   autocomplete="off" />
+        </div>
+        <div class="filter-wrapper">
+            <select asp-for="GradeFilter" asp-items="Model.GradeOptions" class="filter-dropdown" id="gradeFilter">
+                <option value="">All Grades</option>
+            </select>
+        </div>
+        <input type="hidden" asp-for="PageSize" />
+        <input type="hidden" asp-for="PageNumber" value="1" id="pageNumberHidden" />
+    </form>
+
+    <table class="data-table table-compact">
+        <thead>
+            <tr>
+                <th>CLS ID</th>
+                <th>Name</th>
+                <th>Grade</th>
+                <th>Class Teacher</th>
+                <th>Capacity</th>
+                <th>Students</th>
+                <th>Date Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Classes.Any())
+            {
+                @foreach (var c in Model.Classes)
+                {
+                    var teacherName = Model.TeacherNames.TryGetValue(c.ClassTeacherId, out var t) ? t : "—";
+                    var gradeName = Model.GradeNames.TryGetValue(c.GradeId, out var g) ? g : "—";
+                    var studentCount = Model.StudentCounts.TryGetValue(c.Id, out var sc) ? sc : 0;
+
+                    <tr>
+                        <td>
+                            <a asp-area="Config"
+                               asp-page="/Classes/Details"
+                               asp-route-id="@c.Id"
+                               class="reg-link">
+                                @c.ClassNumber
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </td>
+                        <td>@c.Name</td>
+                        <td>@gradeName</td>
+                        <td>@teacherName</td>
+                        <td>@c.Capacity</td>
+                        <td>@studentCount</td>
+                        <td>@c.CreationDate.ToString("MMM dd, yyyy")</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="empty-state">No classes found matching your criteria.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <partial name="~/Pages/Shared/Pagination/_pagination.cshtml" model="Model.Pagination" />
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const form = document.getElementById('filterForm');
+            const searchInput = document.getElementById('searchInput');
+            const gradeFilter = document.getElementById('gradeFilter');
+            const pageNumberHidden = document.getElementById('pageNumberHidden');
+            if (!form || !searchInput) return;
+
+            let debounceTimer = null;
+            const DEBOUNCE_MS = 400;
+
+            searchInput.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () {
+                    if (pageNumberHidden) pageNumberHidden.value = '1';
+                    form.submit();
+                }, DEBOUNCE_MS);
+            });
+
+            if (gradeFilter) {
+                gradeFilter.addEventListener('change', function () {
+                    if (pageNumberHidden) pageNumberHidden.value = '1';
+                    form.submit();
+                });
+            }
+
+            if (searchInput.value) {
+                searchInput.focus();
+                const len = searchInput.value.length;
+                searchInput.setSelectionRange(len, len);
+            }
+        })();
+    </script>
+}

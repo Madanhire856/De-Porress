@@ -100,5 +100,22 @@ namespace SMS.Lib
             Enum.GetValues<SubjectCategory>()
                 .Where(c => c != SubjectCategory.NONE)
                 .OrderBy(c => (int)c);
+
+        // ==========================================================
+        //  GRADE LEVEL
+        // ==========================================================
+        public static string ToDisplayName(this GradeLevel g) => g switch
+        {
+            GradeLevel.NONE => "—",
+            GradeLevel.INFANT => "Infant",
+            GradeLevel.JUNIOR => "Junior",
+            GradeLevel.SENI => "Senior",
+            _ => g.ToString()
+        };
+
+        public static IEnumerable<GradeLevel> AllGradeLevels() =>
+            Enum.GetValues<GradeLevel>()
+                .Where(g => g != GradeLevel.NONE)
+                .OrderBy(g => (int)g);
     }
 }

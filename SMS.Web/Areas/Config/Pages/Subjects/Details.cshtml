@@ -1,6 +1,7 @@
 ﻿@page "{id:guid}"
 @model SMS.Web.Areas.Config.Pages.Subjects.DetailsModel
 @using SMS.Lib
+@inject ICurrentUserService CurrentUser
 @{
     ViewData["Title"] = "Subject Details";
     ViewData["PageTitle"] = "Subject Details";
@@ -8,9 +9,12 @@
 }
 
 @section actionbar {
-    <a asp-page="./Upsert" asp-route-id="@Model.SubjectVM.Id" class="btn btn-secondary">
-        <i class="fa-solid fa-pen-to-square"></i> Edit
-    </a>
+    @if (CurrentUser.HasRight(AccessRights.EditSubjects))
+    {
+        <a asp-page="./Upsert" asp-route-id="@Model.SubjectVM.Id" class="btn btn-secondary">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+        </a>
+    }
     <a asp-page="./Index" class="btn btn-primary">
         <i class="fa-solid fa-arrow-left"></i> Back to List
     </a>
