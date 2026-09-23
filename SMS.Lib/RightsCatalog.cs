@@ -125,16 +125,16 @@ namespace SMS.Lib
                     },
 
                 new RightCategory
-                {
-                    Title = "Currencies",
-                    Icon = "fa-coins",
-                    Rights = new()
                     {
-                        new() { Right = AccessRights.ViewCurrencies,   DisplayName = "View Currencies" },
-                        new() { Right = AccessRights.CreateCurrencies, DisplayName = "Create Currencies" },
-                        new() { Right = AccessRights.EditCurrencies,   DisplayName = "Edit Currencies" }
-                    }
-                },
+                        Title = "Currencies",
+                        Icon = "fa-coins",
+                        Rights = new()
+                        {
+                            new() { Right = AccessRights.ViewCurrencies,   DisplayName = "View Currencies" },
+                            new() { Right = AccessRights.CreateCurrencies, DisplayName = "Create Currencies" },
+                            new() { Right = AccessRights.EditCurrencies,   DisplayName = "Edit Currencies" }
+                        }
+                    },
                 new RightCategory
                 {
                     Title = "Timetable",
@@ -213,8 +213,21 @@ namespace SMS.Lib
                     {
                         new() { Right = AccessRights.ViewSponsorships, DisplayName = "View Sponsorships" }
                     }
-                }
-            };
+                },
+
+                new RightCategory
+                {
+                    Title = "Sports",
+                    Icon = "fa-futbol",
+                    Rights = new()
+                    {
+                        new() { Right = AccessRights.ViewSports,          DisplayName = "View Sports" },
+                        new() { Right = AccessRights.CreateSports,        DisplayName = "Create Sports" },
+                        new() { Right = AccessRights.EditSports,          DisplayName = "Edit Sports" },
+                        new() { Right = AccessRights.AssignSportsCoaches, DisplayName = "Assign Sports Coaches" }
+                    }
+                },
+                            };
         }
     }
 }

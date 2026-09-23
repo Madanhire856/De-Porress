@@ -6,7 +6,7 @@ namespace SMS.Lib
 {
     public enum LevyType
     {
-        TUTION=1,
+        TUITION=1,
         DEVELOPMENT=2,
         UNIFORM=3,
         OTHER=4,

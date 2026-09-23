@@ -5,13 +5,13 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SMS.Data;
 using SMS.Lib;
-using SMS.Web.Areas.Academics.Pages.Staff.ViewModels; 
+using SMS.Web.Areas.Academics.Pages.Staff.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SMS.Web.Areas.Academics.Pages.Staff  
+namespace SMS.Web.Areas.Academics.Pages.Staff
 {
     [Authorize]
     public class UpsertModel : PageModel
@@ -34,6 +34,8 @@ namespace SMS.Web.Areas.Academics.Pages.Staff
         public List<SelectListItem> Genders { get; set; } = new();
         public List<SelectListItem> Qualifications { get; set; } = new();
 
+        public bool IsEditMode { get; set; }
+
         public async Task<IActionResult> OnGetAsync(Guid? id)
         {
             // ---- Rights guard ----
@@ -47,6 +49,8 @@ namespace SMS.Web.Areas.Academics.Pages.Staff
             if (id != null)
             {
                 // === EDIT ===
+                IsEditMode = true;
+
                 var entity = await _context.Staff
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.Id == id);
@@ -74,6 +78,8 @@ namespace SMS.Web.Areas.Academics.Pages.Staff
             else
             {
                 // === CREATE ===
+                IsEditMode = false;
+
                 staff = new StaffVM
                 {
                     Id = Guid.NewGuid(),
@@ -95,7 +101,10 @@ namespace SMS.Web.Areas.Academics.Pages.Staff
             await LoadLookupsAsync();
 
             if (!ModelState.IsValid)
+            {
+                IsEditMode = id != null;
                 return Page();
+            }
 
             Guid excludeId = id ?? Guid.Empty;
 
@@ -108,6 +117,7 @@ namespace SMS.Web.Areas.Academics.Pages.Staff
                 if (!userExists)
                 {
                     ModelState.AddModelError("staff.UserId", "The selected user account no longer exists.");
+                    IsEditMode = id != null;
                     return Page();
                 }
 
@@ -117,6 +127,7 @@ namespace SMS.Web.Areas.Academics.Pages.Staff
                 if (clashUser != null)
                 {
                     ModelState.AddModelError("staff.UserId", "This user is already linked to another staff member.");
+                    IsEditMode = id != null;
                     return Page();
                 }
             }
@@ -131,6 +142,7 @@ namespace SMS.Web.Areas.Academics.Pages.Staff
             if (clashEc != null)
             {
                 ModelState.AddModelError("staff.EcNumber", "This EC Number is already in use.");
+                IsEditMode = id != null;
                 return Page();
             }
 
@@ -140,6 +152,7 @@ namespace SMS.Web.Areas.Academics.Pages.Staff
             if (clashId != null)
             {
                 ModelState.AddModelError("staff.IdNumber", "This ID Number is already in use.");
+                IsEditMode = id != null;
                 return Page();
             }
 
@@ -164,7 +177,7 @@ namespace SMS.Web.Areas.Academics.Pages.Staff
                     return NotFound();
             }
 
-            // Map form → entity (both insert and update)
+            // Map form → entity
             entity.UserId = staff.UserId;
             entity.EcNumber = staff.EcNumber;
             entity.Name = staff.Name;
@@ -178,9 +191,11 @@ namespace SMS.Web.Areas.Academics.Pages.Staff
             entity.IdNumber = staff.IdNumber;
             entity.IsActive = staff.IsActive;
 
+            // NOTE: Subject assignments are managed separately on the
+            // AssignSubject page — not here.
+
             await _context.SaveChangesAsync();
 
-            // 👇 area changed from Config to Academics
             return RedirectToPage("./Details", new { area = "Academics", id = entity.Id });
         }
 

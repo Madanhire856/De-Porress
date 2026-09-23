@@ -24,7 +24,7 @@
                     <label class="form-label" asp-for="house.Name">
                         House Name <span class="required">*</span>
                     </label>
-                    <input asp-for="house.Name" class="form-control" required />
+                    <input asp-for="house.Name" class="form-control" placeholder="e.g. St. Dominic" required />
                     <span asp-validation-for="house.Name" class="text-danger"></span>
                 </div>
 
@@ -35,17 +35,9 @@
                     <input asp-for="house.Color" class="form-control" placeholder="e.g. Red, Blue, Green" required />
                     <span asp-validation-for="house.Color" class="text-danger"></span>
                 </div>
-
-                <div class="form-group full-width">
-                    <label class="form-label" asp-for="house.MasterId">
-                        House Master <span class="required">*</span>
-                    </label>
-                    <select asp-for="house.MasterId" asp-items="Model.Masters" class="form-control" required>
-                        <option value="">— Select house master —</option>
-                    </select>
-                    <span asp-validation-for="house.MasterId" class="text-danger"></span>
-                </div>
             </div>
+
+           
         </div>
 
         <div class="card-footer">

@@ -20,7 +20,6 @@ namespace SMS.Web.Areas.Config.Pages.Users
             _context = context;
         }
 
-        // 👈 Named UserVM to avoid conflict with PageModel.User (ClaimsPrincipal)
         public User UserVM { get; set; } = null!;
 
         public string? CreatorEmail { get; set; }

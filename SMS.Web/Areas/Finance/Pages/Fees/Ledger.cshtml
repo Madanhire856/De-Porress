@@ -1,0 +1,228 @@
+﻿@page "{id:guid}"
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Finance.Pages.Fees.LedgerModel
+@{
+    ViewData["Title"] = "Student Ledger";
+    ViewData["PageTitle"] = "Student Ledger";
+    ViewData["PageSubTitle"] = Model.StudentName;
+}
+
+@section actionbar {
+   
+    @if (CurrentUser.HasRight(AccessRights.RecordPayments))
+    {
+        <a asp-page="./RecordPayment" asp-route-ledgerId="@Model.LedgerId" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Record Payment
+        </a>
+    }
+     <a asp-page="./Balances" class="btn btn-ghost">
+        <i class="fa-solid fa-arrow-left"></i> Balances
+    </a>
+}
+
+<!-- ===== DISMISSABLE FLASH ALERTS ===== -->
+@if (TempData["PaymentSuccess"] != null)
+{
+    <div class="flash flash-success" id="flash-success-alert" style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>@TempData["PaymentSuccess"]</span>
+        </div>
+        <button type="button" 
+                onclick="document.getElementById('flash-success-alert').style.display='none';" 
+                aria-label="Dismiss alert" 
+                style="background: transparent; border: none; font-size: 1.1rem; cursor: pointer; color: inherit; opacity: 0.75; padding: 0 0.25rem; line-height: 1;">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+}
+
+@if (TempData["PaymentError"] != null)
+{
+    <div class="flash flash-error" id="flash-error-alert" style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>@TempData["PaymentError"]</span>
+        </div>
+        <button type="button" 
+                onclick="document.getElementById('flash-error-alert').style.display='none';" 
+                aria-label="Dismiss alert" 
+                style="background: transparent; border: none; font-size: 1.1rem; cursor: pointer; color: inherit; opacity: 0.75; padding: 0 0.25rem; line-height: 1;">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+}
+
+<!-- ===== SUMMARY TILES ===== -->
+<div class="house-stats house-stats-4" style="margin-bottom: 1rem;">
+    <div class="house-stat">
+        <i class="fa-solid fa-file-invoice-dollar"></i>
+        <div>
+            <div class="house-stat-value">@Model.TotalCharged.ToString("N2")</div>
+            <div class="house-stat-label">Charged</div>
+        </div>
+    </div>
+
+    <div class="house-stat">
+        <i class="fa-solid fa-hand-holding-dollar"></i>
+        <div>
+            <div class="house-stat-value">@Model.TotalPaid.ToString("N2")</div>
+            <div class="house-stat-label">Paid</div>
+        </div>
+    </div>
+
+    <div class="house-stat @(Model.ClosingBalance > 0m ? "house-stat-warning" : "")">
+        <i class="fa-solid fa-scale-balanced"></i>
+        <div>
+            <div class="house-stat-value">@Model.ClosingBalance.ToString("N2")</div>
+            <div class="house-stat-label">Balance</div>
+        </div>
+    </div>
+
+    <div class="house-stat">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <div>
+            <div class="house-stat-value" style="font-size: 1.1rem;">@Model.GradeName</div>
+            <div class="house-stat-label">@Model.TermName</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== STUDENT IDENTITY STRIP ===== -->
+<div class="info-card" style="margin-bottom: 1rem;">
+    <div class="info-row">
+        <div class="info-label">
+            <i class="fa-solid fa-user"></i> Student
+        </div>
+        <div class="info-value">@Model.StudentName</div>
+
+        <div class="info-label" style="margin-left: 2rem;">
+            <i class="fa-solid fa-tag"></i> Status
+        </div>
+        <div class="info-value">
+            <span class="status-badge @Model.StatusClass">@Model.StatusLabel</span>
+        </div>
+
+        <div class="info-label" style="margin-left: 2rem;">
+            <i class="fa-solid fa-money-bill-wave"></i> Currency
+        </div>
+        <div class="info-value info-value-mono">@Model.BaseCurrency</div>
+    </div>
+</div>
+
+<!-- ===== PAYMENT HISTORY ===== -->
+<div class="info-card">
+    <div class="info-card-header">
+        <i class="fa-solid fa-list"></i>
+        <span>Payment History</span>
+        <span class="info-card-badge">@Model.Payments.Count</span>
+    </div>
+
+    @if (Model.Payments.Any())
+    {
+        <table class="data-table table-compact">
+            <thead>
+                <tr>
+                    <th>Receipt</th>
+                    <th>Date</th>
+                    <th>Method</th>
+                    <th>Reference</th>
+                    <th style="text-align:right;">Amount</th>
+                    <th>Recorded By</th>
+                    <th style="width: 60px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model.Payments)
+                {
+                    <tr class="@(p.IsReversal ? "cashup-row-reversal" : "")">
+                        <td class="info-value-mono">@p.ReceiptDisplay</td>
+                        <td>@p.Date.ToString("dd MMM yyyy HH:mm")</td>
+                        <td>
+                            @p.Method
+                            @if (p.IsReversal)
+                            {
+                                <span class="status-badge status-overdue" style="font-size: 0.6rem; margin-left: 4px;">
+                                    Reversal
+                                </span>
+                            }
+                            else if (p.AlreadyReversed)
+                            {
+                                <span class="status-badge status-count" style="font-size: 0.6rem; margin-left: 4px;">
+                                    Reversed
+                                </span>
+                            }
+                        </td>
+                        <td class="info-value-mono">@(p.Reference ?? "—")</td>
+                        <td style="text-align:right; font-weight: 600; @(p.BaseAmount < 0m ? "color: #B91C1C;" : "")">
+                            @p.BaseAmount.ToString("N2")
+                            <small class="info-value-mono">@Model.BaseCurrency</small>
+                        </td>
+                        <td>@p.CreatedByName</td>
+                        <td>
+                            @if (!p.IsReversal
+                                 && !p.AlreadyReversed
+                                 && CurrentUser.HasRight(AccessRights.RecordPayments))
+                            {
+                                <a asp-page="./ReversePayment" asp-route-id="@p.Id"
+                                   class="btn btn-ghost btn-sm" title="Reverse this payment">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </a>
+                            }
+                        </td>
+                    </tr>
+
+                    @if (p.IsReversal && !string.IsNullOrWhiteSpace(p.ReversalReason))
+                    {
+                        <tr class="ledger-reversal-note">
+                            <td colspan="7">
+                                <i class="fa-solid fa-quote-left"></i> @p.ReversalReason
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+            <tfoot>
+                <tr style="background: #F9FAFB;">
+                    <td colspan="4" style="text-align:right; font-weight:600;">
+                        Total Paid
+                    </td>
+                    <td style="text-align:right; font-weight:700;">
+                        @Model.TotalPaid.ToString("N2")
+                        <small class="info-value-mono">@Model.BaseCurrency</small>
+                    </td>
+                    <td colspan="2"></td>
+                </tr>
+                @if (Model.TotalReversed > 0m)
+                {
+                    <tr style="background: #FEF2F2;">
+                        <td colspan="4" style="text-align:right; font-weight:600; color: #991B1B;">
+                            Total Reversed
+                        </td>
+                        <td style="text-align:right; font-weight:700; color: #B91C1C;">
+                            −@Model.TotalReversed.ToString("N2")
+                            <small class="info-value-mono">@Model.BaseCurrency</small>
+                        </td>
+                        <td colspan="2"></td>
+                    </tr>
+                }
+            </tfoot>
+        </table>
+    }
+    else
+    {
+        <div class="empty-state">
+            No payments recorded yet.
+            @if (CurrentUser.HasRight(AccessRights.RecordPayments))
+            {
+                <div style="margin-top: 1rem;">
+                    <a asp-page="./RecordPayment" asp-route-ledgerId="@Model.LedgerId"
+                       class="btn btn-primary">
+                        <i class="fa-solid fa-plus"></i> Record First Payment
+                    </a>
+                </div>
+            }
+        </div>
+    }
+</div>

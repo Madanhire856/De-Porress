@@ -6,8 +6,8 @@ namespace SMS.Lib
 {
     public enum EnrolmentStatus
     {
-        ACTIVE = 0,
-        TRANSFERED = 1,
-        GRADUATED = 2,
+        ACTIVE = 1,
+        TRANSFERRED = 2,
+        GRADUATED = 3,
     }
 }

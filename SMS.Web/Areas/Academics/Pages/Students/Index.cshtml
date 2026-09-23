@@ -1,0 +1,180 @@
+﻿@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Academics.Pages.Students.IndexModel
+@{
+    ViewData["Title"] = "Students";
+    ViewData["PageTitle"] = "Students";
+    ViewData["PageSubTitle"] = "Manage student records";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.CreateLearners))
+    {
+        <a asp-page="./Upsert" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Create
+        </a>
+    }
+}
+
+<div class="table-card">
+
+    <div class="table-count">
+        <i class="fa-solid fa-list-ul me-2"></i>
+        Total: <strong>@Model.Pagination.TotalCount</strong>
+        @(Model.Pagination.TotalCount == 1 ? "student" : "students")
+    </div>
+
+    <!-- ===== VILLAGE FILTER BANNER ===== -->
+    @if (Model.VillageFilter.HasValue)
+    {
+        <div class="filter-banner">
+            <i class="fa-solid fa-filter"></i>
+            <span>
+                Showing students in
+                <strong>@(Model.VillageFilterName ?? "village")</strong>
+            </span>
+            <a asp-page="./Index"
+               asp-route-Search="@Model.Search"
+               asp-route-ClassFilter="@Model.ClassFilter"
+               asp-route-GenderFilter="@Model.GenderFilter"
+               asp-route-EnrolmentFilter="@Model.EnrolmentFilter"
+               class="filter-banner-clear">
+                Clear <i class="fa-solid fa-xmark"></i>
+            </a>
+        </div>
+    }
+
+    <!-- ===== FILTER TOOLBAR ===== -->
+    <form method="get" class="table-toolbar" id="filterForm">
+
+        <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text"
+                   asp-for="Search"
+                   class="search-input"
+                   placeholder="Search by name or surname..."
+                   autocomplete="off"
+                   id="searchInput" />
+        </div>
+
+        <div class="filter-wrapper">
+            <select asp-for="ClassFilter"
+                    asp-items="Model.ClassOptions"
+                    class="filter-dropdown"
+                    id="classFilter">
+                <option value="">All Classes</option>
+            </select>
+        </div>
+
+        <div class="filter-wrapper">
+            <select asp-for="GenderFilter"
+                    asp-items="Model.GenderOptions"
+                    class="filter-dropdown"
+                    id="genderFilter">
+                <option value="">All Genders</option>
+            </select>
+        </div>
+
+        <div class="filter-wrapper">
+            <select asp-for="EnrolmentFilter"
+                    asp-items="Model.EnrolmentStatusOptions"
+                    class="filter-dropdown"
+                    id="enrolmentFilter">
+                <option value="">All Statuses</option>
+            </select>
+        </div>
+
+        <input type="hidden" asp-for="PageSize" />
+        <input type="hidden" asp-for="PageNumber" value="1" id="pageNumberHidden" />
+        <input type="hidden" asp-for="VillageFilter" />
+    </form>
+
+    <!-- ===== TABLE ===== -->
+    <table class="data-table table-compact">
+        <thead>
+            <tr>
+                <th>STD ID</th>
+                <th>Name</th>
+                <th>Surname</th>
+                <th>Class</th>
+                <th>Gender</th>
+                <th>Date of Birth</th>
+                <th>Village</th>
+                <th>Status</th>
+                <th>Enrolled</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Students.Any())
+            {
+                @foreach (var s in Model.Students)
+                {
+                    <tr>
+                        <td>
+                            <a asp-area="Academics"
+                               asp-page="/Students/Details"
+                               asp-route-id="@s.Id"
+                               class="reg-link">
+                                @s.StudentNumber
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </td>
+                        <td>@s.Name</td>
+                        <td>@s.Surname</td>
+                        <td>@s.ClassName</td>
+                        <td>@s.GenderName</td>
+                        <td>@(s.Dob?.ToString("dd MMM yyyy") ?? "—")</td>
+                        <td>@s.VillageName</td>
+                        <td>
+                            <span class="status-badge status-active">@s.EnrolmentStatusName</span>
+                        </td>
+                        <td>@(s.EnrolmentDate?.ToString("dd MMM yyyy") ?? "—")</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="9" class="empty-state">
+                        No students found matching your criteria.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <partial name="~/Pages/Shared/Pagination/_pagination.cshtml" model="Model.Pagination" />
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const form = document.getElementById('filterForm');
+            const searchInput = document.getElementById('searchInput');
+            const classFilter = document.getElementById('classFilter');
+            const genderFilter = document.getElementById('genderFilter');
+            const enrolmentFilter = document.getElementById('enrolmentFilter');
+            const pageNumberHidden = document.getElementById('pageNumberHidden');
+
+            if (!form) return;
+
+            function submit() {
+                if (pageNumberHidden) pageNumberHidden.value = '1';
+                form.submit();
+            }
+
+            if (searchInput) {
+                let timer = null;
+                searchInput.addEventListener('input', function () {
+                    clearTimeout(timer);
+                    timer = setTimeout(submit, 500);
+                });
+            }
+
+            if (classFilter)     classFilter.addEventListener('change', submit);
+            if (genderFilter)    genderFilter.addEventListener('change', submit);
+            if (enrolmentFilter) enrolmentFilter.addEventListener('change', submit);
+        })();
+    </script>
+}

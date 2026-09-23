@@ -424,6 +424,17 @@ body {
         font-size: 0.85rem;
     }
 
+/* Small button modifier */
+.btn-sm {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.78rem;
+    border-radius: 4px;
+}
+
+    .btn-sm i {
+        font-size: 0.75rem;
+    }
+
 /* Primary — main action */
 .btn-primary {
     background-color: var(--sms-gold);
@@ -457,6 +468,24 @@ body {
     .btn-tertiary:hover {
         background-color: rgba(255, 255, 255, 0.1);
         border-color: rgba(255, 255, 255, 0.7);
+    }
+
+/* Ghost — pure navigation, low emphasis */
+.btn-ghost {
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--sms-text-muted);
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+}
+
+    .btn-ghost:hover {
+        background-color: #F3F4F6;
+        color: var(--sms-text-main);
+    }
+
+    .btn-ghost i {
+        color: var(--sms-gold);
     }
 
 /* ==========================================================
@@ -557,6 +586,40 @@ body {
     color: var(--sms-text-muted);
     background-color: #F9FAFB;
 }
+
+/* --- FILTER BANNER --- */
+.filter-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    background: #FFFBEB;
+    border-bottom: 1px solid #FDE68A;
+    font-size: 0.85rem;
+    color: #92400E;
+}
+
+    .filter-banner i {
+        color: var(--sms-gold);
+    }
+
+.filter-banner-clear {
+    margin-left: auto;
+    color: #92400E;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.15s;
+}
+
+    .filter-banner-clear:hover {
+        background-color: #FEF3C7;
+        color: #78350F;
+    }
 
 .data-table th {
     padding: 1rem 1.5rem;
@@ -900,6 +963,442 @@ textarea.form-control {
     .form-compact .form-control {
         font-size: 0.8rem;
         padding: 0.35rem 0.55rem;
+    }
+}
+
+/* ==========================================================
+   ASSIGNMENT ROWS (Houses, Sports)
+   ========================================================== */
+.assignment-table {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.assignment-row {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--sms-border);
+    border-radius: 6px;
+    background: #FFFFFF;
+    transition: background-color 0.15s;
+}
+
+    .assignment-row:hover {
+        background-color: #F9FAFB;
+    }
+
+.assignment-check {
+    flex-shrink: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+    .assignment-check input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--sms-gold);
+        cursor: pointer;
+    }
+
+.assignment-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.assignment-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--sms-text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.assignment-meta {
+    font-size: 0.75rem;
+    color: var(--sms-text-muted);
+    margin-top: 1px;
+}
+
+.assignment-role {
+    flex-shrink: 0;
+    width: 180px;
+}
+
+    .assignment-role select {
+        width: 100%;
+        padding: 0.35rem 0.5rem;
+        border: 1px solid #D1D5DB;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        background: #FFFFFF;
+        font-family: inherit;
+        outline: none;
+        cursor: pointer;
+    }
+
+        .assignment-role select:focus {
+            border-color: var(--sms-gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+        }
+
+@media (max-width: 768px) {
+    .assignment-row {
+        flex-wrap: wrap;
+    }
+
+    .assignment-role {
+        width: 100%;
+    }
+}
+
+/* --- Toolbar (search + toggle) --- */
+.house-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.assignment-search {
+    position: relative;
+    flex-grow: 1;
+    max-width: 400px;
+}
+
+    .assignment-search i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--sms-text-muted);
+        font-size: 0.85rem;
+        pointer-events: none;
+    }
+
+    .assignment-search input {
+        width: 100%;
+        padding: 0.5rem 0.75rem 0.5rem 2.2rem;
+        border: 1px solid #D1D5DB;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-family: inherit;
+        color: var(--sms-text-main);
+        background: #FFFFFF;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+        .assignment-search input::placeholder {
+            color: #9CA3AF;
+        }
+
+        .assignment-search input:focus {
+            border-color: var(--sms-navy);
+            box-shadow: 0 0 0 3px rgba(26, 37, 48, 0.12);
+        }
+
+/* --- Filter toggle — navy accent --- */
+.assignment-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--sms-text-main);
+    cursor: pointer;
+    user-select: none;
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    transition: background-color 0.15s;
+    white-space: nowrap;
+}
+
+    .assignment-toggle:hover {
+        background-color: #F9FAFB;
+    }
+
+    .assignment-toggle input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--sms-navy);
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+/* --- Header stats — auto-fit any count of tiles --- */
+.house-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.house-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem 1.25rem;
+    background: #FFFFFF;
+    border: 1px solid var(--sms-border);
+    border-radius: 6px;
+}
+
+    .house-stat i {
+        font-size: 1.1rem;
+        color: #FFFFFF;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--sms-navy);
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+.house-stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--sms-text-main);
+    line-height: 1.1;
+}
+
+.house-stat-label {
+    font-size: 0.72rem;
+    color: var(--sms-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+}
+
+/* Warning stat keeps amber — it's a semantic alert, not brand */
+.house-stat-warning {
+    border-color: #FDE68A;
+    background-color: #FFFBEB;
+}
+
+    .house-stat-warning i {
+        color: #B45309;
+        background: #FEF3C7;
+    }
+
+    .house-stat-warning .house-stat-value {
+        color: #92400E;
+    }
+
+/* --- Cards grid --- */
+.house-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1rem;
+}
+
+.house-card {
+    background: #FFFFFF;
+    border: 1px solid var(--sms-border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+    .house-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        transform: translateY(-2px);
+    }
+
+.house-card-incomplete {
+    border-color: #FDE68A;
+}
+
+.house-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: #F9FAFB;
+    border-bottom: 1px solid var(--sms-border);
+}
+
+.house-card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+.house-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--sms-navy);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(26, 37, 48, 0.12);
+}
+
+.house-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--sms-navy);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.house-card-body {
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex-grow: 1;
+}
+
+/* --- Teacher row --- */
+.house-teacher {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 6px;
+    background: #F9FAFB;
+    border: 1px solid #F3F4F6;
+}
+
+.house-teacher-master {
+    background: #F0F4F8;
+    border-color: #DDE5EE;
+    border-left: 3px solid var(--sms-navy);
+    padding-left: calc(0.6rem - 2px);
+}
+
+.house-teacher-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 1px solid var(--sms-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sms-text-muted);
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.house-teacher-master .house-teacher-avatar {
+    background: var(--sms-navy);
+    border-color: var(--sms-navy);
+    color: #FFFFFF;
+}
+
+.house-teacher-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.house-teacher-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--sms-text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.house-teacher-master .house-teacher-name {
+    color: var(--sms-navy);
+}
+
+.house-teacher-meta {
+    font-size: 0.7rem;
+    color: var(--sms-text-muted);
+    margin-top: 1px;
+}
+
+/* --- Role pills --- */
+.role-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.55rem;
+    border-radius: 9999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    background: #F3F4F6;
+    color: var(--sms-text-muted);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.role-pill-master {
+    background: var(--sms-navy);
+    color: #FFFFFF;
+}
+
+/* --- Empty teachers message --- */
+.house-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1.25rem 0.75rem;
+    font-size: 0.8rem;
+    color: #9CA3AF;
+    font-style: italic;
+}
+
+    .house-empty i {
+        color: #D1D5DB;
+    }
+
+/* --- Card footer --- */
+.house-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1rem;
+    border-top: 1px solid var(--sms-border);
+    background: #F9FAFB;
+    font-size: 0.75rem;
+}
+
+.house-count {
+    color: var(--sms-text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+    .house-count i {
+        color: var(--sms-text-muted);
+    }
+
+.house-warning {
+    color: #B45309;
+    background: #FEF3C7;
+    padding: 0.15rem 0.55rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+@media (max-width: 768px) {
+    .house-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .house-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -2100,4 +2599,840 @@ textarea.form-control {
         .public-nav-actions .btn {
             max-width: none;
         }
+}
+
+/* ==========================================================
+   FEES — DASHBOARD (professional)
+   Cohesive summary panel + activity grid + fee strip.
+   Reuses info-card / info-row / house-stats where possible.
+   ========================================================== */
+
+/* --- Hero summary panel --- */
+.dash-hero {
+    background: #FFFFFF;
+    border: 1px solid var(--sms-border);
+    border-radius: 8px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1rem;
+}
+
+.dash-hero-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.dash-hero-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--sms-navy);
+    line-height: 1.2;
+}
+
+.dash-hero-sub {
+    font-size: 0.8rem;
+    color: var(--sms-text-muted);
+    margin-top: 2px;
+}
+
+/* --- Metric row --- */
+.dash-hero-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.dash-metric {
+    padding-right: 1.5rem;
+    border-right: 1px solid var(--sms-border);
+}
+
+    .dash-metric:last-child {
+        border-right: none;
+        padding-right: 0;
+    }
+
+.dash-metric-label {
+    font-size: 0.72rem;
+    color: var(--sms-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.dash-metric-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--sms-text-main);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.dash-metric-alert .dash-metric-value {
+    color: #B45309;
+}
+
+/* --- Progress bar --- */
+.dash-progress {
+    margin-bottom: 1.25rem;
+}
+
+.dash-progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--sms-text-muted);
+}
+
+.dash-progress-pct {
+    font-weight: 700;
+    color: var(--sms-navy);
+    font-variant-numeric: tabular-nums;
+}
+
+.dash-progress-bar {
+    height: 8px;
+    background: #F3F4F6;
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.dash-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--sms-navy), #2D4A63);
+    border-radius: 9999px;
+    transition: width 0.4s ease;
+}
+
+/* --- Status legend --- */
+.dash-status-legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--sms-border);
+    font-size: 0.8rem;
+    color: var(--sms-text-muted);
+}
+
+.dash-status-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+    .dash-status-item strong {
+        color: var(--sms-text-main);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+
+.dash-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.dash-dot-green {
+    background: #10B981;
+}
+
+.dash-dot-amber {
+    background: #F59E0B;
+}
+
+.dash-dot-red {
+    background: #EF4444;
+}
+
+/* --- Fee structure strip --- */
+.dash-fee-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+}
+
+.dash-fee-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.85rem;
+    background: #F9FAFB;
+    border: 1px solid var(--sms-border);
+    border-radius: 6px;
+}
+
+.dash-fee-grade {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--sms-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dash-fee-amount {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--sms-navy);
+    font-variant-numeric: tabular-nums;
+}
+
+    .dash-fee-amount small {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--sms-text-muted);
+        margin-left: 2px;
+    }
+
+/* --- Mobile --- */
+@media (max-width: 1024px) {
+    .dash-hero-metrics {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .dash-metric {
+        padding: 0 0 1rem 0;
+        border-right: none;
+        border-bottom: 1px solid var(--sms-border);
+    }
+
+        .dash-metric:nth-child(odd) {
+            padding-right: 1rem;
+            border-right: 1px solid var(--sms-border);
+        }
+
+        .dash-metric:nth-last-child(-n+2) {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+}
+
+@media (max-width: 768px) {
+    .dash-hero {
+        padding: 1.25rem 1rem;
+    }
+
+    .dash-metric-value {
+        font-size: 1.4rem;
+    }
+
+    .dash-status-legend {
+        gap: 0.75rem;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .dash-status-item:last-child {
+        margin-left: 0 !important;
+    }
+}
+
+/* ==========================================================
+   DAILY CASH-UP
+   ========================================================== */
+
+/* --- Filter bar --- */
+.cashup-filter {
+    background: #FFFFFF;
+    border: 1px solid var(--sms-border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.cashup-filter-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.filter-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sms-text-muted);
+    margin-bottom: 0.15rem;
+}
+
+/* --- Sheet --- */
+.cashup-sheet {
+    background: #FFFFFF;
+    border: 1px solid var(--sms-border);
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* --- Header --- */
+.cashup-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 2px solid var(--sms-navy);
+    margin-bottom: 1.5rem;
+}
+
+.cashup-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.cashup-logo {
+    height: 56px;
+    width: 56px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.cashup-school {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sms-text-muted);
+}
+
+.cashup-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--sms-navy);
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+.cashup-header-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.cashup-meta-row {
+    font-size: 0.8rem;
+    color: var(--sms-text-muted);
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+    .cashup-meta-row strong {
+        color: var(--sms-text-main);
+        font-weight: 600;
+    }
+
+/* --- Stat tiles --- */
+.cashup-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.cashup-stat {
+    padding: 0.85rem 1rem;
+    background: #F9FAFB;
+    border: 1px solid var(--sms-border);
+    border-radius: 6px;
+}
+
+.cashup-stat-primary {
+    background: #F0F4F8;
+    border-color: #DDE5EE;
+}
+
+.cashup-stat-net {
+    background: #DEF7EC;
+    border-color: #A7F3D0;
+}
+
+.cashup-stat-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sms-text-muted);
+    margin-bottom: 0.2rem;
+}
+
+.cashup-stat-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--sms-text-main);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+    .cashup-stat-value small {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--sms-text-muted);
+        margin-left: 3px;
+    }
+
+/* --- Sections --- */
+.cashup-section {
+    margin-bottom: 1.5rem;
+}
+
+.cashup-section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sms-navy);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--sms-border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+    .cashup-section-title i {
+        color: var(--sms-gold);
+        font-size: 0.85rem;
+    }
+
+.cashup-section-reversals .cashup-section-title {
+    color: #991B1B;
+}
+
+    .cashup-section-reversals .cashup-section-title i {
+        color: #DC2626;
+    }
+
+/* --- Tables --- */
+.cashup-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+    .cashup-table th {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--sms-text-muted);
+        text-align: left;
+        background: #F9FAFB;
+        border-bottom: 1px solid var(--sms-border);
+    }
+
+    .cashup-table td {
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid #F3F4F6;
+        color: var(--sms-text-main);
+    }
+
+    .cashup-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .cashup-table tfoot td {
+        padding-top: 0.65rem;
+        border-top: 2px solid var(--sms-border);
+        border-bottom: none;
+        background: #F9FAFB;
+    }
+
+.cashup-table-compact td,
+.cashup-table-compact th {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.78rem;
+}
+
+.cashup-writein {
+    border-left: 1px dashed #D1D5DB !important;
+    background: #FFFBEB;
+    min-height: 32px;
+}
+
+.cashup-row-reversal {
+    background: #FEF2F2;
+}
+
+.cashup-empty {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: var(--sms-text-muted);
+    font-style: italic;
+    font-size: 0.85rem;
+    background: #F9FAFB;
+    border: 1px dashed var(--sms-border);
+    border-radius: 6px;
+}
+
+/* --- Sign-off --- */
+.cashup-signoff {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid var(--sms-navy);
+}
+
+.cashup-signoff-text {
+    margin-bottom: 1.5rem;
+}
+
+    .cashup-signoff-text strong {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--sms-navy);
+        margin-bottom: 0.35rem;
+    }
+
+    .cashup-signoff-text p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--sms-text-muted);
+        line-height: 1.5;
+    }
+
+.cashup-signoff-lines {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.cashup-signoff-line > span {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--sms-text-muted);
+    margin-bottom: 0.35rem;
+}
+
+.cashup-signoff-space {
+    height: 2.5rem;
+    border-bottom: 1px solid #374151;
+    margin-bottom: 0.25rem;
+}
+
+.cashup-signoff-caption {
+    font-size: 0.7rem;
+    color: var(--sms-text-muted);
+    font-style: italic;
+}
+
+.cashup-footer {
+    margin-top: 1.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--sms-border);
+    font-size: 0.7rem;
+    color: var(--sms-text-muted);
+    text-align: center;
+    font-style: italic;
+}
+
+/* --- Mobile --- */
+@media (max-width: 768px) {
+    .cashup-sheet {
+        padding: 1rem;
+    }
+
+    .cashup-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .cashup-header-right {
+        text-align: left;
+        width: 100%;
+    }
+
+    .cashup-meta-row {
+        justify-content: flex-start;
+    }
+
+    .cashup-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .cashup-signoff-lines {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================================
+   BANK RECONCILIATION
+   ========================================================== */
+
+.reconcile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.reconcile-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #F3F4F6;
+    transition: background-color 0.15s;
+}
+
+    .reconcile-row:hover {
+        background-color: #F9FAFB;
+    }
+
+.reconcile-row-payment {
+    cursor: pointer;
+}
+
+    .reconcile-row-payment.selected {
+        background-color: #F0F4F8;
+        border-left: 3px solid var(--sms-navy);
+        padding-left: calc(1rem - 3px);
+    }
+
+.reconcile-row-main {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.reconcile-row-line1 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    flex-wrap: wrap;
+}
+
+.reconcile-row-line2 {
+    font-size: 0.75rem;
+    color: var(--sms-text-muted);
+}
+
+.reconcile-row-amount {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--sms-text-main);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+    .reconcile-row-amount small {
+        font-size: 0.7rem;
+        color: var(--sms-text-muted);
+        font-weight: 500;
+        margin-left: 2px;
+    }
+
+.reconcile-row-actions {
+    flex-shrink: 0;
+}
+
+@media (max-width: 1024px) {
+    .reconcile-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================================
+   FLASH / ALERT BANNERS
+   Uses Bootstrap's .alert-dismissible + .btn-close
+   ========================================================== */
+.flash {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 3rem 0.75rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+}
+
+    .flash i {
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+
+.flash-success {
+    background: #DEF7EC;
+    border-color: #A7F3D0;
+    color: #03543F;
+}
+
+    .flash-success i {
+        color: #059669;
+    }
+
+.flash-error {
+    background: #FDE8E8;
+    border-color: #FCA5A5;
+    color: #9B1C1C;
+}
+
+    .flash-error i {
+        color: #DC2626;
+    }
+
+/* Bootstrap close button, tuned for the flash context */
+.flash .btn-close {
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    transform: translateY(-50%);
+    padding: 0.4rem;
+    font-size: 0.65rem;
+    opacity: 0.5;
+}
+
+    .flash .btn-close:hover,
+    .flash .btn-close:focus {
+        opacity: 0.85;
+        box-shadow: none;
+    }
+
+    .flash .btn-close:focus-visible {
+        outline: 2px solid var(--sms-gold);
+        outline-offset: 2px;
+    }
+
+/* ==========================================================
+   FEES — BALANCES
+   ========================================================== */
+.fees-filter {
+    background: #FFFFFF;
+    border: 1px solid var(--sms-border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.fees-filter-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+    .fees-filter-form .filter-wrapper {
+        flex-shrink: 0;
+    }
+
+    .fees-filter-form .fees-filter-grow {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .fees-filter-form .btn {
+        flex-shrink: 0;
+    }
+
+/* Clear-filter link when a filter is active */
+.fees-filter-clear {
+    margin-left: auto;
+    color: var(--sms-text-muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.4rem 0.65rem;
+    border-radius: 4px;
+    transition: background-color 0.15s;
+}
+
+    .fees-filter-clear:hover {
+        background-color: #F3F4F6;
+        color: var(--sms-text-main);
+    }
+
+/* ==========================================================
+   TABLE — ROW ACTIONS (labelled action buttons)
+   Applies to any data-table where actions benefit from text
+   labels rather than bare icons (e.g. Fees → Balances).
+   ========================================================== */
+
+.row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.row-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    line-height: 1;
+    font-weight: 500;
+}
+
+    .row-action-btn i {
+        font-size: 0.75rem;
+        line-height: 1;
+    }
+
+/* Clickable student name — silent link that reveals on hover */
+.student-link {
+    color: inherit;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.15s ease;
+}
+
+    .student-link:hover,
+    .student-link:focus {
+        color: var(--sms-navy);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .student-link strong {
+        font-weight: inherit;
+    }
+
+/* Optional: whole-row click affordance */
+tr.row-clickable {
+    cursor: pointer;
+}
+
+    tr.row-clickable:hover td {
+        background-color: #F9FAFB;
+    }
+
+/* --- Mobile: stack actions if the table gets tight --- */
+@media (max-width: 480px) {
+    .row-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
+    }
+
+    .row-action-btn {
+        justify-content: center;
+    }
 }

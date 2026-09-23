@@ -1,0 +1,236 @@
+﻿@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Finance.Pages.Fees.ReconcileModel
+@{
+    ViewData["Title"] = "Reconcile";
+    ViewData["PageTitle"] = "Bank Reconciliation";
+    ViewData["PageSubTitle"] = "Match statement lines to system payments";
+}
+
+@section actionbar {
+    <a asp-page="./Bank" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Bank Statement
+    </a>
+}
+
+@if (TempData["RecSuccess"] != null)
+{
+    <div class="flash flash-success">
+        <i class="fa-solid fa-circle-check"></i> @TempData["RecSuccess"]
+    </div>
+}
+@if (TempData["RecWarning"] != null)
+{
+    <div class="flash flash-error" style="background: #FFFBEB; border-color: #FDE68A; color: #92400E;">
+        <i class="fa-solid fa-triangle-exclamation"></i> @TempData["RecWarning"]
+    </div>
+}
+@if (TempData["RecError"] != null)
+{
+    <div class="flash flash-error">
+        <i class="fa-solid fa-circle-exclamation"></i> @TempData["RecError"]
+    </div>
+}
+
+<!-- ===== Summary tiles ===== -->
+<div class="house-stats" style="margin-bottom: 1rem;">
+    <div class="house-stat">
+        <i class="fa-solid fa-building-columns"></i>
+        <div>
+            <div class="house-stat-value">@Model.UnmatchedBankCount</div>
+            <div class="house-stat-label">Unmatched Statement Lines</div>
+        </div>
+    </div>
+    <div class="house-stat">
+        <i class="fa-solid fa-receipt"></i>
+        <div>
+            <div class="house-stat-value">@Model.UnmatchedPaymentCount</div>
+            <div class="house-stat-label">Unmatched Payments</div>
+        </div>
+    </div>
+    <div class="house-stat">
+        <i class="fa-solid fa-circle-check"></i>
+        <div>
+            <div class="house-stat-value">@Model.MatchedCount</div>
+            <div class="house-stat-label">Matched Pairs</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MATCH FORM (wraps both columns) ===== -->
+<form method="post" asp-page-handler="Match" id="matchForm">
+    <input type="hidden" name="paymentId" id="selectedPaymentId" />
+
+    <div class="reconcile-grid">
+
+        <!-- LEFT: Bank entries -->
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="fa-solid fa-building-columns"></i>
+                <span>Unmatched Statement Lines</span>
+                <span class="info-card-badge">@Model.UnmatchedBankCount</span>
+            </div>
+
+            @if (Model.UnmatchedBankEntries.Any())
+            {
+                @foreach (var e in Model.UnmatchedBankEntries)
+                {
+                    <div class="reconcile-row">
+                        <div class="reconcile-row-main">
+                            <div class="reconcile-row-line1">
+                                <strong>@e.Date.ToString("dd MMM yyyy")</strong>
+                                <span class="info-value-mono">@(e.Reference ?? "")</span>
+                            </div>
+                            <div class="reconcile-row-line2">
+                                @(string.IsNullOrWhiteSpace(e.Description) ? "—" : e.Description)
+                            </div>
+                        </div>
+                        <div class="reconcile-row-amount">
+                            @e.Amount.ToString("N2")
+                            <small>@Model.BaseCurrency</small>
+                        </div>
+                        <div class="reconcile-row-actions">
+                            <button type="submit"
+                                    class="btn btn-primary btn-sm"
+                                    name="bankEntryId"
+                                    value="@e.Id">
+                                Match
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">No unmatched statement lines. 🎉</div>
+            }
+        </div>
+
+        <!-- RIGHT: Payments -->
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="fa-solid fa-receipt"></i>
+                <span>Unmatched Payments</span>
+                <span class="info-card-badge">@Model.UnmatchedPaymentCount</span>
+            </div>
+
+            @if (Model.UnmatchedPayments.Any())
+            {
+                @foreach (var p in Model.UnmatchedPayments)
+                {
+                    <div class="reconcile-row reconcile-row-payment"
+                         data-payment-id="@p.Id">
+                        <div class="reconcile-row-main">
+                            <div class="reconcile-row-line1">
+                                <span class="info-value-mono payment-receipt">@p.ReceiptDisplay</span>
+                                <strong>@p.StudentName</strong>
+                            </div>
+                            <div class="reconcile-row-line2">
+                                @p.Method · @p.Date.ToString("dd MMM yyyy")
+                                @if (!string.IsNullOrWhiteSpace(p.Reference))
+                                {
+                                    <text> · @p.Reference</text>
+                                }
+                            </div>
+                        </div>
+                        <div class="reconcile-row-amount">
+                            @p.BaseAmount.ToString("N2")
+                            <small>@Model.BaseCurrency</small>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">No unmatched payments. 🎉</div>
+            }
+        </div>
+
+    </div>
+</form>
+
+<!-- ===== Matched history ===== -->
+@if (Model.Matched.Any())
+{
+    <div class="info-card" style="margin-top: 1rem;">
+        <div class="info-card-header">
+            <i class="fa-solid fa-link"></i>
+            <span>Matched Pairs</span>
+            <span class="info-card-badge">@Model.MatchedCount</span>
+        </div>
+
+        <table class="data-table table-compact">
+            <thead>
+                <tr>
+                    <th>Bank Date</th>
+                    <th>Bank Reference</th>
+                    <th style="text-align:right;">Bank Amount</th>
+                    <th>Receipt</th>
+                    <th>Student</th>
+                    <th style="text-align:right;">Payment Amount</th>
+                    <th>Variance</th>
+                    <th>Matched By</th>
+                    <th style="width: 80px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model.Matched)
+                {
+                    var variance = m.PaymentAmount - m.BankAmount;
+                    <tr>
+                        <td>@m.BankDate.ToString("dd MMM yyyy")</td>
+                        <td class="info-value-mono">@(m.BankReference ?? "—")</td>
+                        <td style="text-align:right;">@m.BankAmount.ToString("N2")</td>
+                        <td class="info-value-mono">@m.ReceiptDisplay</td>
+                        <td>@m.StudentName</td>
+                        <td style="text-align:right; font-weight: 600;">@m.PaymentAmount.ToString("N2")</td>
+                        <td style="text-align:right;">
+                            @if (variance == 0m)
+                            {
+                                <span class="status-badge status-active" style="font-size:0.65rem;">Exact</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge status-count" style="font-size:0.65rem;">
+                                    @variance.ToString("N2")
+                                </span>
+                            }
+                        </td>
+                        <td>@m.MatchedByName</td>
+                        <td>
+                            <form method="post"
+                                  asp-page-handler="Unmatch"
+                                  asp-route-bankEntryId="@m.BankEntryId"
+                                  onsubmit="return confirm('Remove this match?');"
+                                  style="display: inline;">
+                                <button type="submit" class="btn btn-ghost btn-sm" title="Unmatch">
+                                    <i class="fa-solid fa-unlink"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            const paymentRows = document.querySelectorAll('.reconcile-row-payment');
+            const hidden = document.getElementById('selectedPaymentId');
+
+            if (!paymentRows.length || !hidden) return;
+
+            paymentRows.forEach(row => {
+                row.addEventListener('click', () => {
+                    paymentRows.forEach(r => r.classList.remove('selected'));
+                    row.classList.add('selected');
+                    hidden.value = row.dataset.paymentId;
+                });
+            });
+        })();
+    </script>
+}

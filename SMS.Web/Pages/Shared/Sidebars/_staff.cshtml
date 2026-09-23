@@ -8,23 +8,55 @@
     // Dashboard
     var isDashboard = string.IsNullOrEmpty(currentArea) && (currentPage == "/index" || currentPage.StartsWith("/dashboard"));
 
-    // Academics Group (top-level) — people & activities only
-    var isStaff = currentPage.StartsWith("/staff");
-    var isStudents = currentPage.StartsWith("/students");
+    // ============================================================
+    //  ACADEMICS FLAGS
+    // ============================================================
+    var isStaff = currentArea == "academics" && currentPage.StartsWith("/staff");
+    var isStudents = currentArea == "academics" && currentPage.StartsWith("/students");
     var isTimetable = currentPage.StartsWith("/timetable");
     var isPrefects = currentPage.StartsWith("/prefects");
     var isAcademicsSection = isStaff || isStudents || isTimetable || isPrefects;
 
-    // Finance Group (top-level)
-    var isFees = currentPage.StartsWith("/fees");
-    var isProjects = currentPage.StartsWith("/projects");
+    // ============================================================
+    //  SPORTS AREA FLAGS
+    // ============================================================
+    var isHouseAssignments = currentArea == "sports" && currentPage.StartsWith("/houses");
+    var isSportsList = currentArea == "sports" && currentPage.StartsWith("/sporting/");
+    var isSportsSection = isHouseAssignments || isSportsList;
+
+    // ============================================================
+    //  FINANCE AREA FLAGS
+    // ============================================================
+    // -- Fees sub-pages --
+    var isFeesDashboard   = currentArea == "finance" && currentPage == "/fees/index";
+    var isBalances        = currentArea == "finance" && currentPage.StartsWith("/fees/balances");
+    var isLedger          = currentArea == "finance" && currentPage.StartsWith("/fees/ledger");
+    var isRecordPayment   = currentArea == "finance" && currentPage.StartsWith("/fees/recordpayment");
+    var isReversePayment  = currentArea == "finance" && currentPage.StartsWith("/fees/reversepayment");
+    var isCashUp          = currentArea == "finance" && currentPage.StartsWith("/fees/cashup");
+    var isBank            = currentArea == "finance" && currentPage.StartsWith("/fees/bank");
+    var isOpenTerm        = currentArea == "finance" && currentPage.StartsWith("/fees/openterm");
+
+    // Fee Structure = list page + the Upsert form (both count as "Fee Structure")
+    var isFeeStructure    = currentArea == "finance"
+                         && (currentPage.StartsWith("/fees/feesstructures")
+                          || currentPage.StartsWith("/fees/upsert"));
+
+    // Any Fees page is open?
+    var isFees = isFeesDashboard || isBalances || isLedger || isRecordPayment
+              || isReversePayment || isCashUp || isBank
+              || isFeeStructure || isOpenTerm;
+
+    // Any Fees sub-page (excluding the dashboard) is open?
+    // Used to decide whether to expand the nested Fees subgroup.
+    var isFeesPages = isBalances || isLedger || isRecordPayment || isReversePayment
+                   || isCashUp || isBank || isFeeStructure || isOpenTerm;
+
+    var isProjects = currentArea == "finance" && currentPage.StartsWith("/projects");
     var isFinanceSection = isFees || isProjects;
 
     // Faith Group (top-level)
     var isMass = currentPage.StartsWith("/mass");
-
-    // Sports (top-level)
-    var isSports = currentPage.StartsWith("/sports");
 
     // ============================================================
     //  CONFIGURATION SUB-FLAGS
@@ -34,30 +66,29 @@
     var isEmails = currentPage.StartsWith("/emails");
     var isMessageTemplates = currentPage.StartsWith("/messagetemplates");
 
-    // -- Nested subgroup: Academic Setup --
+    // -- Academic Setup --
     var isGrades = currentPage.StartsWith("/grades");
     var isClasses = currentPage.StartsWith("/classes");
     var isSubjects = currentPage.StartsWith("/subjects");
     var isTerms = currentPage.StartsWith("/terms");
-    var isAcademicSetup =
-        isGrades || isClasses || isSubjects || isTerms;
+    var isAcademicSetup = isGrades || isClasses || isSubjects || isTerms;
 
-    // -- Nested subgroup: Location & Groups --
-    var isHouses = currentPage.StartsWith("/houses");
-    var isVillages = currentPage.StartsWith("/villages");
-    var isLocationGroups =
-        isHouses || isVillages;
+    // -- Sporting (Config) --
+    var isConfigSportTypes = currentArea == "config" && currentPage.StartsWith("/sporttypes");
+    var isConfigHouses = currentArea == "config" && currentPage.StartsWith("/houses");
+    var isSporting = isConfigSportTypes || isConfigHouses;
 
-    // -- Nested subgroup: Finance Setup --
+    // -- Location (Config only) --
+    var isVillages = currentArea == "config" && currentPage.StartsWith("/villages");
+
+    // -- Finance Setup --
     var isCurrencies = currentPage.StartsWith("/currency");
-    var isFinanceSetup =
-        isCurrencies;
+    var isFinanceSetup = isCurrencies;
 
-    // -- Configuration is active if any child is active --
+    // -- Configuration active if any child is active --
     var isConfigSection =
         isUsers || isUserGroups || isEmails || isMessageTemplates ||
-        isAcademicSetup || isLocationGroups || isFinanceSetup ||
-        isSports; // Sports page lives in Config area
+        isAcademicSetup || isSporting || isVillages || isFinanceSetup;
 
     var currentDisplayName = User.FindFirstValue(ClaimTypes.Name) ?? "Head Teacher";
     var initialMarker = currentDisplayName.Length >= 1 ? currentDisplayName.Substring(0, 1).ToUpper() : "U";
@@ -95,7 +126,7 @@
                 </a>
                 <div class="collapse @(isAcademicsSection ? "show" : "")" id="academicsMenu">
                     <div class="sidebar-submenu">
-                        <a asp-area="" asp-page="/Students/Index" class="sidebar-sublink @(isStudents ? "active" : "")">Students</a>
+                        <a asp-area="Academics" asp-page="/Students/Index" class="sidebar-sublink @(isStudents ? "active" : "")">Students</a>
                         <a asp-area="Academics" asp-page="/Staff/Index" class="sidebar-sublink @(isStaff ? "active" : "")">Staff</a>
                         <a asp-area="" asp-page="/Timetable/Index" class="sidebar-sublink @(isTimetable ? "active" : "")">Timetable</a>
                         <a asp-area="" asp-page="/Prefects/Index" class="sidebar-sublink @(isPrefects ? "active" : "")">Prefects</a>
@@ -103,7 +134,36 @@
                 </div>
             </div>
 
-            <!-- FINANCE DROPDOWN -->
+            <!-- SPORTS & HOUSES DROPDOWN (operations) -->
+            <div class="sidebar-dropdown">
+                <a class="sidebar-dropdown-toggle @(isSportsSection ? "active" : "")"
+                   data-bs-toggle="collapse" href="#sportsMenu" role="button"
+                   aria-expanded="@(isSportsSection ? "true" : "false")" aria-controls="sportsMenu">
+                    <div class="left-side">
+                        <i class="fas fa-futbol main-icon"></i>
+                        <span>Sports &amp; Houses</span>
+                    </div>
+                    <i class="fas fa-chevron-down chevron"></i>
+                </a>
+                <div class="collapse @(isSportsSection ? "show" : "")" id="sportsMenu">
+                    <div class="sidebar-submenu">
+                        <a asp-area="Sports"
+                           asp-page="/Houses/Index"
+                           class="sidebar-sublink @(isHouseAssignments ? "active" : "")">
+                            House Assignments
+                        </a>
+                        <a asp-area="Sports"
+                           asp-page="/Sporting/Index"
+                           class="sidebar-sublink @(isSportsList ? "active" : "")">
+                            Sports
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================================
+                 FINANCE DROPDOWN (with nested Fees subgroup)
+                 ========================================================== -->
             <div class="sidebar-dropdown">
                 <a class="sidebar-dropdown-toggle @(isFinanceSection ? "active" : "")"
                    data-bs-toggle="collapse" href="#financeMenu" role="button"
@@ -116,8 +176,59 @@
                 </a>
                 <div class="collapse @(isFinanceSection ? "show" : "")" id="financeMenu">
                     <div class="sidebar-submenu">
-                        <a asp-area="" asp-page="/Fees/Index" class="sidebar-sublink @(isFees ? "active" : "")">Fees</a>
-                        <a asp-area="" asp-page="/Projects/Index" class="sidebar-sublink @(isProjects ? "active" : "")">Sponsorship</a>
+
+                        <!-- --- Fees subgroup --- -->
+                        <div class="sidebar-subgroup">
+                            <a class="sidebar-subgroup-toggle @(isFeesPages ? "active" : "")"
+                               data-bs-toggle="collapse" href="#feesPagesMenu" role="button"
+                               aria-expanded="@(isFeesPages ? "true" : "false")" aria-controls="feesPagesMenu">
+                                <i class="fas fa-chevron-right subgroup-chevron"></i>
+                                <span>Fees</span>
+                            </a>
+                            <div class="collapse @(isFeesPages ? "show" : "")" id="feesPagesMenu">
+
+                                <a asp-area="Finance" asp-page="/Fees/Index"
+                                   class="sidebar-sublink @(isFeesDashboard ? "active" : "")">
+                                    Dashboard
+                                </a>
+
+                                <a asp-area="Finance" asp-page="/Fees/Balances"
+                                   class="sidebar-sublink @(isBalances ? "active" : "")">
+                                    Student Balances
+                                </a>
+
+                                <a asp-area="Finance" asp-page="/Fees/CashUp"
+                                   class="sidebar-sublink @(isCashUp ? "active" : "")">
+                                    Daily Cash-Up
+                                </a>
+
+                                <a asp-area="Finance" asp-page="/Fees/Bank"
+                                   class="sidebar-sublink @(isBank ? "active" : "")">
+                                    Bank Statement
+                                </a>
+
+                                <a asp-area="Finance" asp-page="/Fees/FeesStructures"
+                                   class="sidebar-sublink @(isFeeStructure ? "active" : "")">
+                                    Fee Structure
+                                </a>
+
+                                <a asp-area="Finance" asp-page="/Fees/OpenTerm"
+                                   class="sidebar-sublink @(isOpenTerm ? "active" : "")">
+                                    Open Term
+                                </a>
+
+                            </div>
+                        </div>
+
+                        <div class="sidebar-divider"></div>
+
+                        <!-- --- Sponsorship --- -->
+                        <a asp-area="Finance"
+                           asp-page="/Projects/Index"
+                           class="sidebar-sublink @(isProjects ? "active" : "")">
+                            Sponsorship
+                        </a>
+
                     </div>
                 </div>
             </div>
@@ -136,24 +247,6 @@
                 <div class="collapse @(isMass ? "show" : "")" id="faithMenu">
                     <div class="sidebar-submenu">
                         <a asp-area="" asp-page="/Mass/Index" class="sidebar-sublink @(isMass ? "active" : "")">Mass & Liturgy</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SPORTS DROPDOWN -->
-            <div class="sidebar-dropdown">
-                <a class="sidebar-dropdown-toggle @(isSports ? "active" : "")"
-                   data-bs-toggle="collapse" href="#sportsMenu" role="button"
-                   aria-expanded="@(isSports ? "true" : "false")" aria-controls="sportsMenu">
-                    <div class="left-side">
-                        <i class="fas fa-futbol main-icon"></i>
-                        <span>Sports</span>
-                    </div>
-                    <i class="fas fa-chevron-down chevron"></i>
-                </a>
-                <div class="collapse @(isSports ? "show" : "")" id="sportsMenu">
-                    <div class="sidebar-submenu">
-                        <a asp-area="" asp-page="/Sports/Index" class="sidebar-sublink @(isSports ? "active" : "")">Sports</a>
                     </div>
                 </div>
             </div>
@@ -180,7 +273,7 @@
 
                         <div class="sidebar-divider"></div>
 
-                        <!-- --- Academic Setup (nested) --- -->
+                        <!-- --- Academic Setup --- -->
                         <div class="sidebar-subgroup">
                             <a class="sidebar-subgroup-toggle @(isAcademicSetup ? "active" : "")"
                                data-bs-toggle="collapse" href="#academicSetupMenu" role="button"
@@ -198,23 +291,28 @@
 
                         <div class="sidebar-divider"></div>
 
-                        <!-- --- Location & Groups (nested) --- -->
+                        <!-- --- Sporting (Sport Types + Houses) --- -->
                         <div class="sidebar-subgroup">
-                            <a class="sidebar-subgroup-toggle @(isLocationGroups ? "active" : "")"
-                               data-bs-toggle="collapse" href="#locationGroupsMenu" role="button"
-                               aria-expanded="@(isLocationGroups ? "true" : "false")" aria-controls="locationGroupsMenu">
+                            <a class="sidebar-subgroup-toggle @(isSporting ? "active" : "")"
+                               data-bs-toggle="collapse" href="#sportingMenu" role="button"
+                               aria-expanded="@(isSporting ? "true" : "false")" aria-controls="sportingMenu">
                                 <i class="fas fa-chevron-right subgroup-chevron"></i>
-                                <span>Location &amp; Groups</span>
+                                <span>Sporting</span>
                             </a>
-                            <div class="collapse @(isLocationGroups ? "show" : "")" id="locationGroupsMenu">
-                                <a asp-area="Config" asp-page="/Houses/Index" class="sidebar-sublink @(isHouses ? "active" : "")">Houses</a>
-                                <a asp-area="Config" asp-page="/Villages/Index" class="sidebar-sublink @(isVillages ? "active" : "")">Villages</a>
+                            <div class="collapse @(isSporting ? "show" : "")" id="sportingMenu">
+                                <a asp-area="Config" asp-page="/SportTypes/Index" class="sidebar-sublink @(isConfigSportTypes ? "active" : "")">Sport Types</a>
+                                <a asp-area="Config" asp-page="/Houses/Index" class="sidebar-sublink @(isConfigHouses ? "active" : "")">Houses</a>
                             </div>
                         </div>
 
                         <div class="sidebar-divider"></div>
 
-                        <!-- --- Finance Setup (nested) --- -->
+                        <!-- --- Location (Villages only) --- -->
+                        <a asp-area="Config" asp-page="/Villages/Index" class="sidebar-sublink @(isVillages ? "active" : "")">Villages</a>
+
+                        <div class="sidebar-divider"></div>
+
+                        <!-- --- Finance Setup --- -->
                         <div class="sidebar-subgroup">
                             <a class="sidebar-subgroup-toggle @(isFinanceSetup ? "active" : "")"
                                data-bs-toggle="collapse" href="#financeSetupMenu" role="button"

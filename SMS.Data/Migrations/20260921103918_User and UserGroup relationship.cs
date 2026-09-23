@@ -11,6 +11,8 @@ namespace SMS.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // TwoFactorAuthEnabled: bit (non-null) → bit (nullable)
+            // SQL Server allows this alter directly.
             migrationBuilder.AlterColumn<bool>(
                 name: "TwoFactorAuthEnabled",
                 table: "User",
@@ -19,14 +21,19 @@ namespace SMS.Data.Migrations
                 oldClrType: typeof(bool),
                 oldType: "bit");
 
-            migrationBuilder.AlterColumn<Guid>(
-                name: "GroupId",
-                table: "User",
-                type: "uniqueidentifier",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "int",
-                oldNullable: true);
+            // GroupId: int → uniqueidentifier
+            // SQL Server refuses this conversion outright. Drop and re-add.
+            // Safe because the DB is freshly built — no data to lose.
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM sys.columns
+                           WHERE object_id = OBJECT_ID('User')
+                             AND name = 'GroupId')
+                BEGIN
+                    ALTER TABLE [User] DROP COLUMN [GroupId];
+                END;
+
+                ALTER TABLE [User] ADD [GroupId] uniqueidentifier NULL;
+            ");
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_GroupId",
@@ -62,14 +69,18 @@ namespace SMS.Data.Migrations
                 oldType: "bit",
                 oldNullable: true);
 
-            migrationBuilder.AlterColumn<int>(
-                name: "GroupId",
-                table: "User",
-                type: "int",
-                nullable: true,
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier",
-                oldNullable: true);
+            // GroupId: uniqueidentifier → int
+            // Same pattern — drop and re-add on rollback too.
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM sys.columns
+                           WHERE object_id = OBJECT_ID('User')
+                             AND name = 'GroupId')
+                BEGIN
+                    ALTER TABLE [User] DROP COLUMN [GroupId];
+                END;
+
+                ALTER TABLE [User] ADD [GroupId] int NULL;
+            ");
         }
     }
 }

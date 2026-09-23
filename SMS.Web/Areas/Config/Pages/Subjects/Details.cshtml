@@ -33,11 +33,7 @@
                 <div class="profile-meta">
                     <span class="info-value-mono">@Model.SubjectVM.SubjectNumber</span>
                     <span class="meta-sep">·</span>
-                    <span class="info-value-mono">@Model.SubjectVM.Code</span>
-                    <span class="meta-sep">·</span>
-                    <span>@(((SubjectCategory)Model.SubjectVM.CategoryId).ToDisplayName())</span>
-                    <span class="meta-sep">·</span>
-                    <span>Created @Model.SubjectVM.CreationDate.ToString("dd MMM yyyy")</span>
+                   
                 </div>
                 <div class="profile-badges">
                     @if (Model.TeacherCount > 0)

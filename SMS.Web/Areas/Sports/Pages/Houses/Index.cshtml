@@ -1,0 +1,202 @@
+﻿@page
+@using SMS.Lib
+@model SMS.Web.Areas.Sports.Pages.Houses.IndexModel
+@inject ICurrentUserService CurrentUser
+@{
+    ViewData["Title"] = "Houses";
+    ViewData["PageTitle"] = "House Assignments";
+    ViewData["PageSubTitle"] = "Manage house teacher assignments and roles";
+    var canEdit = CurrentUser.HasRight(AccessRights.EditHouses);
+}
+
+@if (!Model.Houses.Any())
+{
+    <div class="form-card">
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="fa-solid fa-house-circle-xmark fa-2x mb-3 d-block"
+                   style="color: var(--sms-gold); opacity: 0.5;"></i>
+                <div style="font-weight: 600; color: var(--sms-text-main); margin-bottom: 0.4rem;">
+                    No houses defined yet
+                </div>
+                <div style="font-size: 0.85rem; margin-bottom: 1rem;">
+                    Add houses under <strong>Configuration → Sporting → Houses</strong> first.
+                </div>
+                <a asp-area="Config" asp-page="/Houses/Index" class="btn btn-primary">
+                    <i class="fa-solid fa-plus"></i> Configure Houses
+                </a>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- ===== HEADER STATS ===== -->
+    <div class="house-stats">
+        <div class="house-stat">
+            <i class="fa-solid fa-house-chimney"></i>
+            <div>
+                <div class="house-stat-value">@Model.TotalHouses</div>
+                <div class="house-stat-label">
+                    @(Model.TotalHouses == 1 ? "House" : "Houses")
+                </div>
+            </div>
+        </div>
+        <div class="house-stat">
+            <i class="fa-solid fa-user-check"></i>
+            <div>
+                <div class="house-stat-value">@Model.TotalAssigned</div>
+                <div class="house-stat-label">Assigned Teachers</div>
+            </div>
+        </div>
+        <div class="house-stat @(Model.HousesWithoutMaster > 0 )">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div>
+                <div class="house-stat-value">@Model.HousesWithoutMaster</div>
+                <div class="house-stat-label">Without a Master</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOOLBAR ===== -->
+    <div class="house-toolbar">
+        <div class="assignment-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="houseSearch"
+                   placeholder="Search houses or teachers..."
+                   autocomplete="off" />
+        </div>
+        <label class="assignment-toggle">
+            <input type="checkbox" id="onlyIncomplete" />
+            <span>Only houses missing a master</span>
+        </label>
+    </div>
+
+    <!-- ===== CARDS ===== -->
+    <div class="house-grid" id="houseGrid">
+        @foreach (var h in Model.Houses)
+        {
+            var blob = (h.Name + " " + string.Join(" ", h.Teachers.Select(t => t.FullName)))
+                        .ToLower();
+
+            <div class="house-card @(h.Master == null ? "house-card-incomplete" : "")"
+                 data-search="@blob"
+                 data-has-master="@(h.Master != null ? "1" : "0")">
+
+                <div class="house-card-header">
+                    <div class="house-card-title">
+                        <span class="house-dot"
+                              style="@(!string.IsNullOrEmpty(h.Color) ? $"background:{h.Color};box-shadow:0 0 0 3px {h.Color}22;" : "")"></span>
+                        <span class="house-name">@h.Name</span>
+                    </div>
+
+                    @if (canEdit)
+                    {
+                        <a asp-area="Sports"
+                           asp-page="/Houses/Assign"
+                           asp-route-houseId="@h.Id"
+                           class="btn btn-primary btn-sm">
+                            <i class="fa-solid fa-user-pen"></i> Manage
+                        </a>
+                    }
+                </div>
+
+                <div class="house-card-body">
+                    @if (!h.Teachers.Any())
+                    {
+                        <div class="house-empty">
+                            <i class="fa-solid fa-user-slash"></i>
+                            No teachers assigned yet
+                        </div>
+                    }
+                    else
+                    {
+                        @if (h.Master != null)
+                        {
+                            <div class="house-teacher house-teacher-master">
+                                <div class="house-teacher-avatar">
+                                    <i class="fa-solid fa-crown"></i>
+                                </div>
+                                <div class="house-teacher-info">
+                                    <div class="house-teacher-name">@h.Master.FullName</div>
+                                    <div class="house-teacher-meta">@h.Master.CategoryName</div>
+                                </div>
+                                <span class="role-pill role-pill-master">House Master</span>
+                            </div>
+                        }
+
+                        @foreach (var a in h.Assistants)
+                        {
+                            <div class="house-teacher">
+                                <div class="house-teacher-avatar">
+                                    <i class="fa-solid fa-user"></i>
+                                </div>
+                                <div class="house-teacher-info">
+                                    <div class="house-teacher-name">@a.FullName</div>
+                                    <div class="house-teacher-meta">@a.CategoryName</div>
+                                </div>
+                                <span class="role-pill">@a.RoleName</span>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <div class="house-card-footer">
+                    <span class="house-count">
+                        <i class="fa-solid fa-users"></i>
+                        @h.TeacherCount assigned
+                    </span>
+                    @if (h.Master == null)
+                    {
+                        <span class="house-warning">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            No master
+                        </span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="empty-state" id="houseNoResults" style="display: none;">
+        <i class="fa-solid fa-magnifying-glass me-2"></i>
+        No houses match your search.
+    </div>
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            const search = document.getElementById('houseSearch');
+            const toggle = document.getElementById('onlyIncomplete');
+            const grid = document.getElementById('houseGrid');
+            const noResults = document.getElementById('houseNoResults');
+
+            if (!grid || !search || !toggle) return;
+
+            const cards = Array.from(grid.querySelectorAll('.house-card'));
+
+            function apply() {
+                const q = (search.value || '').trim().toLowerCase();
+                const onlyIncomplete = toggle.checked;
+                let visible = 0;
+
+                cards.forEach(card => {
+                    const matchesSearch = !q || (card.dataset.search || '').includes(q);
+                    const matchesMaster = !onlyIncomplete || card.dataset.hasMaster === '0';
+                    const show = matchesSearch && matchesMaster;
+
+                    card.style.display = show ? '' : 'none';
+                    if (show) visible++;
+                });
+
+                if (noResults) {
+                    noResults.style.display = (cards.length > 0 && visible === 0) ? '' : 'none';
+                }
+            }
+
+            search.addEventListener('input', apply);
+            toggle.addEventListener('change', apply);
+        })();
+    </script>
+}

@@ -33,13 +33,15 @@ public partial class Staff
 
     public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
 
-    public virtual ICollection<House> Houses { get; set; } = new List<House>();
+    public virtual ICollection<HouseTeacher> HouseTeachers { get; set; } = new List<HouseTeacher>();
 
     public virtual ICollection<MassRoster> MassRosters { get; set; } = new List<MassRoster>();
 
     public virtual ICollection<Prefect> Prefects { get; set; } = new List<Prefect>();
 
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
+
+    public virtual ICollection<SportTeacher> SportTeachers { get; set; } = new List<SportTeacher>();
 
     public virtual ICollection<TeacherSubject> TeacherSubjects { get; set; } = new List<TeacherSubject>();
 

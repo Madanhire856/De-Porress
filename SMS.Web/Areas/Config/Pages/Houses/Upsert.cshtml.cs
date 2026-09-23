@@ -1,14 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SMS.Data;
 using SMS.Lib;
 using SMS.Web.Areas.Config.Pages.Houses.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace SMS.Web.Areas.Config.Pages.Houses
@@ -27,8 +24,6 @@ namespace SMS.Web.Areas.Config.Pages.Houses
 
         [BindProperty]
         public HouseVM house { get; set; } = new();
-
-        public List<SelectListItem> Masters { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(Guid? id)
         {
@@ -50,11 +45,9 @@ namespace SMS.Web.Areas.Config.Pages.Houses
                     {
                         Id = entity.Id,
                         Name = entity.Name,
-                        Color = entity.Color,
-                        MasterId = entity.MasterId
+                        Color = entity.Color
                     };
 
-                    await LoadLookupsAsync(includeStaffId: entity.MasterId);
                     return Page();
                 }
             }
@@ -63,7 +56,6 @@ namespace SMS.Web.Areas.Config.Pages.Houses
             {
                 Id = Guid.NewGuid()
             };
-            await LoadLookupsAsync();
             return Page();
         }
 
@@ -74,8 +66,6 @@ namespace SMS.Web.Areas.Config.Pages.Houses
                 return Forbid();
             if (id != null && !_currentUser.HasRight(AccessRights.EditHouses))
                 return Forbid();
-
-            await LoadLookupsAsync(includeStaffId: house.MasterId);
 
             if (!ModelState.IsValid)
                 return Page();
@@ -113,45 +103,10 @@ namespace SMS.Web.Areas.Config.Pages.Houses
 
             entity.Name = house.Name;
             entity.Color = house.Color;
-            entity.MasterId = house.MasterId ?? Guid.Empty;
 
             await _context.SaveChangesAsync();
 
             return RedirectToPage("./Details", new { area = "Config", id = entity.Id });
-        }
-
-        private async Task LoadLookupsAsync(Guid? includeStaffId = null)
-        {
-            var eligibleCategoryIds = new[]
-            {
-                (int)StaffCategory.GENERAL_TEACHER,
-                (int)StaffCategory.SENIOR_TEACHER,
-            };
-
-            var rows = await _context.Staff
-                .AsNoTracking()
-                .Where(s =>
-                    s.IsActive == true
-                    && (eligibleCategoryIds.Contains(s.CategoryId)
-                        || (includeStaffId.HasValue && s.Id == includeStaffId.Value)))
-                .OrderBy(s => s.Surname)
-                .ThenBy(s => s.Name)
-                .Select(s => new
-                {
-                    s.Id,
-                    s.Name,
-                    s.Surname,
-                    s.CategoryId
-                })
-                .ToListAsync();
-
-            Masters = rows
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = $"{s.Name} {s.Surname} — {((StaffCategory)s.CategoryId).ToDisplayName()}"
-                })
-                .ToList();
         }
     }
 }

@@ -9,13 +9,23 @@
 }
 
 @section actionbar {
+    @if (Model.IsTeachingStaff && CurrentUser.HasRight(AccessRights.EditSubjects))
+    {
+        <a asp-page="./AssignSubject"
+           asp-route-staffId="@Model.StaffVM.Id"
+           class="btn btn-primary">
+            <i class="fa-solid fa-book"></i> Subject Assignments
+        </a>
+    }
+
     @if (CurrentUser.HasRight(AccessRights.EditStaff))
     {
         <a asp-page="./Upsert" asp-route-id="@Model.StaffVM.Id" class="btn btn-secondary">
             <i class="fa-solid fa-pen-to-square"></i> Edit
         </a>
     }
-    <a asp-page="./Index" class="btn btn-primary">
+
+    <a asp-page="./Index" class="btn btn-ghost">
         <i class="fa-solid fa-arrow-left"></i> Back to List
     </a>
 }
@@ -34,7 +44,6 @@
                     <span class="info-value-mono">@Model.StaffVM.EcNumber</span>
                     <span class="meta-sep">·</span>
                     <span>@(((StaffCategory)Model.StaffVM.CategoryId).ToDisplayName())</span>
-
                 </div>
                 <div class="profile-badges">
                     @if (Model.StaffVM.IsActive == true)
@@ -44,6 +53,19 @@
                     else
                     {
                         <span class="status-badge status-overdue">Inactive</span>
+                    }
+
+                    @if (Model.IsTeachingStaff && Model.SubjectsTaught.Any())
+                    {
+                        <span class="status-badge status-count">
+                            <i class="fa-solid fa-book"></i> @Model.SubjectsTaught.Count @(Model.SubjectsTaught.Count == 1 ? "subject" : "subjects")
+                        </span>
+                    }
+                    @if (Model.IsTeachingStaff && Model.ClassesLed.Any())
+                    {
+                        <span class="status-badge status-count">
+                            <i class="fa-solid fa-chalkboard"></i> Class Teacher
+                        </span>
                     }
                 </div>
             </div>
@@ -144,7 +166,6 @@
                     <div class="info-value">
                         @if (!string.IsNullOrEmpty(Model.LinkedUserEmail))
                         {
-                            <!-- 👇 Users is still in Config — that's correct, no change -->
                             <a asp-area="Config"
                                asp-page="/Users/Details"
                                asp-route-id="@Model.StaffVM.UserId"
@@ -162,6 +183,63 @@
             </div>
 
         </div>
+
+        <!-- ===== ROLE IN THE SCHOOL (Teaching Staff only) ===== -->
+        @if (Model.IsTeachingStaff)
+        {
+            <div class="info-column" style="border-top: 1px solid var(--sms-border);">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-briefcase"></i>
+                    <span>Role in the School</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-book"></i> Subjects Taught
+                    </div>
+                    <div class="info-value">
+                        @if (Model.SubjectsTaught.Any())
+                        {
+                            <div class="rights-pills">
+                                @foreach (var s in Model.SubjectsTaught)
+                                {
+                                    <span class="right-pill">
+                                        <i class="fa-solid fa-check"></i> @s
+                                    </span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="sponsor-empty">No subjects assigned</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-chalkboard"></i> Class Teacher Of
+                    </div>
+                    <div class="info-value">
+                        @if (Model.ClassesLed.Any())
+                        {
+                            <div class="rights-pills">
+                                @foreach (var c in Model.ClassesLed)
+                                {
+                                    <span class="right-pill">
+                                        <i class="fa-solid fa-check"></i> @c
+                                    </span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="sponsor-empty">Not a class teacher</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
 
         <!-- ===== CARD FOOTER ===== -->
         <div class="info-card-footer">

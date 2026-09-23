@@ -1,0 +1,138 @@
+﻿@page "{sportId:guid}"
+@model SMS.Web.Areas.Sports.Pages.Sporting.AddCompetitionModel
+@using SMS.Lib
+@{
+    ViewData["Title"] = "Add Competition";
+    ViewData["PageTitle"] = "Add Competition";
+    ViewData["PageSubTitle"] = $"Sport: {Model.Sport.Name}";
+}
+
+<form method="post" class="form-compact">
+    <div class="form-card">
+        <div class="card-body">
+
+            <!-- ===== SPORT (fixed) ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-futbol"></i> Sport
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group full-width">
+                    <label class="form-label">Competing In</label>
+                    <input type="text"
+                           class="form-control"
+                           value="@Model.Sport.Name"
+                           readonly
+                           disabled />
+                    <span style="font-size: 0.75rem; color: var(--sms-text-muted); margin-top: 0.25rem;">
+                        This competition will be created under <strong>@Model.Sport.Name</strong>.
+                    </span>
+                </div>
+            </div>
+
+            <!-- ===== COMPETITION DETAILS ===== -->
+            <div class="form-section-title" style="margin-top: 1.25rem;">
+                <i class="fa-solid fa-trophy"></i> Competition Details
+            </div>
+
+            <div class="form-grid-2">
+
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="Input.Name">
+                        Competition Name <span class="required">*</span>
+                    </label>
+                    <input asp-for="Input.Name" class="form-control" autofocus
+                           placeholder="e.g. Inter-House @Model.Sport.Name Cup" />
+                    <span asp-validation-for="Input.Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.LevelId">
+                        Level <span class="required">*</span>
+                    </label>
+                    <select asp-for="Input.LevelId"
+                            asp-items="Model.LevelOptions"
+                            class="form-control">
+                    </select>
+                    <span asp-validation-for="Input.LevelId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.Tier">
+                        Tier / Age Group <span class="required">*</span>
+                    </label>
+                    <input asp-for="Input.Tier"
+                           class="form-control"
+                           list="tierSuggestions"
+                           placeholder="e.g. Senior, Junior, U15" />
+                    <datalist id="tierSuggestions">
+                        @foreach (var t in Model.TierSuggestions)
+                        {
+                            <option value="@t"></option>
+                        }
+                    </datalist>
+                    <span asp-validation-for="Input.Tier" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.AcademicYear">
+                        Academic Year <span class="required">*</span>
+                    </label>
+                    <input asp-for="Input.AcademicYear"
+                           type="number" min="2000" max="2100"
+                           class="form-control"
+                           id="academicYearInput" />
+                    <span asp-validation-for="Input.AcademicYear" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.TermId">
+                        Term <span class="required">*</span>
+                    </label>
+                    <select asp-for="Input.TermId"
+                            class="form-control"
+                            id="termSelect">
+                        <option value="">— Select a term —</option>
+                        @foreach (var t in Model.TermOptions)
+                        {
+                            <option value="@t.Id" data-year="@t.AcademicYear">
+                                @t.Label
+                            </option>
+                        }
+                    </select>
+                    <span asp-validation-for="Input.TermId" class="text-danger"></span>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <a asp-area="Sports" asp-page="/Sporting/Index" class="btn btn-secondary">
+                <i class="fa-solid fa-xmark"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> Create Competition
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (function () {
+            const termSelect = document.getElementById('termSelect');
+            const yearInput  = document.getElementById('academicYearInput');
+
+            if (!termSelect || !yearInput) return;
+
+            // Auto-fill academic year when a term is picked
+            termSelect.addEventListener('change', function () {
+                const opt = termSelect.options[termSelect.selectedIndex];
+                const year = opt && opt.dataset ? opt.dataset.year : null;
+                if (year) yearInput.value = year;
+            });
+        })();
+    </script>
+}

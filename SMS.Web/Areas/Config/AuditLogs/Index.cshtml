@@ -1,0 +1,139 @@
+﻿@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Config.Pages.AuditLogs.IndexModel
+@{
+    ViewData["Title"] = "Audit Log";
+    ViewData["PageTitle"] = "Audit Log";
+    ViewData["PageSubTitle"] = "Every change to business data, in reverse chronological order";
+    var colSpan = 6;
+}
+
+<!-- ===== FILTER BAR ===== -->
+<div class="fees-filter">
+    <form method="get" class="fees-filter-form">
+        <div class="filter-wrapper">
+            <label class="filter-label">From</label>
+            <input type="date" name="From" value="@Model.From?.ToString("yyyy-MM-dd")"
+                   class="filter-dropdown" />
+        </div>
+        <div class="filter-wrapper">
+            <label class="filter-label">To</label>
+            <input type="date" name="To" value="@Model.To?.ToString("yyyy-MM-dd")"
+                   class="filter-dropdown" />
+        </div>
+        <div class="filter-wrapper">
+            <label class="filter-label">Entity</label>
+            <select name="Entity" class="filter-dropdown">
+                <option value="">All</option>
+                @foreach (var e in Model.AvailableEntities)
+                {
+                    <option value="@e" selected="@(Model.Entity == e)">@e</option>
+                }
+            </select>
+        </div>
+        <div class="filter-wrapper">
+            <label class="filter-label">User</label>
+            <select name="User" class="filter-dropdown">
+                <option value="">All</option>
+                @foreach (var u in Model.AvailableUsers)
+                {
+                    <option value="@u" selected="@(Model.User == u)">@u</option>
+                }
+            </select>
+        </div>
+        <div class="filter-wrapper">
+            <label class="filter-label">Action</label>
+            <select name="Action" class="filter-dropdown">
+                <option value="">All</option>
+                @foreach (var a in Model.AvailableActions)
+                {
+                    <option value="@a" selected="@(Model.Action == a)">@a</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a asp-page="./Index" class="btn btn-secondary">Clear</a>
+    </form>
+</div>
+
+<!-- ===== RESULT COUNT ===== -->
+<div class="table-card">
+    <div class="table-count">
+        <i class="fa-solid fa-list-ul me-2"></i>
+        Total: <strong>@Model.TotalCount</strong> changes
+        @if (Model.TotalCount > 500)
+        {
+            <text> (showing latest 500 — narrow your filters)</text>
+        }
+    </div>
+
+    <table class="data-table table-compact">
+        <thead>
+            <tr>
+                <th style="width: 150px;">Timestamp</th>
+                <th style="width: 150px;">User</th>
+                <th style="width: 140px;">Entity</th>
+                <th style="width: 100px;">Action</th>
+                <th>Entity ID</th>
+                <th style="width: 80px;">IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Rows.Any())
+            {
+                @foreach (var r in Model.Rows)
+                {
+                    <tr>
+                        <td class="info-value-mono">@r.TimeStamp.ToString("dd MMM yyyy HH:mm:ss")</td>
+                        <td>@(r.Username ?? "System")</td>
+                        <td><strong>@r.EntityType</strong></td>
+                        <td>
+                            <span class="status-badge @(r.Action == "Deleted" ? "status-overdue" : r.Action == "Created" ? "status-active" : "status-count")">
+                                @r.Action
+                            </span>
+                        </td>
+                        <td class="info-value-mono" style="font-size: 0.72rem;">@r.EntityId</td>
+                        <td class="info-value-mono" style="font-size: 0.7rem;">@r.IpAddress</td>
+                    </tr>
+                    @if (!string.IsNullOrWhiteSpace(r.BeforeValue) || !string.IsNullOrWhiteSpace(r.AfterValue))
+                    {
+                        <tr>
+                            <td colspan="6" style="background: #F9FAFB; padding: 0.5rem 1rem;">
+                                <details>
+                                    <summary style="cursor: pointer; font-size: 0.75rem; color: #6B7280;">
+                                        <i class="fa-solid fa-code"></i> Show change details
+                                    </summary>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem; font-size: 0.72rem; font-family: Consolas, monospace;">
+                                        @if (!string.IsNullOrWhiteSpace(r.BeforeValue))
+                                        {
+                                            <div>
+                                                <strong>Before:</strong>
+                                                <pre style="white-space: pre-wrap; word-break: break-all; margin: 0.25rem 0; padding: 0.5rem; background: #FEF2F2; border-radius: 4px;">@r.BeforeValue</pre>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(r.AfterValue))
+                                        {
+                                            <div>
+                                                <strong>After:</strong>
+                                                <pre style="white-space: pre-wrap; word-break: break-all; margin: 0.25rem 0; padding: 0.5rem; background: #DEF7EC; border-radius: 4px;">@r.AfterValue</pre>
+                                            </div>
+                                        }
+                                    </div>
+                                </details>
+                            </td>
+                        </tr>
+                    }
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="@colSpan" class="empty-state">
+                        No changes match these filters.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

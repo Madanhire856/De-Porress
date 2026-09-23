@@ -1,1 +1,1 @@
-﻿Scaffold-DbContext "Server=(localdb)\MSSQLLocalDB;Database=SMSDb;Trusted_Connection=True;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -Context SMSDbContext -OutputDir Entities -Project SMS.Data -Namespace SMS.Data -Force
+﻿Scaffold-DbContext "Server=(localdb)\MSSQLLocalDB;Database=SMSDb2;Trusted_Connection=True;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -Context SMSDbContext -OutputDir Entities -Project SMS.Data -Namespace SMS.Data -Force

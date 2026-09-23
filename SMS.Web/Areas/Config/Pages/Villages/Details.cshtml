@@ -15,7 +15,7 @@
             <i class="fa-solid fa-pen-to-square"></i> Edit
         </a>
     }
-    <a asp-page="./Index" class="btn btn-primary">
+    <a asp-page="./Index" class="btn btn-ghost">
         <i class="fa-solid fa-arrow-left"></i> Back to List
     </a>
 }
@@ -32,20 +32,18 @@
                 <h2 class="profile-name">@Model.VillageVM.Name</h2>
                 <div class="profile-meta">
                     <span class="info-value-mono">@Model.VillageVM.VillageNumber</span>
-                    <span class="meta-sep">·</span>
-                    <span>Headman: @Model.VillageVM.Headman</span>
-                    <span class="meta-sep">·</span>
-                    <span>Chief: @Model.VillageVM.Chief</span>
-                    <span class="meta-sep">·</span>
-                    <span>Created @Model.VillageVM.CreationDate.ToString("dd MMM yyyy")</span>
                 </div>
                 <div class="profile-badges">
                     @if (Model.StudentCount > 0)
                     {
-                        <span class="status-badge status-count">
+                        <a asp-area="Academics"
+                           asp-page="/Students/Index"
+                           asp-route-VillageFilter="@Model.VillageVM.Id"
+                           class="status-badge status-count"
+                           style="text-decoration:none;">
                             <i class="fa-solid fa-user-graduate"></i>
                             @Model.StudentCount @(Model.StudentCount == 1 ? "student" : "students")
-                        </span>
+                        </a>
                     }
                 </div>
             </div>
@@ -108,16 +106,16 @@
                         }
                         else
                         {
-                            @Model.StudentCount
+                            <a asp-area="Academics"
+                               asp-page="/Students/Index"
+                               asp-route-VillageFilter="@Model.VillageVM.Id"
+                               class="reg-link">
+                                @Model.StudentCount
+                                @(Model.StudentCount == 1 ? "student" : "students")
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
                         }
                     </div>
-                </div>
-
-                <div class="info-row">
-                    <div class="info-label">
-                        <i class="fa-solid fa-calendar"></i> Creation Date
-                    </div>
-                    <div class="info-value">@Model.VillageVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</div>
                 </div>
             </div>
 

@@ -11,6 +11,6 @@ namespace SMS.Data
         public string TermDisplayId => $"TRM-{TermSequence:D4}";
 
         [NotMapped]
-        public string Label => $"Term {TermNumber} · {AcademicYear}";
+        public string Label => $"Term {Number} · {AcademicYear}";
     }
 }

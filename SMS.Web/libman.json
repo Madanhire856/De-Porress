@@ -17,6 +17,10 @@
     {
       "library": "select2@4.1.0",
       "destination": "wwwroot/lib/select2/"
+    },
+    {
+      "library": "jspdf-autotable@5.0.8",
+      "destination": "wwwroot/lib/jspdf-autotable/"
     }
   ]
 }

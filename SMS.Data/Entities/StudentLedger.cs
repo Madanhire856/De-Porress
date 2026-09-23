@@ -11,9 +11,9 @@ public partial class StudentLedger
 
     public Guid TermId { get; set; }
 
-    public int OpeningBalance { get; set; }
+    public decimal OpeningBalance { get; set; }
 
-    public int ClosingBalance { get; set; }
+    public decimal ClosingBalance { get; set; }
 
     public string? CurrencyId { get; set; }
 

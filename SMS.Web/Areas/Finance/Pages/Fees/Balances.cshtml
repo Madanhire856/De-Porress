@@ -1,0 +1,186 @@
+﻿@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Finance.Pages.Fees.BalancesModel
+@{
+    ViewData["Title"] = "Student Balances";
+    ViewData["PageTitle"] = "Student Balances";
+    ViewData["PageSubTitle"] = Model.SelectedTerm?.Display ?? "Select a term";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.GenerateInvoices))
+    {
+        <a asp-page="./OpenTerm" class="btn btn-secondary">
+            <i class="fa-solid fa-door-open"></i> Open Term
+        </a>
+    }
+    <a asp-page="./CashUp" class="btn btn-secondary">
+        <i class="fa-solid fa-cash-register"></i> Daily Cash-Up
+    </a>
+    <a asp-page="./Bank" class="btn btn-secondary">
+        <i class="fa-solid fa-building-columns"></i> Bank
+    </a>
+}
+
+@if (TempData["OpenTermSuccess"] != null)
+{
+    <div class="flash flash-success">
+        <i class="fa-solid fa-circle-check"></i> @TempData["OpenTermSuccess"]
+    </div>
+}
+
+<div class="fees-filter">
+    <form method="get" class="fees-filter-form" id="balancesFilterForm">
+        <div class="filter-wrapper">
+            <label class="filter-label">Term</label>
+            <select name="TermId" class="filter-dropdown" onchange="this.form.submit();">
+                @foreach (var t in Model.Terms)
+                {
+                    <option value="@t.Id" selected="@(Model.TermId == t.Id)">@t.Display</option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-wrapper">
+            <label class="filter-label">Grade</label>
+            <select name="GradeId" class="filter-dropdown" onchange="this.form.submit();">
+                <option value="">All Grades</option>
+                @foreach (var g in Model.Grades)
+                {
+                    <option value="@g.Id" selected="@(Model.GradeId == g.Id)">@g.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-wrapper">
+            <label class="filter-label">Status</label>
+            <select name="StatusFilter" class="filter-dropdown" onchange="this.form.submit();">
+                <option value="">All</option>
+                <option value="1" selected="@(Model.StatusFilter == 1)">Settled</option>
+                <option value="2" selected="@(Model.StatusFilter == 2)">Partial</option>
+                <option value="3" selected="@(Model.StatusFilter == 3)">Overdue</option>
+            </select>
+        </div>
+
+        <div class="filter-wrapper">
+            <label class="filter-label">Search</label>
+            <div class="search-wrapper fees-search-wrapper">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text"
+                       name="Search"
+                       id="balancesSearch"
+                       value="@Model.Search"
+                       class="search-input"
+                       placeholder="Search student name..."
+                       autocomplete="off" />
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="table-card">
+    <div class="table-count">
+        <i class="fa-solid fa-users me-2"></i>
+        Total: <strong>@Model.Ledgers.Count</strong> student@(Model.Ledgers.Count == 1 ? "" : "s")
+    </div>
+
+    <table class="data-table table-compact">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Grade</th>
+                <th style="text-align:right;">Charged</th>
+                <th style="text-align:right;">Paid</th>
+                <th style="text-align:right;">Balance</th>
+                <th>Status</th>
+                <th style="width: 200px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Ledgers.Any())
+            {
+                @foreach (var l in Model.Ledgers)
+                {
+                    <tr>
+                        <td>
+                            <a asp-page="./Ledger" asp-route-id="@l.LedgerId"
+                               class="student-link"
+                               title="View @l.StudentName's ledger">
+                                <strong>@l.StudentName</strong>
+                            </a>
+                        </td>
+                        <td>@l.GradeName</td>
+                        <td style="text-align:right;">@l.TotalCharged.ToString("N2")</td>
+                        <td style="text-align:right;">@l.TotalPaid.ToString("N2")</td>
+                        <td style="text-align:right; font-weight:600; @(l.ClosingBalance > 0 ? "color:#B91C1C;" : "color:#047857;")">
+                            @l.ClosingBalance.ToString("N2")
+                        </td>
+                        <td><span class="status-badge @l.StatusClass">@l.StatusLabel</span></td>
+                        <td>
+                            <div class="row-actions">
+                                <a asp-page="./Ledger" asp-route-id="@l.LedgerId"
+                                   class="btn btn-ghost btn-sm row-action-btn"
+                                   title="Open the full ledger for @l.StudentName">
+                                    <i class="fa-solid fa-book"></i>
+                                    <span>Ledger</span>
+                                </a>
+                                @if (CurrentUser.HasRight(AccessRights.RecordPayments))
+                                {
+                                    <a asp-page="./RecordPayment" asp-route-ledgerId="@l.LedgerId"
+                                       class="btn btn-primary btn-sm row-action-btn"
+                                       title="Record a payment for @l.StudentName">
+                                        <i class="fa-solid fa-plus"></i>
+                                        <span>Pay</span>
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        No ledgers match this filter.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <style>
+        /* Compact search field inside the fees filter */
+        .fees-search-wrapper {
+            min-width: 220px;
+            max-width: 220px;
+        }
+    </style>
+
+    <script>
+        (function () {
+            const form = document.getElementById('balancesFilterForm');
+            const search = document.getElementById('balancesSearch');
+            if (!form || !search) return;
+
+            let timer = null;
+
+            search.addEventListener('input', function () {
+                clearTimeout(timer);
+                timer = setTimeout(function () {
+                    form.submit();
+                }, 400);  // 400ms after last keystroke
+            });
+
+            // Keep focus on the search box after reload
+            if (search.value && search.value.length > 0) {
+                const len = search.value.length;
+                search.focus();
+                try { search.setSelectionRange(len, len); } catch (_) {}
+            }
+        })();
+    </script>
+}

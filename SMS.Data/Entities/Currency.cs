@@ -9,6 +9,10 @@ public partial class Currency
 
     public string Name { get; set; } = null!;
 
+    public bool? IsBase { get; set; }
+
+    public decimal? ExchangeRateToBase { get; set; }
+
     public string Symbol { get; set; } = null!;
 
     public DateTime? CreationDate { get; set; }

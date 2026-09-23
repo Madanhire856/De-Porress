@@ -1,0 +1,112 @@
+﻿@page "{houseId:guid}"
+@model SMS.Web.Areas.Sports.Pages.Houses.AssignModel
+@using SMS.Lib
+@{
+    ViewData["Title"] = "Assign Teachers";
+    ViewData["PageTitle"] = "Assign Teachers";
+    ViewData["PageSubTitle"] = $"House: {Model.House.Name}";
+}
+
+<form method="post" id="assignForm">
+    <div class="form-card">
+        <div class="card-body">
+
+            <div id="hiddenPayload"></div>
+
+            <div class="form-section-title">
+                <i class="fa-solid fa-chalkboard-user"></i> Teachers for @Model.House.Name
+                <span class="rights-counter" id="selectedCount">0 selected</span>
+            </div>
+
+            @if (Model.Teachers.Any())
+            {
+                <div class="assignment-table">
+                    @foreach (var t in Model.Teachers)
+                    {
+                        <div class="assignment-row" data-staff-id="@t.StaffId">
+                            <label class="assignment-check">
+                                <input type="checkbox"
+                                       class="teacher-checkbox"
+                                       value="@t.StaffId"
+                                @(t.IsAssigned ? "checked" : "") />
+                            </label>
+
+                            <div class="assignment-info">
+                                <div class="assignment-name">@t.FullName</div>
+                                <div class="assignment-meta">@t.CategoryName</div>
+                            </div>
+
+                            <div class="assignment-role">
+                                <select class="role-select">
+                                    @foreach (var role in EnumExtensions.AllTeacherHouseRoles())
+                                    {
+                                        var rid = (int)role;
+                                        <option value="@rid" selected="@(rid == t.RoleId)">
+                                            @role.ToDisplayName()
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fa-solid fa-users-slash me-2"></i>
+                    No eligible teachers found. Add active staff first.
+                </div>
+            }
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> Save Assignments
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function () {
+            const form = document.getElementById('assignForm');
+            const payload = document.getElementById('hiddenPayload');
+            const countEl = document.getElementById('selectedCount');
+
+            function updateCount() {
+                const n = document.querySelectorAll('.teacher-checkbox:checked').length;
+                countEl.textContent = n + ' selected';
+            }
+
+            document.querySelectorAll('.teacher-checkbox').forEach(cb =>
+                cb.addEventListener('change', updateCount));
+            updateCount();
+
+            form.addEventListener('submit', function () {
+                payload.innerHTML = '';
+
+                document.querySelectorAll('.assignment-row').forEach(row => {
+                    const cb = row.querySelector('.teacher-checkbox');
+                    if (!cb.checked) return;
+
+                    const staffId = row.dataset.staffId;
+                    const roleId = row.querySelector('.role-select').value;
+
+                    const sid = document.createElement('input');
+                    sid.type = 'hidden';
+                    sid.name = 'SelectedStaffIds';
+                    sid.value = staffId;
+                    payload.appendChild(sid);
+
+                    const rid = document.createElement('input');
+                    rid.type = 'hidden';
+                    rid.name = 'SelectedRoleIds';
+                    rid.value = roleId;
+                    payload.appendChild(rid);
+                });
+            });
+        })();
+    </script>
+}

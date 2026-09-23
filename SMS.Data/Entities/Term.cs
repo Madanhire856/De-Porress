@@ -9,7 +9,7 @@ public partial class Term
 
     public int AcademicYear { get; set; }
 
-    public int TermNumber { get; set; }
+    public int Number { get; set; }
 
     public DateTime StartDate { get; set; }
 
@@ -18,6 +18,8 @@ public partial class Term
     public DateTime CreationDate { get; set; }
 
     public Guid CreatorId { get; set; }
+
+    public string Name { get; set; } = null!;
 
     public virtual ICollection<Competition> Competitions { get; set; } = new List<Competition>();
 

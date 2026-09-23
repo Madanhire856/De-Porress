@@ -15,11 +15,17 @@ public partial class AuditLog
 
     public string Action { get; set; } = null!;
 
-    public string BeforeValue { get; set; } = null!;
+    public string? BeforeValue { get; set; }
 
-    public string AfterValue { get; set; } = null!;
+    public string? AfterValue { get; set; }
 
     public DateTime TimeStamp { get; set; }
+
+    public string? Username { get; set; }
+
+    public string? Reason { get; set; }
+
+    public string? IpAddress { get; set; }
 
     public virtual User User { get; set; } = null!;
 }

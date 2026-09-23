@@ -5,7 +5,7 @@
 @{
     ViewData["Title"] = "Houses";
     ViewData["PageTitle"] = "Houses";
-    ViewData["PageSubTitle"] = "Manage school houses and their masters";
+    ViewData["PageSubTitle"] = "Manage school houses and their teachers";
 }
 
 @section actionbar {
@@ -44,7 +44,7 @@
                 <th>HSE ID</th>
                 <th>Name</th>
                 <th>Color</th>
-                <th>House Master</th>
+                <th>Teachers</th>
                 <th>Created By</th>
                 <th>Date Created</th>
             </tr>
@@ -54,7 +54,7 @@
             {
                 @foreach (var h in Model.Houses)
                 {
-                    var masterName = Model.MasterNames.TryGetValue(h.MasterId, out var m) ? m : "—";
+                    var summary = Model.TeacherSummaries.TryGetValue(h.Id, out var ts) ? ts : null;
 
                     <tr>
                         <td>
@@ -69,11 +69,29 @@
                         <td>@h.Name</td>
                         <td>
                             <span style="display:inline-flex; align-items:center; gap:0.4rem;">
-                                <span style="display:inline-block; width:14px; height:14px; border-radius:3px; border:1px solid var(--sms-border); background-color:@h.Color;"></span>
+                                <span style="display:inline-block; width:14px; height:14px; border-radius:3px; border:1px solid var(--sms-border); background-color:var(--sms-gold);"></span>
                                 <span class="info-value-mono">@h.Color</span>
                             </span>
                         </td>
-                        <td>@masterName</td>
+                        <td>
+                            @if (summary == null || summary.TotalCount == 0)
+                            {
+                                <span class="sponsor-empty">No teachers</span>
+                            }
+                            else if (!string.IsNullOrEmpty(summary.MasterName))
+                            {
+                                <span>@summary.MasterName</span>
+                                @if (summary.AdditionalCount > 0)
+                                {
+                                    <span class="sponsor-empty"> +@summary.AdditionalCount more</span>
+                                }
+                            }
+                            else
+                            {
+                                <span>@summary.TotalCount @(summary.TotalCount == 1 ? "teacher" : "teachers")</span>
+                                <span class="sponsor-empty"> (no master)</span>
+                            }
+                        </td>
                         <td>
                             @if (Model.CreatorEmails.TryGetValue(h.CreatorId, out var email))
                             {

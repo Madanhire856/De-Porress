@@ -1,0 +1,123 @@
+﻿@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Finance.Pages.Fees.FeesStructuresModel
+@{
+    ViewData["Title"] = "Fee Structure";
+    ViewData["PageTitle"] = "Fee Structure";
+    ViewData["PageSubTitle"] = "Fees charged by grade, term, and levy type";
+    var canEdit = CurrentUser.HasRight(AccessRights.GenerateInvoices);
+    var colSpan = canEdit ? 6 : 5;
+}
+
+@section actionbar {
+    @if (canEdit)
+    {
+        <a asp-page="./Upsert" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> New Fee
+        </a>
+    }
+}
+
+@if (TempData["FeesSuccess"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show flash flash-success" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i>
+        @TempData["FeesSuccess"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="table-card">
+    <div class="table-count">
+        <i class="fa-solid fa-list-ul me-2"></i>
+        Total: <strong>@Model.Rows.Count</strong> fee@(Model.Rows.Count == 1 ? "" : "s")
+    </div>
+
+    <table class="data-table table-compact">
+        <thead>
+            <tr>
+                <th style="width: 110px;">ID</th>
+                <th>Grade</th>
+                <th>Term</th>
+                <th>Levy Type</th>
+                <th style="text-align: right;">Amount</th>
+                @if (canEdit)
+                {
+                    <th style="width: 110px;">Actions</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Rows.Any())
+            {
+                @foreach (var r in Model.Rows)
+                {
+                    <tr>
+                        <td>
+                            <a asp-page="./FeesStructureDetails" asp-route-id="@r.Id"
+                               class="reg-link"
+                               title="View details for @r.FeeNumber">
+                                @r.FeeNumber
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </td>
+                        <td><strong>@r.GradeName</strong></td>
+                        <td>@r.TermDisplay</td>
+                        <td>@r.LevyName</td>
+                        <td style="text-align: right; font-weight: 600;">
+                            @r.Amount.ToString("N2")
+                            <small class="info-value-mono">@r.CurrencyCode</small>
+                        </td>
+                        @if (canEdit)
+                        {
+                            <td>
+                                <a asp-page="./Upsert" asp-route-id="@r.Id"
+                                   class="btn btn-ghost btn-sm" title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <form method="post"
+                                      asp-page-handler="Delete"
+                                      asp-route-id="@r.Id"
+                                      onsubmit="return confirm('Delete this fee?');"
+                                      style="display: inline;">
+                                    <button type="submit" class="btn btn-ghost btn-sm" title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        }
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="@colSpan" class="empty-state">
+                        <i class="fa-solid fa-file-invoice-dollar"
+                           style="font-size: 2rem; color: #D1D5DB; display: block; margin-bottom: 0.75rem;"></i>
+                        No fees configured yet.
+                        @if (canEdit)
+                        {
+                            <div style="margin-top: 0.75rem;">
+                                <a asp-page="./Upsert" class="btn btn-primary">
+                                    <i class="fa-solid fa-plus"></i> Add the first fee
+                                </a>
+                            </div>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            setTimeout(function () {
+                $('.flash-success').fadeOut(500, function () { $(this).remove(); });
+            }, 4000);
+        });
+    </script>
+}

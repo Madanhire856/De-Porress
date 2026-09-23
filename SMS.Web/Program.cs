@@ -5,6 +5,7 @@ using Microsoft.Identity.Web.UI;
 using SMS.Data;
 using SMS.Lib;
 using SMS.Web.Middleware;
+using SMS.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,15 +14,26 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
 
 builder.Services.AddAuthorization();
-builder.Services.AddDbContext<SMSDbContext>(options =>
+
+// --- Current User Service (needed by the audit interceptor) ---
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+// --- Audit interceptor (must be registered before AddDbContext) ---
+builder.Services.AddScoped<AuditInterceptor>();
+
+// --- DbContext with audit interceptor wired in ---
+builder.Services.AddDbContext<SMSDbContext>((sp, options) =>
+{
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("SMSDb"),
         sqlOptions => sqlOptions.EnableRetryOnFailure()
-    ));
+    )
+    .AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
+});
 
-// --- NEW: Current User Service ---
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+// --- Payment Service (single gateway for all payment writes) ---
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddRazorPages()
     .AddMicrosoftIdentityUI();

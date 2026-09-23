@@ -1,0 +1,709 @@
+﻿@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Finance.Pages.Fees.CashUpModel
+@{
+    ViewData["Title"] = "Daily Cash-Up";
+    ViewData["PageTitle"] = "Daily Cash-Up";
+    ViewData["PageSubTitle"] = Model.SelectedDateFormatted;
+
+    var receiptRange =
+        Model.FirstReceiptNumber.HasValue && Model.LastReceiptNumber.HasValue
+            ? $"RCP-{Model.CurrentReceiptYear}-{Model.FirstReceiptNumber.Value:D5} -> RCP-{Model.CurrentReceiptYear}-{Model.LastReceiptNumber.Value:D5}"
+            : null;
+
+    var cashUpPayload = new
+    {
+        school = "St. Martin De Porres",
+        title = "Daily Cash-Up Report",
+        dateFormatted = Model.SelectedDateFormatted,
+        bursar = Model.Bursar,
+        generatedOn = Model.GeneratedOn.ToString("dd MMM yyyy HH:mm"),
+        generatedByName = Model.GeneratedByName,
+        baseCurrency = Model.BaseCurrency,
+        receiptRange,
+        totals = new
+        {
+            payments = Model.TotalPaymentsCount,
+            reversals = Model.TotalReversalsCount,
+            collected = Model.TotalCollected,
+            net = Model.NetCollected
+        },
+        methods = Model.MethodGroups.Select(g => new
+        {
+            name = g.MethodName,
+            count = g.Count,
+            total = g.Total
+        }),
+        payments = Model.Payments.Select(p => new
+        {
+            receipt = p.ReceiptDisplay,
+            time = p.Date.ToString("HH:mm"),
+            student = p.StudentName,
+            method = p.Method,
+            reference = p.Reference,
+            amount = p.BaseAmount,
+            by = p.CreatedByName
+        }),
+        reversals = Model.Reversals.Select(r => new
+        {
+            receipt = r.ReceiptDisplay,
+            time = r.Date.ToString("HH:mm"),
+            student = r.StudentName,
+            reason = r.ReversalReason,
+            amount = r.BaseAmount,
+            by = r.CreatedByName
+        })
+    };
+}
+
+@section actionbar {
+    <button type="button" id="btn-cashup-pdf" class="btn btn-primary">
+        <i class="fa-solid fa-file-pdf"></i> Download PDF
+    </button>
+    <button type="button" onclick="window.print();" class="btn btn-secondary">
+        <i class="fa-solid fa-print"></i> Print
+    </button>
+    <a asp-page="./Balances" class="btn btn-ghost">
+        <i class="fa-solid fa-arrow-left"></i> Back
+    </a>
+}
+
+<!-- ===== FILTER (hidden on print) ===== -->
+<div class="cashup-filter no-print">
+    <form method="get" class="cashup-filter-form">
+        <div class="filter-wrapper">
+            <label class="filter-label">Date</label>
+            <input type="date"
+                   name="Date"
+                   value="@Model.SelectedDate.ToString("yyyy-MM-dd")"
+                   class="filter-dropdown"
+                   onchange="this.form.submit();" />
+        </div>
+
+        <div class="filter-wrapper">
+            <label class="filter-label">Bursar</label>
+            <select name="Bursar" class="filter-dropdown" onchange="this.form.submit();">
+                <option value="">All Bursars</option>
+                @foreach (var b in Model.BursarOptions)
+                {
+                    <option value="@b.Name" selected="@(Model.Bursar == b.Name)">
+                        @b.Name (@b.Count)
+                    </option>
+                }
+            </select>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Bursar))
+        {
+            <a asp-page="./CashUp" asp-route-Date="@Model.SelectedDate.ToString("yyyy-MM-dd")"
+               class="btn btn-ghost btn-sm">
+                <i class="fa-solid fa-xmark"></i> Clear
+            </a>
+        }
+    </form>
+</div>
+
+<!-- ===== PRINTABLE SHEET ===== -->
+<div class="cashup-sheet">
+
+    <!-- ===== HEADER ===== -->
+    <div class="cashup-header">
+        <div class="cashup-header-left">
+            <img src="~/images/logo.jpeg" alt="School Logo" class="cashup-logo" />
+            <div>
+                <div class="cashup-school">St. Martin De Porres</div>
+                <div class="cashup-title">Daily Cash-Up Report</div>
+            </div>
+        </div>
+        <div class="cashup-header-right">
+            <div class="cashup-meta-row">
+                <span>Date:</span>
+                <strong>@Model.SelectedDateFormatted</strong>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.Bursar))
+            {
+                <div class="cashup-meta-row">
+                    <span>Bursar:</span>
+                    <strong>@Model.Bursar</strong>
+                </div>
+            }
+            <div class="cashup-meta-row">
+                <span>Generated:</span>
+                <strong>@Model.GeneratedOn.ToString("dd MMM yyyy HH:mm")</strong>
+            </div>
+            @if (Model.FirstReceiptNumber.HasValue && Model.LastReceiptNumber.HasValue)
+            {
+                <div class="cashup-meta-row">
+                    <span>Receipt range:</span>
+                    <strong class="info-value-mono">
+                        RCP-@Model.CurrentReceiptYear-@Model.FirstReceiptNumber.Value.ToString("D5")
+                        → RCP-@Model.CurrentReceiptYear-@Model.LastReceiptNumber.Value.ToString("D5")
+                    </strong>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- ===== SUMMARY TILES ===== -->
+    <div class="cashup-stats">
+        <div class="cashup-stat">
+            <div class="cashup-stat-label">Payments</div>
+            <div class="cashup-stat-value">@Model.TotalPaymentsCount</div>
+        </div>
+        <div class="cashup-stat">
+            <div class="cashup-stat-label">Reversals</div>
+            <div class="cashup-stat-value @(Model.TotalReversalsCount > 0 ? "text-danger" : "")">
+                @Model.TotalReversalsCount
+            </div>
+        </div>
+        <div class="cashup-stat cashup-stat-primary">
+            <div class="cashup-stat-label">Total Collected</div>
+            <div class="cashup-stat-value">
+                @Model.TotalCollected.ToString("N2")
+                <small>@Model.BaseCurrency</small>
+            </div>
+        </div>
+        <div class="cashup-stat cashup-stat-net">
+            <div class="cashup-stat-label">Net</div>
+            <div class="cashup-stat-value">
+                @Model.NetCollected.ToString("N2")
+                <small>@Model.BaseCurrency</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== METHOD BREAKDOWN ===== -->
+    <div class="cashup-section">
+        <div class="cashup-section-title">
+            <i class="fa-solid fa-layer-group"></i>
+            Breakdown by Payment Method
+        </div>
+
+        @if (Model.MethodGroups.Any())
+        {
+            <table class="cashup-table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th style="text-align:right;">Count</th>
+                        <th style="text-align:right;">Total (@Model.BaseCurrency)</th>
+                        <th style="width: 180px;">Cash Counted (write-in)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var g in Model.MethodGroups)
+                    {
+                        <tr>
+                            <td><strong>@g.MethodName</strong></td>
+                            <td style="text-align:right;">@g.Count</td>
+                            <td style="text-align:right; font-weight: 700;">
+                                @g.Total.ToString("N2")
+                            </td>
+                            <td class="cashup-writein"></td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td style="text-align:right;"><strong>@Model.TotalPaymentsCount</strong></td>
+                        <td style="text-align:right;"><strong>@Model.TotalCollected.ToString("N2")</strong></td>
+                        <td class="cashup-writein"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        }
+        else
+        {
+            <div class="cashup-empty">No payments recorded on this date.</div>
+        }
+    </div>
+
+    <!-- ===== PAYMENT DETAIL ===== -->
+    @if (Model.Payments.Any())
+    {
+        <div class="cashup-section">
+            <div class="cashup-section-title">
+                <i class="fa-solid fa-list"></i>
+                Payment Detail (@Model.Payments.Count entries)
+            </div>
+
+            <table class="cashup-table cashup-table-compact">
+                <thead>
+                    <tr>
+                        <th>Receipt</th>
+                        <th>Time</th>
+                        <th>Student</th>
+                        <th>Method</th>
+                        <th>Reference</th>
+                        <th style="text-align:right;">Amount</th>
+                        <th>Recorded By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Payments)
+                    {
+                        <tr>
+                            <td class="info-value-mono">@p.ReceiptDisplay</td>
+                            <td>@p.Date.ToString("HH:mm")</td>
+                            <td>@p.StudentName</td>
+                            <td>@p.Method</td>
+                            <td class="info-value-mono">@(p.Reference ?? "—")</td>
+                            <td style="text-align:right; font-weight: 600;">
+                                @p.BaseAmount.ToString("N2")
+                            </td>
+                            <td>@p.CreatedByName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <!-- ===== REVERSALS ===== -->
+    @if (Model.Reversals.Any())
+    {
+        <div class="cashup-section cashup-section-reversals">
+            <div class="cashup-section-title">
+                <i class="fa-solid fa-rotate-left"></i>
+                Reversals (@Model.Reversals.Count entries)
+            </div>
+
+            <table class="cashup-table cashup-table-compact">
+                <thead>
+                    <tr>
+                        <th>Receipt</th>
+                        <th>Time</th>
+                        <th>Student</th>
+                        <th>Reason</th>
+                        <th style="text-align:right;">Amount</th>
+                        <th>Recorded By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Reversals)
+                    {
+                        <tr class="cashup-row-reversal">
+                            <td class="info-value-mono">@r.ReceiptDisplay</td>
+                            <td>@r.Date.ToString("HH:mm")</td>
+                            <td>@r.StudentName</td>
+                            <td>@(string.IsNullOrWhiteSpace(r.ReversalReason) ? "—" : r.ReversalReason)</td>
+                            <td style="text-align:right; font-weight: 600; color: #B91C1C;">
+                                −@Math.Abs(r.BaseAmount).ToString("N2")
+                            </td>
+                            <td>@r.CreatedByName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <!-- ===== SIGN-OFF ===== -->
+    <div class="cashup-signoff">
+        <div class="cashup-signoff-text">
+            <strong>Declaration</strong>
+            <p>
+                I confirm that the cash, EcoCash transfers, and bank transfers received on
+                @Model.SelectedDateFormatted have been counted and reconciled to the amounts
+                listed above.
+            </p>
+        </div>
+
+        <div class="cashup-signoff-lines">
+            <div class="cashup-signoff-line">
+                <span>Prepared by (Bursar):</span>
+                <div class="cashup-signoff-space"></div>
+                <div class="cashup-signoff-caption">Signature / Date</div>
+            </div>
+            <div class="cashup-signoff-line">
+                <span>Verified by (Head Teacher):</span>
+                <div class="cashup-signoff-space"></div>
+                <div class="cashup-signoff-caption">Signature / Date</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cashup-footer">
+        Generated by @Model.GeneratedByName · @Model.GeneratedOn.ToString("dd MMM yyyy HH:mm")
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        window.__cashUpData = @Json.Serialize(cashUpPayload);
+        window.__cashUpLogoUrl = '@Url.Content("~/images/logo.jpeg")';
+
+        /* ============================================================
+           Preload the school logo once and cache it as a data URL so
+           jsPDF can embed it without any async work on button click.
+           ============================================================ */
+        (function preloadLogo() {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function () {
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    window.__cashUpLogoData = canvas.toDataURL('image/jpeg', 0.92);
+                } catch (e) {
+                    console.warn('CashUp: could not encode logo', e);
+                    window.__cashUpLogoData = null;
+                }
+            };
+            img.onerror = function () {
+                console.warn('CashUp: logo not found at', window.__cashUpLogoUrl);
+                window.__cashUpLogoData = null;
+            };
+            img.src = window.__cashUpLogoUrl;
+        })();
+
+        (function () {
+            const btn = document.getElementById('btn-cashup-pdf');
+            if (!btn) return;
+
+            btn.addEventListener('click', function () {
+                try {
+                    generateCashUpPdf();
+                } catch (err) {
+                    console.error(err);
+                    alert('Sorry, the PDF could not be generated. Please try again.');
+                }
+            });
+        })();
+
+        function generateCashUpPdf() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+            const pageWidth  = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin     = 40;
+            const contentW   = pageWidth - margin * 2;
+            const data       = window.__cashUpData || {};
+
+            const fmt = n => Number(n || 0).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            let y = margin;
+
+            /* ============ HEADER (with logo) ============ */
+            const logoSize    = 50;
+            const logoGap     = 14;
+            const logoData    = window.__cashUpLogoData;
+            let   headerTextX = margin;
+
+            if (logoData) {
+                try {
+                    doc.addImage(logoData, 'JPEG', margin, y, logoSize, logoSize);
+                    headerTextX = margin + logoSize + logoGap;
+                } catch (e) {
+                    console.warn('CashUp: addImage failed', e);
+                }
+            }
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(16);
+            doc.setTextColor(15, 23, 42);
+            doc.text(data.school || '', headerTextX, y + 16);
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            doc.setTextColor(71, 85, 105);
+            doc.text(data.title || '', headerTextX, y + 34);
+
+            // Reserve vertical space for the logo row (whichever is taller)
+            y += Math.max(logoSize, 44) + 18;
+
+            /* ---- Meta box ---- */
+            const metaBoxH = data.receiptRange ? 62 : 46;
+            doc.setDrawColor(203, 213, 225);
+            doc.setFillColor(248, 250, 252);
+            doc.roundedRect(margin, y, contentW, metaBoxH, 4, 4, 'FD');
+
+            const leftX   = margin + 12;
+            const rightX  = margin + contentW / 2 + 12;
+            const labelW  = 70;
+            let   metaY   = y + 18;
+
+            doc.setFontSize(9);
+            doc.setTextColor(51, 65, 85);
+
+            doc.setFont('helvetica', 'bold');
+            doc.text('Date:', leftX, metaY);
+            doc.setFont('helvetica', 'normal');
+            doc.text(data.dateFormatted || '', leftX + labelW, metaY);
+
+            if (data.bursar) {
+                doc.setFont('helvetica', 'bold');
+                doc.text('Bursar:', rightX, metaY);
+                doc.setFont('helvetica', 'normal');
+                doc.text(data.bursar, rightX + labelW, metaY);
+            }
+
+            metaY += 16;
+            doc.setFont('helvetica', 'bold');
+            doc.text('Generated:', leftX, metaY);
+            doc.setFont('helvetica', 'normal');
+            doc.text(data.generatedOn || '', leftX + labelW, metaY);
+
+            if (data.receiptRange) {
+                doc.setFont('helvetica', 'bold');
+                doc.text('Receipts:', rightX, metaY);
+                doc.setFont('helvetica', 'normal');
+                doc.text(data.receiptRange, rightX + labelW, metaY);
+            }
+
+            y += metaBoxH + 18;
+
+            /* ============ SUMMARY TILES ============ */
+            const gap       = 8;
+            const tileW     = (contentW - gap * 3) / 4;
+            const tileH     = 50;
+
+            const tiles = [
+                { label: 'PAYMENTS',  value: String(data.totals.payments),
+                  fill: [248,250,252], text: [15,23,42] },
+                { label: 'REVERSALS', value: String(data.totals.reversals),
+                  fill: [248,250,252], text: data.totals.reversals > 0 ? [185,28,28] : [15,23,42] },
+                { label: 'TOTAL COLLECTED', value: `${fmt(data.totals.collected)} ${data.baseCurrency}`,
+                  fill: [30,64,175], text: [255,255,255] },
+                { label: 'NET', value: `${fmt(data.totals.net)} ${data.baseCurrency}`,
+                  fill: [22,101,52], text: [255,255,255] }
+            ];
+
+            tiles.forEach((t, i) => {
+                const x = margin + i * (tileW + gap);
+                doc.setFillColor(t.fill[0], t.fill[1], t.fill[2]);
+                doc.roundedRect(x, y, tileW, tileH, 4, 4, 'F');
+
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(7.5);
+                doc.setTextColor(t.text[0], t.text[1], t.text[2]);
+                doc.text(t.label, x + 8, y + 16);
+
+                doc.setFontSize(12);
+                doc.text(t.value, x + 8, y + 36);
+            });
+
+            y += tileH + 24;
+
+            /* ============ METHOD BREAKDOWN ============ */
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.setTextColor(15, 23, 42);
+            doc.text('Breakdown by Payment Method', margin, y);
+            y += 8;
+
+            if (data.methods && data.methods.length) {
+                doc.autoTable({
+                    startY: y,
+                    head: [['Method', 'Count', `Total (${data.baseCurrency})`]],
+                    body: data.methods.map(m => [m.name, m.count, fmt(m.total)]),
+                    foot: [['Total', data.totals.payments, fmt(data.totals.collected)]],
+                    theme: 'grid',
+                    styles: {
+                        fontSize: 9,
+                        cellPadding: 5,
+                        lineColor: [226, 232, 240],
+                        lineWidth: 0.5,
+                        textColor: [30, 41, 59]
+                    },
+                    headStyles: { fillColor: [30,64,175], textColor: 255, fontStyle: 'bold' },
+                    footStyles: { fillColor: [241,245,249], textColor: [15,23,42], fontStyle: 'bold' },
+                    columnStyles: {
+                        1: { halign: 'right', cellWidth: 70 },
+                        2: { halign: 'right', cellWidth: 110 }
+                    },
+                    margin: { left: margin, right: margin }
+                });
+                y = doc.lastAutoTable.finalY + 24;
+            } else {
+                doc.setFont('helvetica', 'italic');
+                doc.setFontSize(9);
+                doc.setTextColor(100, 116, 139);
+                doc.text('No payments recorded on this date.', margin, y + 14);
+                y += 32;
+            }
+
+            /* ============ PAYMENT DETAIL ============ */
+            if (data.payments && data.payments.length) {
+                if (y + 70 > pageHeight - margin) { doc.addPage(); y = margin; }
+
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(11);
+                doc.setTextColor(15, 23, 42);
+                doc.text(`Payment Detail (${data.payments.length} entries)`, margin, y);
+                y += 8;
+
+                doc.autoTable({
+                    startY: y,
+                    head: [['Receipt', 'Time', 'Student', 'Method', 'Reference', 'Amount', 'Recorded By']],
+                    body: data.payments.map(p => [
+                        p.receipt,
+                        p.time,
+                        p.student,
+                        p.method,
+                        p.reference || '-',
+                        fmt(p.amount),
+                        p.by
+                    ]),
+                    theme: 'striped',
+                    styles: {
+                        fontSize: 8,
+                        cellPadding: 4,
+                        lineColor: [226, 232, 240],
+                        lineWidth: 0.5,
+                        textColor: [30, 41, 59]
+                    },
+                    headStyles: { fillColor: [30,64,175], textColor: 255, fontStyle: 'bold' },
+                    alternateRowStyles: { fillColor: [248, 250, 252] },
+                    columnStyles: { 5: { halign: 'right', cellWidth: 70 } },
+                    margin: { left: margin, right: margin }
+                });
+                y = doc.lastAutoTable.finalY + 24;
+            }
+
+            /* ============ REVERSALS ============ */
+            if (data.reversals && data.reversals.length) {
+                if (y + 70 > pageHeight - margin) { doc.addPage(); y = margin; }
+
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(11);
+                doc.setTextColor(185, 28, 28);
+                doc.text(`Reversals (${data.reversals.length} entries)`, margin, y);
+                y += 8;
+
+                doc.autoTable({
+                    startY: y,
+                    head: [['Receipt', 'Time', 'Student', 'Reason', 'Amount', 'Recorded By']],
+                    body: data.reversals.map(r => [
+                        r.receipt,
+                        r.time,
+                        r.student,
+                        r.reason || '-',
+                        '-' + fmt(Math.abs(r.amount)),
+                        r.by
+                    ]),
+                    theme: 'grid',
+                    styles: {
+                        fontSize: 8,
+                        cellPadding: 4,
+                        lineColor: [254, 202, 202],
+                        lineWidth: 0.5,
+                        textColor: [127, 29, 29]
+                    },
+                    headStyles: { fillColor: [185,28,28], textColor: 255, fontStyle: 'bold' },
+                    columnStyles: { 4: { halign: 'right', cellWidth: 70 } },
+                    margin: { left: margin, right: margin }
+                });
+                y = doc.lastAutoTable.finalY + 24;
+            }
+
+            /* ============ SIGN-OFF ============ */
+            if (y + 150 > pageHeight - margin) { doc.addPage(); y = margin; }
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.setTextColor(15, 23, 42);
+            doc.text('Declaration', margin, y);
+            y += 16;
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(51, 65, 85);
+            const declaration =
+                `I confirm that the cash, EcoCash transfers, and bank transfers received on ` +
+                `${data.dateFormatted} have been counted and reconciled to the amounts listed above.`;
+            const declLines = doc.splitTextToSize(declaration, contentW);
+            doc.text(declLines, margin, y);
+            y += declLines.length * 12 + 32;
+
+            const lineW = (contentW - 40) / 2;
+
+            const drawSignLine = (x, label) => {
+                doc.setDrawColor(100, 116, 139);
+                doc.line(x, y, x + lineW, y);
+
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9);
+                doc.setTextColor(51, 65, 85);
+                doc.text(label, x, y - 6);
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(100, 116, 139);
+                doc.text('Signature / Date', x, y + 12);
+            };
+
+            drawSignLine(margin, 'Prepared by (Bursar)');
+            drawSignLine(margin + lineW + 40, 'Verified by (Head Teacher)');
+
+            /* ============ FOOTER ============ */
+            const footer = `Generated by ${data.generatedByName} - ${data.generatedOn}`;
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
+            doc.text(footer, pageWidth / 2, pageHeight - 20, { align: 'center' });
+
+            /* ============ SAVE ============ */
+            const safeDate = String(data.dateFormatted || 'report').replace(/[^a-z0-9]+/gi, '_');
+            doc.save(`CashUp_${safeDate}.pdf`);
+        }
+    </script>
+
+    <style>
+        @@media print {
+            .no-print,
+            .app-sidebar,
+            .mobile-top-bar,
+            .header-actions,
+            .page-header {
+                display: none !important;
+            }
+
+            .app-content {
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+
+            .app-main {
+                padding-top: 0 !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            body, html {
+                overflow: visible !important;
+                height: auto !important;
+            }
+
+            .cashup-sheet {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+
+            .cashup-table th,
+            .cashup-stat-primary,
+            .cashup-stat-net,
+            .cashup-writein {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .cashup-section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+}

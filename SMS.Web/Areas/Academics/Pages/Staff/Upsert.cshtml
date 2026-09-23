@@ -1,8 +1,10 @@
 ﻿@page "{id:guid?}"
 @model SMS.Web.Areas.Academics.Pages.Staff.UpsertModel
 @{
-    ViewData["PageTitle"] = Model.staff.EcNumber != null ? "Edit Staff" : "Add Staff";
-    ViewData["PageSubTitle"] = "Create or modify a staff member's record";
+    ViewData["PageTitle"] = Model.IsEditMode ? "Edit Staff" : "Add Staff";
+    ViewData["PageSubTitle"] = Model.IsEditMode
+        ? "Update staff member's record"
+        : "Create a new staff member";
 }
 
 <form method="post" class="form-compact">
@@ -144,7 +146,7 @@
         <div class="card-footer">
             <button type="submit" class="btn btn-primary">
                 <i class="fa-solid fa-floppy-disk"></i>
-                @(Model.staff.EcNumber != null ? "Save Changes" : "Create Staff")
+                @(Model.IsEditMode ? "Save Changes" : "Create Staff")
             </button>
         </div>
     </div>
@@ -167,7 +169,8 @@
                 dateFormat: 'yy-mm-dd',
                 changeMonth: true,
                 changeYear: true,
-                minDate: 0,
+                maxDate: 0,
+                yearRange: 'c-30:c+0',
                 showAnim: 'fadeIn'
             });
 

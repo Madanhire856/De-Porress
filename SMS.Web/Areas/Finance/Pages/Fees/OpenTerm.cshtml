@@ -1,0 +1,202 @@
+﻿@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Finance.Pages.Fees.OpenTermModel
+@{
+    ViewData["Title"] = "Open Term";
+    ViewData["PageTitle"] = "Open Term";
+    ViewData["PageSubTitle"] = "Generate student ledgers for a term";
+}
+
+@section actionbar {
+    <a asp-page="./Balances" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Balances
+    </a>
+    <a asp-page="./Upsert" class="btn btn-secondary">
+        <i class="fa-solid fa-sliders"></i> Fee Structure
+    </a>
+}
+
+@if (TempData["OpenTermSuccess"] != null)
+{
+    <div class="flash flash-success">
+        <i class="fa-solid fa-circle-check"></i> @TempData["OpenTermSuccess"]
+    </div>
+}
+@if (TempData["OpenTermError"] != null)
+{
+    <div class="flash flash-error">
+        <i class="fa-solid fa-circle-exclamation"></i> @TempData["OpenTermError"]
+    </div>
+}
+
+<!-- ===== TERM SELECTOR ===== -->
+<div class="fees-filter">
+    <form method="get" class="fees-filter-form">
+        <div class="filter-wrapper fees-filter-grow">
+            <label class="filter-label">Term</label>
+            <select name="TermId" asp-items="Model.Terms" class="filter-dropdown"
+                    onchange="this.form.submit();">
+                <option value="">— Select term —</option>
+            </select>
+        </div>
+    </form>
+</div>
+
+@if (Model.SelectedTerm != null)
+{
+    <!-- ===== TERM INFO ===== -->
+    <div class="info-card" style="margin-bottom: 1rem;">
+        <div class="info-row">
+            <div class="info-label">
+                <i class="fa-solid fa-calendar"></i> Term
+            </div>
+            <div class="info-value">@Model.SelectedTerm.Display</div>
+
+            <div class="info-label" style="margin-left: 2rem;">
+                <i class="fa-solid fa-calendar-days"></i> Dates
+            </div>
+            <div class="info-value info-value-mono">
+                @Model.SelectedTerm.StartDate.ToString("dd MMM yyyy")
+                → @Model.SelectedTerm.EndDate.ToString("dd MMM yyyy")
+            </div>
+
+            <div class="info-label" style="margin-left: 2rem;">
+                <i class="fa-solid fa-circle-info"></i> State
+            </div>
+            <div class="info-value">
+                @if (Model.SelectedTerm.IsActive)
+                {
+                    <span class="status-badge status-active">Active</span>
+                }
+                else
+                {
+                    <span class="status-badge status-count">Inactive</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SUMMARY TILES ===== -->
+    <div class="house-stats house-stats-4" style="margin-bottom: 1rem;">
+        <div class="house-stat">
+            <i class="fa-solid fa-check-circle"></i>
+            <div>
+                <div class="house-stat-value">@Model.StudentsWithLedgerCount</div>
+                <div class="house-stat-label">Ledgers Already Open</div>
+            </div>
+        </div>
+
+        <div class="house-stat @(Model.StudentsWithoutLedgerCount > 0 ? "house-stat-warning" : "")">
+            <i class="fa-solid fa-user-plus"></i>
+            <div>
+                <div class="house-stat-value">@Model.StudentsWithoutLedgerCount</div>
+                <div class="house-stat-label">To Open</div>
+            </div>
+        </div>
+
+        <div class="house-stat">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <div>
+                <div class="house-stat-value">@Model.ProjectedCharged.ToString("N2")</div>
+                <div class="house-stat-label">Projected Charge (@Model.BaseCurrency)</div>
+            </div>
+        </div>
+
+        <div class="house-stat">
+            <i class="fa-solid fa-layer-group"></i>
+            <div>
+                <div class="house-stat-value">@Model.Preview.Count</div>
+                <div class="house-stat-label">Grade Groups</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PREVIEW ===== -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <i class="fa-solid fa-list-check"></i>
+            <span>Preview — Ledgers to Open</span>
+            <span class="info-card-badge">@Model.Preview.Count group@(Model.Preview.Count == 1 ? "" : "s")</span>
+        </div>
+
+        @if (Model.Preview.Any())
+        {
+            <table class="data-table table-compact">
+                <thead>
+                    <tr>
+                        <th>Grade</th>
+                        <th style="text-align: right;">Students</th>
+                        <th style="text-align: right;">Charge / Student</th>
+                        <th style="text-align: right;">Total Charge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Preview)
+                    {
+                        <tr>
+                            <td><strong>@p.GradeName</strong></td>
+                            <td style="text-align: right;">@p.StudentCount</td>
+                            <td style="text-align: right;">
+                                @p.ChargePerStudent.ToString("N2")
+                            </td>
+                            <td style="text-align: right; font-weight: 600;">
+                                @p.TotalCharge.ToString("N2")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr style="background: #F9FAFB;">
+                        <td><strong>Total</strong></td>
+                        <td style="text-align: right;">
+                            <strong>@Model.StudentsWithoutLedgerCount</strong>
+                        </td>
+                        <td></td>
+                        <td style="text-align: right;">
+                            <strong>@Model.ProjectedCharged.ToString("N2") @Model.BaseCurrency</strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="card-footer" style="margin: 0; border-radius: 0; padding: 0.85rem 1.5rem;">
+                <div style="margin-right: auto; font-size: 0.85rem; color: #6B7280;">
+                    <i class="fa-solid fa-circle-info"></i>
+                    This will create @Model.StudentsWithoutLedgerCount
+                    ledger@(Model.StudentsWithoutLedgerCount == 1 ? "" : "s").
+                    Existing ledgers for this term are left untouched.
+                </div>
+                <form method="post" style="margin: 0;">
+                    <input type="hidden" name="TermId" value="@Model.TermId" />
+                    <button type="submit"
+                            class="btn btn-primary"
+                            onclick="return confirm('Open @Model.StudentsWithoutLedgerCount ledger(s)? This cannot be undone from here.');">
+                        <i class="fa-solid fa-door-open"></i>
+                        Open @Model.StudentsWithoutLedgerCount Ledger@(Model.StudentsWithoutLedgerCount == 1 ? "" : "s")
+                    </button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fa-solid fa-check-circle" style="font-size: 2rem; color: #10B981; display: block; margin-bottom: 0.75rem;"></i>
+                All active students already have ledgers for this term.
+                <div style="margin-top: 0.5rem;">
+                    <a asp-page="./Balances" asp-route-TermId="@Model.TermId" class="btn btn-secondary">
+                        View Balances
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="info-card">
+        <div class="empty-state">
+            Select a term above to see the ledger-opening preview.
+        </div>
+    </div>
+}

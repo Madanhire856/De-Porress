@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SMS.Data;
+using SMS.Lib;
 using SMS.Web.Pages.GeneratedNumbers;
 using SMS.Web.Pages.Shared.Pagination;
 using System;
@@ -22,7 +23,14 @@ namespace SMS.Web.Areas.Config.Pages.Houses
         public List<House> Houses { get; set; } = new();
         public PaginationInfo Pagination { get; set; } = new();
         public Dictionary<Guid, string> CreatorEmails { get; set; } = new();
-        public Dictionary<Guid, string> MasterNames { get; set; } = new();
+        public Dictionary<Guid, TeacherSummary> TeacherSummaries { get; set; } = new();
+
+        public class TeacherSummary
+        {
+            public string MasterName { get; set; } = "";
+            public int TotalCount { get; set; }
+            public int AdditionalCount => Math.Max(0, TotalCount - (string.IsNullOrEmpty(MasterName) ? 0 : 1));
+        }
 
         [BindProperty(SupportsGet = true)]
         public string? SearchTerm { get; set; }
@@ -50,6 +58,7 @@ namespace SMS.Web.Areas.Config.Pages.Houses
 
             _context.ApplyHouseNumbers(Houses);
 
+            // Creator emails
             var creatorIds = Houses.Select(h => h.CreatorId).Distinct().ToList();
             if (creatorIds.Any())
             {
@@ -59,13 +68,32 @@ namespace SMS.Web.Areas.Config.Pages.Houses
                     .ToDictionary(u => u.Id, u => u.Email);
             }
 
-            var masterIds = Houses.Select(h => h.MasterId).Distinct().ToList();
-            if (masterIds.Any())
+            // 👇 Load assigned teachers for the current page
+            var houseIds = Houses.Select(h => h.Id).ToList();
+            if (houseIds.Any())
             {
-                MasterNames = _context.Staff
+                var links = _context.HouseTeachers
                     .AsNoTracking()
-                    .Where(s => masterIds.Contains(s.Id))
-                    .ToDictionary(s => s.Id, s => $"{s.Name} {s.Surname}");
+                    .Where(ht => houseIds.Contains(ht.HouseId))
+                    .OrderBy(ht => ht.RoleId)
+                    .ThenBy(ht => ht.Staff.Surname)
+                    .Select(ht => new
+                    {
+                        ht.HouseId,
+                        ht.RoleId,
+                        StaffName = ht.Staff.Name + " " + ht.Staff.Surname
+                    })
+                    .ToList();
+
+                TeacherSummaries = links
+                    .GroupBy(l => l.HouseId)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => new TeacherSummary
+                        {
+                            MasterName = g.FirstOrDefault(x => x.RoleId == (int)TeacherHouseRole.MASTER)?.StaffName ?? "",
+                            TotalCount = g.Count()
+                        });
             }
         }
     }

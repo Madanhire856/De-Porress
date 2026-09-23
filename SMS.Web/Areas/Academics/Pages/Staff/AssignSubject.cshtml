@@ -1,0 +1,122 @@
+﻿@page "{staffId:guid}"
+@model SMS.Web.Areas.Academics.Pages.Staff.AssignSubjectModel
+@using SMS.Lib
+@{
+    ViewData["Title"] = "Assign Subjects";
+    ViewData["PageTitle"] = "Assign Subjects";
+    ViewData["PageSubTitle"] = $"Subjects taught by {Model.StaffVM.Name} {Model.StaffVM.Surname}";
+}
+
+<form method="post">
+    <div class="form-card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <!-- ===== SUBJECTS BY CATEGORY ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-book"></i> Subjects
+                <span class="rights-counter" id="subjectsCount">0 selected</span>
+            </div>
+
+            @if (Model.SubjectsByCategory.Any())
+            {
+                <div class="rights-grid">
+                    @foreach (var group in Model.SubjectsByCategory)
+                    {
+                        <div class="rights-category">
+                            <h4 class="rights-category-title">
+                                <i class="fa-solid fa-layer-group"></i>
+                                @group.CategoryName
+                                <label class="select-all-label">
+                                    <input type="checkbox" class="select-all-checkbox" data-target="@group.CategorySlug" />
+                                    Select All
+                                </label>
+                            </h4>
+
+                            <div class="rights-list" id="@group.CategorySlug">
+                                @foreach (var subject in group.Subjects)
+                                {
+                                    var isChecked = Model.SelectedSubjectIds.Contains(subject.Id);
+
+                                    <label class="right-checkbox">
+                                        <input type="checkbox"
+                                               name="SelectedSubjectIds"
+                                               value="@subject.Id"
+                                        @(isChecked ? "checked" : "") />
+                                        <span>
+                                            @subject.Name
+                                            <span class="sponsor-empty">(@subject.Code)</span>
+                                        </span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="info-row"
+                     style="border-radius: 6px; background: #FFFBEB; border: 1px solid #FDE68A;">
+                    <div style="display: flex; gap: 0.6rem; align-items: flex-start; color: #92400E; font-size: 0.85rem;">
+                        <i class="fa-solid fa-circle-info" style="margin-top: 2px;"></i>
+                        <div>
+                            <strong>No subjects have been defined yet.</strong><br />
+                            Add subjects in
+                            <a asp-area="Config"
+                               asp-page="/Subjects/Index"
+                               style="color: inherit; text-decoration: underline;">
+                                Configuration → Academic Setup → Subjects
+                            </a>
+                            before assigning them to teachers.
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> Save
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const countEl = document.getElementById('subjectsCount');
+
+            function updateCount() {
+                const count = document.querySelectorAll('input[name="SelectedSubjectIds"]:checked').length;
+                countEl.textContent = count + ' selected';
+            }
+
+            // Wire up "Select All" per category
+            document.querySelectorAll('.select-all-checkbox').forEach(master => {
+                const cat = document.getElementById(master.getAttribute('data-target'));
+                if (!cat) return;
+                const boxes = cat.querySelectorAll('input[name="SelectedSubjectIds"]');
+
+                master.checked = Array.from(boxes).every(b => b.checked);
+
+                master.addEventListener('change', () => {
+                    boxes.forEach(b => b.checked = master.checked);
+                    updateCount();
+                });
+
+                boxes.forEach(b => b.addEventListener('change', () => {
+                    master.checked = Array.from(boxes).every(x => x.checked);
+                    updateCount();
+                }));
+            });
+
+            document.querySelectorAll('input[name="SelectedSubjectIds"]').forEach(b =>
+                b.addEventListener('change', updateCount));
+            updateCount();
+        })();
+    </script>
+}

@@ -1,0 +1,128 @@
+﻿@page "{id:guid}"
+@model SMS.Web.Areas.Finance.Pages.Fees.FeesStructureDetailsModel
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@{
+    ViewData["Title"] = "Fee Details";
+    ViewData["PageTitle"] = "Fee Details";
+    ViewData["PageSubTitle"] = $"Viewing {Model.FeeNumber}";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.GenerateInvoices))
+    {
+        <a asp-page="./Upsert" asp-route-id="@Model.Id" class="btn btn-secondary">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+        </a>
+    }
+    <a asp-page="./FeesStructures" class="btn btn-ghost">
+        <i class="fa-solid fa-arrow-left"></i> Back to List
+    </a>
+}
+
+<div class="details-compact">
+    <div class="details-single">
+
+        <!-- ===== PROFILE HEADER ===== -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name">@Model.FeeNumber</h2>
+                <div class="profile-meta">
+                    <span>@Model.GradeName</span>
+                    
+                </div>
+               
+            </div>
+        </div>
+
+        <!-- ===== TWO-COLUMN BODY ===== -->
+        <div class="info-grid">
+
+            <!-- LEFT: Fee Information -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Fee Information</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-hashtag"></i> Fee ID
+                    </div>
+                    <div class="info-value info-value-mono">@Model.FeeNumber</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-graduation-cap"></i> Grade
+                    </div>
+                    <div class="info-value">@Model.GradeName</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar"></i> Term
+                    </div>
+                    <div class="info-value">@Model.TermDisplay</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-tag"></i> Levy Type
+                    </div>
+                    <div class="info-value">@Model.LevyName</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-money-bill-wave"></i> Amount
+                    </div>
+                    <div class="info-value">
+                        <strong>@Model.Amount.ToString("N2")</strong>
+                        <span class="info-value-mono" style="margin-left: 0.4rem;">@Model.CurrencyCode</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Currency + Metadata -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <span>Currency &amp; Metadata</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-coins"></i> Currency
+                    </div>
+                    <div class="info-value">
+                        @Model.CurrencyName
+                        <span class="info-value-mono" style="margin-left: 0.4rem;">
+                            (@Model.CurrencyCode @Model.CurrencySymbol)
+                        </span>
+                    </div>
+                </div>
+
+
+                
+            </div>
+
+        </div>
+
+        <!-- ===== CARD FOOTER ===== -->
+        <div class="info-card-footer">
+            <div>
+                <span>Created By:</span>
+                <strong>@(string.IsNullOrWhiteSpace(Model.CreatorEmail) ? "System Generated" : Model.CreatorEmail)</strong>
+            </div>
+            <div>
+                <span>Created On:</span>
+                <strong>@(Model.CreationDate?.ToString("dd MMM yyyy, HH:mm") ?? "—")</strong>
+            </div>
+        </div>
+
+    </div>
+</div>

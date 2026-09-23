@@ -192,5 +192,73 @@ namespace SMS.Web.Pages.GeneratedNumbers
             foreach (var t in terms)
                 db.ApplyTermNumber(t);
         }
+
+        // --- SPORTS ---
+        public static int GetSportSequence(this SMSDbContext db, Sport sport)
+        {
+            return db.Sports
+                .AsNoTracking()
+                .Where(s => s.CreationDate <= sport.CreationDate)
+                .OrderBy(s => s.CreationDate)
+                .ThenBy(s => s.Id)
+                .Count();
+        }
+
+        public static void ApplySportNumber(this SMSDbContext db, Sport sport)
+        {
+            sport.SportSequence = db.GetSportSequence(sport);
+        }
+
+        public static void ApplySportNumbers(this SMSDbContext db, IEnumerable<Sport> sports)
+        {
+            foreach (var s in sports)
+                db.ApplySportNumber(s);
+        }
+
+        // --- STUDENTS ---
+        public static int GetStudentSequence(this SMSDbContext db, Student student)
+        {
+            return db.Students
+                .AsNoTracking()
+                .Where(s => s.CreationDate <= student.CreationDate)
+                .OrderBy(s => s.CreationDate)
+                .ThenBy(s => s.Id)
+                .Count();
+        }
+
+        public static void ApplyStudentNumber(this SMSDbContext db, Student student)
+        {
+            student.StudentSequence = db.GetStudentSequence(student);
+        }
+
+        public static void ApplyStudentNumbers(this SMSDbContext db, IEnumerable<Student> students)
+        {
+            foreach (var s in students)
+                db.ApplyStudentNumber(s);
+        }
+
+        // --- FEES STRUCTURES ---
+        public static int GetFeesStructureSequence(this SMSDbContext db, FeesStructure fee)
+        {
+            return db.FeesStructures
+                .AsNoTracking()
+                .Where(f => f.CreationDate <= fee.CreationDate)
+                .OrderBy(f => f.CreationDate)
+                .ThenBy(f => f.Id)
+                .Count();
+        }
+
+        public static void ApplyFeesStructureNumber(this SMSDbContext db, FeesStructure fee)
+        {
+            fee.FeesStructureSequence = db.GetFeesStructureSequence(fee);
+        }
+
+        public static void ApplyFeesStructureNumbers(
+            this SMSDbContext db,
+            IEnumerable<FeesStructure> fees)
+        {
+            foreach (var f in fees)
+                db.ApplyFeesStructureNumber(f);
+        }
     }
 }

@@ -1,0 +1,116 @@
+﻿@page "{id:guid?}"
+@model SMS.Web.Areas.Config.Pages.Terms.UpsertModel
+@{
+    ViewData["PageTitle"] = Model.term.TermNumber > 0 && Model.term.Id != Guid.Empty ? "Edit Term" : "Add Term";
+    ViewData["PageSubTitle"] = "Create or modify an academic term";
+}
+
+<form method="post" class="form-compact">
+    <div class="form-card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <input type="hidden" asp-for="term.Id" />
+
+            <!-- ===== TERM DETAILS ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-calendar"></i> Term Details
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="term.Name">
+                        Term Name <span class="required">*</span>
+                    </label>
+                    <input asp-for="term.Name"
+                           class="form-control"
+                           placeholder="e.g. First Term"
+                           maxlength="50"
+                           autofocus
+                           required />
+                    <span asp-validation-for="term.Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="term.AcademicYear">
+                        Academic Year <span class="required">*</span>
+                    </label>
+                    <input asp-for="term.AcademicYear"
+                           type="number" min="2000" max="2100"
+                           class="form-control"
+                           required />
+                    <span asp-validation-for="term.AcademicYear" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="term.TermNumber">
+                        Term Number <span class="required">*</span>
+                    </label>
+                    <select asp-for="term.TermNumber" class="form-control" required>
+                        <option disabled selected>--select term number--</option>
+                        <option value="1">Term 1</option>
+                        <option value="2">Term 2</option>
+                        <option value="3">Term 3</option>
+                    </select>
+                    <span asp-validation-for="term.TermNumber" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="term.StartDate">
+                        Start Date <span class="required">*</span>
+                    </label>
+                    <input asp-for="term.StartDate"
+                           type="text"
+                           class="form-control datepicker"
+                           placeholder="yyyy-mm-dd"
+                           autocomplete="off"
+                           required />
+                    <span asp-validation-for="term.StartDate" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="term.EndDate">
+                        End Date <span class="required">*</span>
+                    </label>
+                    <input asp-for="term.EndDate"
+                           type="text"
+                           class="form-control datepicker"
+                           placeholder="yyyy-mm-dd"
+                           autocomplete="off"
+                           required />
+                    <span asp-validation-for="term.EndDate" class="text-danger"></span>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card-footer">
+           
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i>
+                Save Term
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(function () {
+            $('.datepicker').datepicker({
+                dateFormat: 'yy-mm-dd',
+                changeMonth: true,
+                changeYear: true,
+                showAnim: 'fadeIn'
+            });
+
+            $('.datepicker').on('keydown', function (e) {
+                e.preventDefault();
+            });
+        });
+    </script>
+}

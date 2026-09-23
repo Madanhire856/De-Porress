@@ -24,7 +24,7 @@
                     <label class="form-label" asp-for="village.Name">
                         Village Name <span class="required">*</span>
                     </label>
-                    <input asp-for="village.Name" class="form-control" placeholder="e.g. Chikwanha Village" required />
+                    <input asp-for="village.Name" class="form-control" required />
                     <span asp-validation-for="village.Name" class="text-danger"></span>
                 </div>
 
@@ -32,7 +32,7 @@
                     <label class="form-label" asp-for="village.Headman">
                         Headman <span class="required">*</span>
                     </label>
-                    <input asp-for="village.Headman" class="form-control" placeholder="e.g. Mr. Chikwanha" required />
+                    <input asp-for="village.Headman" class="form-control" required />
                     <span asp-validation-for="village.Headman" class="text-danger"></span>
                 </div>
 
@@ -40,16 +40,14 @@
                     <label class="form-label" asp-for="village.Chief">
                         Chief <span class="required">*</span>
                     </label>
-                    <input asp-for="village.Chief" class="form-control" placeholder="e.g. Chief Nyashanu" required />
+                    <input asp-for="village.Chief" class="form-control" required />
                     <span asp-validation-for="village.Chief" class="text-danger"></span>
                 </div>
             </div>
         </div>
 
         <div class="card-footer">
-            <a asp-page="./Index" class="btn btn-secondary">
-                <i class="fa-solid fa-xmark"></i> Cancel
-            </a>
+            
             <button type="submit" class="btn btn-primary">
                 <i class="fa-solid fa-floppy-disk"></i>
                 @(Model.village.Name != null ? "Save Changes" : "Create Village")

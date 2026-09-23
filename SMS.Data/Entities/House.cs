@@ -11,13 +11,11 @@ public partial class House
 
     public string Color { get; set; } = null!;
 
-    public Guid MasterId { get; set; }
-
     public DateTime CreationDate { get; set; }
 
     public Guid CreatorId { get; set; }
 
     public virtual User Creator { get; set; } = null!;
 
-    public virtual Staff Master { get; set; } = null!;
+    public virtual ICollection<HouseTeacher> HouseTeachers { get; set; } = new List<HouseTeacher>();
 }

@@ -43,9 +43,11 @@ namespace SMS.Lib
 
         public bool IsAuthenticated =>
             _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
+
         private void EnsureUserLoaded()
         {
-            if (_hasLookedUpUser) return;
+            // Only skip if we've successfully found and cached the user
+            if (_hasLookedUpUser && _cachedUserId.HasValue) return;
 
             var email = Email;
             if (string.IsNullOrEmpty(email))
@@ -63,9 +65,8 @@ namespace SMS.Lib
                 _cachedUserId = localUser.Id;
                 _cachedRoleId = localUser.RoleId;
                 _cachedGroupId = localUser.GroupId;
+                _hasLookedUpUser = true;
             }
-
-            _hasLookedUpUser = true;
         }
 
         public Guid? UserId
@@ -123,28 +124,16 @@ namespace SMS.Lib
 
         public async Task<Guid> GetUserIdAsync()
         {
-            EnsureUserLoaded();
             if (_cachedUserId.HasValue)
                 return _cachedUserId.Value;
 
-            var email = Email;
-            if (string.IsNullOrEmpty(email))
-                throw new InvalidOperationException("No authenticated user found.");
+            var userId = await EnsureUserExistsAsync();
+            if (!userId.HasValue)
+            {
+                throw new InvalidOperationException("No authenticated user found or auto-provisioning failed.");
+            }
 
-            var localUser = await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Email == email);
-
-            if (localUser == null)
-                throw new InvalidOperationException(
-                    $"Authenticated user '{email}' does not exist in the local database. " +
-                    $"Call EnsureUserExistsAsync() first to auto-provision the account.");
-
-            _cachedUserId = localUser.Id;
-            _cachedRoleId = localUser.RoleId;
-            _cachedGroupId = localUser.GroupId;
-            _hasLookedUpUser = true;
-            return localUser.Id;
+            return userId.Value;
         }
 
         // ------------------------------------------------------------
@@ -155,7 +144,7 @@ namespace SMS.Lib
             if (!IsAuthenticated)
                 return null;
 
-            if (_hasLookedUpUser && _cachedUserId.HasValue)
+            if (_cachedUserId.HasValue)
                 return _cachedUserId.Value;
 
             var email = Email;
@@ -199,16 +188,16 @@ namespace SMS.Lib
                 Email = email,
                 Name = Name ?? email,
                 Mobile = null,
-                PasswordHash = null,     
+                PasswordHash = null,
                 IsActive = true,
                 ActivationDate = DateTime.UtcNow,
                 CreationDate = DateTime.UtcNow,
-                CreatorId = null,        
+                CreatorId = null,
                 RoleId = (int)role,
                 GroupId = null,
                 IsEmailConfirmed = true,
                 TwoFactorAuthEnabled = false,
-                SecurityStamp = Guid.NewGuid().ToString(),
+                SecurityStamp = Guid.NewGuid().ToString("N"),
                 AuthRecoveryCodes = null,
                 AuthenticatorKey = null,
                 LockoutExpiryDate = null,

@@ -41,6 +41,11 @@
                 <option value="Inactive">Inactive</option>
             </select>
         </div>
+        <div class="filter-wrapper">
+            <select asp-for="CategoryFilter" asp-items="Model.CategoryOptions" class="filter-dropdown" id="categoryFilter">
+                <option value="">All Categories</option>
+            </select>
+        </div>
         <input type="hidden" asp-for="PageSize" />
         <input type="hidden" asp-for="PageNumber" value="1" id="pageNumberHidden" />
     </form>
@@ -54,6 +59,7 @@
                 <th>Category</th>
                 <th>Gender</th>
                 <th>Age</th>
+                <th>Subjects</th>
                 <th>Date Joined</th>
                 <th>Status</th>
             </tr>
@@ -63,9 +69,10 @@
             {
                 @foreach (var s in Model.Staff)
                 {
+                    var subjectCount = Model.SubjectCounts.TryGetValue(s.Id, out var sc) ? sc : 0;
+
                     <tr>
                         <td>
-                            <!-- 👇 asp-area changed from Config to Academics -->
                             <a asp-area="Academics"
                                asp-page="/Staff/Details"
                                asp-route-id="@s.Id"
@@ -79,6 +86,16 @@
                         <td>@(((StaffCategory)s.CategoryId).ToDisplayName())</td>
                         <td>@(((Gender)s.GenderId).ToDisplayName())</td>
                         <td>@s.Age</td>
+                        <td>
+                            @if (subjectCount == 0)
+                            {
+                                <span class="sponsor-empty">—</span>
+                            }
+                            else
+                            {
+                                @subjectCount
+                            }
+                        </td>
                         <td>@s.DateJoined.ToString("MMM dd, yyyy")</td>
                         <td>
                             @if (s.IsActive == true)
@@ -96,7 +113,7 @@
             else
             {
                 <tr>
-                    <td colspan="8" class="empty-state">No staff members found matching your criteria.</td>
+                    <td colspan="9" class="empty-state">No staff members found matching your criteria.</td>
                 </tr>
             }
         </tbody>
@@ -111,6 +128,7 @@
             const form = document.getElementById('filterForm');
             const searchInput = document.getElementById('searchInput');
             const statusFilter = document.getElementById('statusFilter');
+            const categoryFilter = document.getElementById('categoryFilter');
             const pageNumberHidden = document.getElementById('pageNumberHidden');
             if (!form || !searchInput || !statusFilter) return;
 
@@ -129,6 +147,13 @@
                 if (pageNumberHidden) pageNumberHidden.value = '1';
                 form.submit();
             });
+
+            if (categoryFilter) {
+                categoryFilter.addEventListener('change', function () {
+                    if (pageNumberHidden) pageNumberHidden.value = '1';
+                    form.submit();
+                });
+            }
 
             if (searchInput.value) {
                 searchInput.focus();

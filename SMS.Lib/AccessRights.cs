@@ -126,5 +126,13 @@ namespace SMS.Lib
         ViewCurrencies = 1L << 52,
         CreateCurrencies = 1L << 53,
         EditCurrencies = 1L << 54,
+
+        // ============================================================
+        //  SPORTS
+        // ============================================================
+        ViewSports = 1L << 55,
+        CreateSports = 1L << 56,
+        EditSports = 1L << 57,
+        AssignSportsCoaches = 1L << 58,
     }
 }

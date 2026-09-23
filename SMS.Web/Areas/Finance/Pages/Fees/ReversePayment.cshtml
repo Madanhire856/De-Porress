@@ -1,0 +1,196 @@
+﻿@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Finance.Pages.Fees.ReversePaymentModel
+@{
+    ViewData["Title"] = "Reverse Payment";
+    ViewData["PageTitle"] = "Reverse Payment";
+    ViewData["PageSubTitle"] = Model.StudentName;
+}
+
+@section actionbar {
+    <a asp-page="./Ledger" asp-route-id="@Model.LedgerId" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Back to Ledger
+    </a>
+}
+
+@if (Model.Payment != null)
+{
+    <!-- ===== ORIGINAL PAYMENT DETAILS ===== -->
+    <div class="form-card" style="margin-bottom: 1rem;">
+        <div class="card-body">
+            <div class="form-section-title">
+                <i class="fa-solid fa-receipt"></i> Original Payment
+            </div>
+
+            <div class="house-stats" style="margin: 1rem 0 1.25rem;">
+                <div class="house-stat">
+                    <i class="fa-solid fa-hashtag"></i>
+                    <div>
+                        <div class="house-stat-value info-value-mono" style="font-size: 1rem;">
+                            @Model.Payment.ReceiptDisplay
+                        </div>
+                        <div class="house-stat-label">Receipt</div>
+                    </div>
+                </div>
+
+                <div class="house-stat">
+                    <i class="fa-solid fa-calendar"></i>
+                    <div>
+                        <div class="house-stat-value" style="font-size: 1rem;">
+                            @Model.Payment.Date.ToString("dd MMM yyyy")
+                        </div>
+                        <div class="house-stat-label">Date</div>
+                    </div>
+                </div>
+
+                <div class="house-stat">
+                    <i class="fa-solid fa-money-bill"></i>
+                    <div>
+                        <div class="house-stat-value">
+                            @Model.Payment.BaseAmount.ToString("N2")
+                        </div>
+                        <div class="house-stat-label">@Model.BaseCurrency</div>
+                    </div>
+                </div>
+
+                <div class="house-stat">
+                    <i class="fa-solid fa-credit-card"></i>
+                    <div>
+                        <div class="house-stat-value" style="font-size: 1rem;">
+                            @Model.Payment.Method
+                        </div>
+                        <div class="house-stat-label">Method</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fa-solid fa-user"></i> Student
+                </div>
+                <div class="info-value">@Model.StudentName</div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fa-solid fa-calendar-days"></i> Term
+                </div>
+                <div class="info-value">@Model.TermName</div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fa-solid fa-money-bill-wave"></i> Original Amount
+                </div>
+                <div class="info-value">
+                    @Model.Payment.Amount.ToString("N2")
+                    <span class="info-value-mono">@Model.Payment.CurrencyId</span>
+                    @if (Model.Payment.CurrencyId != Model.BaseCurrency)
+                    {
+                        <span class="info-value-mono" style="margin-left: 0.5rem;">
+                            → @Model.Payment.BaseAmount.ToString("N2") @Model.BaseCurrency
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fa-solid fa-hashtag"></i> Reference
+                </div>
+                <div class="info-value info-value-mono">@(Model.Payment.Reference ?? "—")</div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">
+                    <i class="fa-solid fa-user-pen"></i> Recorded By
+                </div>
+                <div class="info-value">@Model.Payment.CreatedByName</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== REVERSAL FORM ===== -->
+    <div class="form-card">
+        <div class="card-body">
+            <div class="form-section-title danger">
+                <i class="fa-solid fa-triangle-exclamation"></i> Reversal
+            </div>
+
+            <div class="reversal-warning">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>
+                    Reversing creates a compensating negative entry against the student's ledger.
+                    The original payment stays in the system for audit. This action cannot be undone.
+                </span>
+            </div>
+
+            <form method="post" id="reversalForm">
+                <input type="hidden" asp-for="Input.PaymentId" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="Input.Reason">
+                        Reason <span class="required">*</span>
+                    </label>
+                    <textarea asp-for="Input.Reason"
+                              id="reversalReasonInput"
+                              class="form-control"
+                              rows="4"
+                              placeholder="Explain why this payment is being reversed"></textarea>
+                    <span asp-validation-for="Input.Reason" class="text-danger"></span>
+                </div>
+
+                <div class="card-footer" style="margin: 1rem -1.25rem -1rem; border-radius: 0 0 6px 6px;">
+                 
+                    <button type="button" class="btn btn-primary" onclick="openConfirmationModal();">
+                        <i class="fa-solid fa-rotate-left"></i> Reverse Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== STANDARD DEFAULT BOOTSTRAP MODAL ===== -->
+    <div class="modal fade" id="reversalModal" tabindex="-1" aria-labelledby="reversalModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reversalModalLabel">Confirm Reversal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to reverse receipt <strong>#@Model.Payment.ReceiptDisplay</strong>?</p>
+                    <p><strong>Amount:</strong> @Model.Payment.BaseAmount.ToString("N2") @Model.BaseCurrency</p>
+                    <p><strong>Student:</strong> @Model.StudentName</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitReversalForm();">Confirm & Reverse</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function openConfirmationModal() {
+            var form = $('#reversalForm');
+            if (form.length && !form.valid()) {
+                return;
+            }
+
+            var modalElement = document.getElementById('reversalModal');
+            var modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+
+        function submitReversalForm() {
+            document.getElementById('reversalForm').submit();
+        }
+    </script>
+}

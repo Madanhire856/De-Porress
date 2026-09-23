@@ -14,8 +14,5 @@ namespace SMS.Web.Areas.Config.Pages.Houses.ViewModels
         [Required(ErrorMessage = "House color is required.")]
         [StringLength(30)]
         public string Color { get; set; } = null!;
-
-        [Required(ErrorMessage = "Please select a house master.")]
-        public Guid? MasterId { get; set; }
     }
 }

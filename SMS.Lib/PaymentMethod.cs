@@ -6,9 +6,9 @@ namespace SMS.Lib
 {
     public enum PaymentMethod
     {
-        ECOCASH = 0,
-        BANK_TRANSFER = 1,
-        CASH = 2,
-        OTHER = 3,
+        ECOCASH = 1,
+        BANK_TRANSFER = 2,
+        CASH = 3,
+        OTHER = 4,
     }
 }

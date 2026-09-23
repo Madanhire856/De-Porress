@@ -1,0 +1,199 @@
+﻿@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Finance.Pages.Fees.RecordPaymentModel
+@{
+    ViewData["Title"] = "Record Payment";
+    ViewData["PageTitle"] = "Record Payment";
+    ViewData["PageSubTitle"] = Model.StudentName;
+}
+
+@section actionbar {
+    <a asp-page="./Ledger" asp-route-id="@Model.LedgerId" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Back to Ledger
+    </a>
+}
+
+<!-- ===== STUDENT STRIP ===== -->
+<div class="house-stats" style="margin-bottom: 1rem;">
+    <div class="house-stat">
+        <i class="fa-solid fa-user"></i>
+        <div>
+            <div class="house-stat-value" style="font-size: 1.05rem;">@Model.StudentName</div>
+            <div class="house-stat-label">@Model.GradeName · @Model.TermName</div>
+        </div>
+    </div>
+    <div class="house-stat @(Model.CurrentBalance > 0m ? "house-stat-warning" : "")">
+        <i class="fa-solid fa-scale-balanced"></i>
+        <div>
+            <div class="house-stat-value">@Model.CurrentBalance.ToString("N2")</div>
+            <div class="house-stat-label">Current Balance (@Model.BaseCurrency)</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PAYMENT FORM ===== -->
+<form method="post" class="form-compact">
+    <div class="form-card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <input type="hidden" asp-for="Input.LedgerId" />
+
+            <div class="form-section-title">
+                <i class="fa-solid fa-money-bill-transfer"></i> Payment Details
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.Amount">
+                        Amount <span class="required">*</span>
+                    </label>
+                    <input asp-for="Input.Amount"
+                           type="number"
+                           step="0.01"
+                           min="0.01"
+                           class="form-control"
+                           placeholder="0.00"
+                           required />
+                    <span asp-validation-for="Input.Amount" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.CurrencyId">
+                        Currency <span class="required">*</span>
+                    </label>
+                    <select asp-for="Input.CurrencyId" class="form-control" id="currencySelect" required>
+                        <option value="" selected disabled>— Select currency —</option>
+                        @foreach (var c in Model.CurrencyOptions)
+                        {
+                            <option value="@c.Code"
+                                    data-rate="@c.ExchangeRateToBase.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                    data-base="@(c.IsBase ? "1" : "0")"
+                                    data-symbol="@c.Symbol">
+                                @c.Code — @c.Name (@c.Symbol)
+                            </option>
+                        }
+                    </select>
+                    <span asp-validation-for="Input.CurrencyId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.ExchangeRate">Exchange Rate</label>
+                    <input asp-for="Input.ExchangeRate"
+                           type="number"
+                           step="0.000001"
+                           min="0.000001"
+                           class="form-control"
+                           id="rateInput" />
+                    <small class="currency-hint">
+                        1 unit of the selected currency = <strong id="rateReadout">1</strong> @Model.BaseCurrency
+                    </small>
+                    <span asp-validation-for="Input.ExchangeRate" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.PaymentMethodId">
+                        Payment Method <span class="required">*</span>
+                    </label>
+                    <select asp-for="Input.PaymentMethodId" class="form-control" required>
+                        <option value="" selected disabled>— Select method —</option>
+                        @foreach (var m in Model.MethodOptions)
+                        {
+                            <option value="@m.Id">@m.Label</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Input.PaymentMethodId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.ReferenceNumber">Reference</label>
+                    <input asp-for="Input.ReferenceNumber"
+                           class="form-control"
+                           placeholder="Bank ref, EcoCash code, receipt number..." />
+                    <span asp-validation-for="Input.ReferenceNumber" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.RateSource">Rate Source</label>
+                    <input asp-for="Input.RateSource"
+                           class="form-control"
+                           placeholder="e.g. RBZ, Bank, Market" />
+                    <span asp-validation-for="Input.RateSource" class="text-danger"></span>
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="Input.ProofOfPaymentUrl">Proof of Payment URL</label>
+                    <input asp-for="Input.ProofOfPaymentUrl"
+                           class="form-control"
+                           placeholder="Optional link to a scan or photo" />
+                    <span asp-validation-for="Input.ProofOfPaymentUrl" class="text-danger"></span>
+                </div>
+
+            </div>
+
+            <!-- Live conversion preview -->
+            <div class="conversion-preview" id="conversionPreview" style="display: none;">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                <span class="conversion-label">Converts to:</span>
+                <strong id="conversionAmount">0.00</strong>
+                <span class="conversion-label">@Model.BaseCurrency</span>
+            </div>
+
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> Record Payment
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (function () {
+            const sel = document.getElementById('currencySelect');
+            const rate = document.getElementById('rateInput');
+            const amount = document.getElementById('Input_Amount');
+            const preview = document.getElementById('conversionPreview');
+            const previewAmt = document.getElementById('conversionAmount');
+            const readout = document.getElementById('rateReadout');
+
+            if (!sel || !rate) return;
+
+            function updatePreview() {
+                const a = parseFloat(amount?.value) || 0;
+                const r = parseFloat(rate.value) || 1;
+                const base = a * r;
+
+                if (readout) readout.textContent = r.toFixed(6).replace(/\.?0+$/, '') || '1';
+
+                if (a > 0 && preview && previewAmt) {
+                    preview.style.display = 'flex';
+                    previewAmt.textContent = base.toFixed(2);
+                } else if (preview) {
+                    preview.style.display = 'none';
+                }
+            }
+
+            function syncRateFromCurrency() {
+                const opt = sel.options[sel.selectedIndex];
+                if (!opt) return;
+                const r = opt.dataset.rate || '1';
+                rate.value = r;
+                updatePreview();
+            }
+
+            sel.addEventListener('change', syncRateFromCurrency);
+            rate.addEventListener('input', updatePreview);
+            if (amount) amount.addEventListener('input', updatePreview);
+
+            updatePreview();
+        })();
+    </script>
+}
