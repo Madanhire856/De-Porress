@@ -33,7 +33,7 @@
 </div>
 
 <!-- ===== PAYMENT FORM ===== -->
-<form method="post" class="form-compact">
+<form method="post" class="form-compact" id="paymentForm">
     <div class="form-card">
         <div class="card-body">
 
@@ -47,6 +47,24 @@
 
             <div class="form-grid-2" style="margin-bottom: 1.5rem;">
 
+                <!-- Payment Date -->
+                <div class="form-group">
+                    <label class="form-label" for="paymentDateInput">
+                        Payment Date <span class="required">*</span>
+                    </label>
+                    <input type="text"
+                           id="paymentDateInput"
+                           name="Input.PaymentDate"
+                           class="form-control"
+                           placeholder="yyyy-mm-dd"
+                           autocomplete="off"
+                           value="@Model.Input.PaymentDate.ToString("yyyy-MM-dd")"
+                           required />
+                    <small class="currency-hint">From the slip / SMS / POS receipt</small>
+                    <span asp-validation-for="Input.PaymentDate" class="text-danger"></span>
+                </div>
+
+                <!-- Amount -->
                 <div class="form-group">
                     <label class="form-label" asp-for="Input.Amount">
                         Amount <span class="required">*</span>
@@ -56,23 +74,22 @@
                            step="0.01"
                            min="0.01"
                            class="form-control"
+                           id="amountInput"
                            placeholder="0.00"
                            required />
                     <span asp-validation-for="Input.Amount" class="text-danger"></span>
                 </div>
 
+                <!-- Currency -->
                 <div class="form-group">
                     <label class="form-label" asp-for="Input.CurrencyId">
                         Currency <span class="required">*</span>
                     </label>
                     <select asp-for="Input.CurrencyId" class="form-control" id="currencySelect" required>
-                        <option value="" selected disabled>— Select currency —</option>
+                        <option value="">— Select currency —</option>
                         @foreach (var c in Model.CurrencyOptions)
                         {
-                            <option value="@c.Code"
-                                    data-rate="@c.ExchangeRateToBase.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-                                    data-base="@(c.IsBase ? "1" : "0")"
-                                    data-symbol="@c.Symbol">
+                            <option value="@c.Code" data-symbol="@c.Symbol">
                                 @c.Code — @c.Name (@c.Symbol)
                             </option>
                         }
@@ -80,26 +97,29 @@
                     <span asp-validation-for="Input.CurrencyId" class="text-danger"></span>
                 </div>
 
+                <!-- Exchange Rate (read-only; server-authoritative) -->
                 <div class="form-group">
                     <label class="form-label" asp-for="Input.ExchangeRate">Exchange Rate</label>
                     <input asp-for="Input.ExchangeRate"
                            type="number"
-                           step="0.000001"
-                           min="0.000001"
+                           step="0.0001"
+                           min="0.0001"
                            class="form-control"
-                           id="rateInput" />
-                    <small class="currency-hint">
-                        1 unit of the selected currency = <strong id="rateReadout">1</strong> @Model.BaseCurrency
+                           id="rateInput"
+                           readonly />
+                    <small class="currency-hint" id="rateHint">
+                        Select a currency and date to load the RBZ rate.
                     </small>
                     <span asp-validation-for="Input.ExchangeRate" class="text-danger"></span>
                 </div>
 
+                <!-- Payment Method -->
                 <div class="form-group">
                     <label class="form-label" asp-for="Input.PaymentMethodId">
                         Payment Method <span class="required">*</span>
                     </label>
                     <select asp-for="Input.PaymentMethodId" class="form-control" required>
-                        <option value="" selected disabled>— Select method —</option>
+                        <option value="">— Select method —</option>
                         @foreach (var m in Model.MethodOptions)
                         {
                             <option value="@m.Id">@m.Label</option>
@@ -108,22 +128,16 @@
                     <span asp-validation-for="Input.PaymentMethodId" class="text-danger"></span>
                 </div>
 
+                <!-- Reference -->
                 <div class="form-group">
                     <label class="form-label" asp-for="Input.ReferenceNumber">Reference</label>
                     <input asp-for="Input.ReferenceNumber"
                            class="form-control"
-                           placeholder="Bank ref, EcoCash code, receipt number..." />
+                           placeholder="EcoCash code, bank ref, receipt #..." />
                     <span asp-validation-for="Input.ReferenceNumber" class="text-danger"></span>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" asp-for="Input.RateSource">Rate Source</label>
-                    <input asp-for="Input.RateSource"
-                           class="form-control"
-                           placeholder="e.g. RBZ, Bank, Market" />
-                    <span asp-validation-for="Input.RateSource" class="text-danger"></span>
-                </div>
-
+                <!-- Proof URL -->
                 <div class="form-group full-width">
                     <label class="form-label" asp-for="Input.ProofOfPaymentUrl">Proof of Payment URL</label>
                     <input asp-for="Input.ProofOfPaymentUrl"
@@ -132,6 +146,26 @@
                     <span asp-validation-for="Input.ProofOfPaymentUrl" class="text-danger"></span>
                 </div>
 
+            </div>
+
+            <!-- ===== Override section ===== -->
+            <div id="overrideSection" style="display: none; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 1rem;">
+                <label class="right-checkbox" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                    <input asp-for="Input.IsRateOverridden" type="checkbox" id="overrideCheckbox" />
+                    <span style="font-weight: 600; color: #92400E;">Override the RBZ rate (enter manually from your slip)</span>
+                </label>
+
+                <div id="overrideFields" style="display: none; margin-top: 0.75rem;">
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Input.RateOverrideReason">
+                            Reason for override <span class="required">*</span>
+                        </label>
+                        <input asp-for="Input.RateOverrideReason"
+                               class="form-control"
+                               placeholder="e.g. RBZ rate not yet published for this date" />
+                        <span asp-validation-for="Input.RateOverrideReason" class="text-danger"></span>
+                    </div>
+                </div>
             </div>
 
             <!-- Live conversion preview -->
@@ -145,6 +179,9 @@
         </div>
 
         <div class="card-footer">
+            <a asp-page="./Ledger" asp-route-id="@Model.LedgerId" class="btn btn-secondary">
+                Cancel
+            </a>
             <button type="submit" class="btn btn-primary">
                 <i class="fa-solid fa-floppy-disk"></i> Record Payment
             </button>
@@ -157,43 +194,126 @@
 
     <script>
         (function () {
-            const sel = document.getElementById('currencySelect');
-            const rate = document.getElementById('rateInput');
-            const amount = document.getElementById('Input_Amount');
-            const preview = document.getElementById('conversionPreview');
-            const previewAmt = document.getElementById('conversionAmount');
-            const readout = document.getElementById('rateReadout');
+            const dateInput        = document.getElementById('paymentDateInput');
+            const amountInput      = document.getElementById('amountInput');
+            const currencySelect   = document.getElementById('currencySelect');
+            const rateInput        = document.getElementById('rateInput');
+            const rateHint         = document.getElementById('rateHint');
+            const preview          = document.getElementById('conversionPreview');
+            const previewAmt       = document.getElementById('conversionAmount');
+            const overrideSection  = document.getElementById('overrideSection');
+            const overrideCheckbox = document.getElementById('overrideCheckbox');
+            const overrideFields   = document.getElementById('overrideFields');
 
-            if (!sel || !rate) return;
+            if (!currencySelect) return;
+
+            if (window.jQuery && jQuery.fn.datepicker) {
+                jQuery(dateInput).datepicker({
+                    dateFormat: 'yy-mm-dd',
+                    changeMonth: true,
+                    changeYear: true,
+                    showAnim: 'fadeIn',
+                    maxDate: 0,
+                    onSelect: function () { fetchRate(); }
+                });
+                jQuery(dateInput).on('keydown', function (e) { e.preventDefault(); });
+            }
 
             function updatePreview() {
-                const a = parseFloat(amount?.value) || 0;
-                const r = parseFloat(rate.value) || 1;
-                const base = a * r;
+                const amt  = parseFloat(amountInput?.value) || 0;
+                const rate = parseFloat(rateInput?.value) || 0;
 
-                if (readout) readout.textContent = r.toFixed(6).replace(/\.?0+$/, '') || '1';
-
-                if (a > 0 && preview && previewAmt) {
+                if (amt > 0 && rate > 0) {
                     preview.style.display = 'flex';
-                    previewAmt.textContent = base.toFixed(2);
-                } else if (preview) {
+                    previewAmt.textContent = (amt * rate).toFixed(2);
+                } else {
                     preview.style.display = 'none';
                 }
             }
 
-            function syncRateFromCurrency() {
-                const opt = sel.options[sel.selectedIndex];
-                if (!opt) return;
-                const r = opt.dataset.rate || '1';
-                rate.value = r;
-                updatePreview();
+            let lastFetchKey = '';
+            let fetchSeq = 0;
+
+            function fetchRate() {
+                const currency = currencySelect.value;
+                const date     = dateInput.value;
+
+                if (!currency || !date) {
+                    rateHint.textContent = 'Select a currency and date to load the RBZ rate.';
+                    rateHint.style.color = '';
+                    rateInput.value = '';
+                    overrideSection.style.display = 'none';
+                    updatePreview();
+                    return;
+                }
+
+                const key = currency + '|' + date;
+                if (key === lastFetchKey && !overrideCheckbox.checked) return;
+                lastFetchKey = key;
+
+                const seq = ++fetchSeq;
+
+                rateHint.textContent = 'Fetching RBZ rate...';
+                rateHint.style.color = '#6B7280';
+                rateInput.value = '';
+                overrideSection.style.display = 'none';
+
+                fetch(`?handler=FetchRate&currencyId=${encodeURIComponent(currency)}&paymentDate=${encodeURIComponent(date)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (seq !== fetchSeq) return;
+
+                        if (!data.success) {
+                            rateHint.textContent = data.message || 'Could not fetch the rate.';
+                            rateHint.style.color = '#B91C1C';
+                            overrideSection.style.display = 'block';
+                            updatePreview();
+                            return;
+                        }
+
+                        rateInput.value = data.rate;
+                        rateHint.textContent = data.message || '';
+                        rateHint.style.color = data.isStale ? '#92400E' : '#6B7280';
+
+                        if (data.source !== 'BASE') {
+                            overrideSection.style.display = 'block';
+                        } else {
+                            overrideSection.style.display = 'none';
+                        }
+
+                        updatePreview();
+                    })
+                    .catch(() => {
+                        if (seq !== fetchSeq) return;
+                        rateHint.textContent = 'Network error while fetching the rate.';
+                        rateHint.style.color = '#B91C1C';
+                        overrideSection.style.display = 'block';
+                        updatePreview();
+                    });
             }
 
-            sel.addEventListener('change', syncRateFromCurrency);
-            rate.addEventListener('input', updatePreview);
-            if (amount) amount.addEventListener('input', updatePreview);
+            currencySelect.addEventListener('change', function () {
+                lastFetchKey = '';
+                fetchRate();
+            });
 
-            updatePreview();
+            amountInput.addEventListener('input', updatePreview);
+            rateInput.addEventListener('input', updatePreview);
+
+            overrideCheckbox.addEventListener('change', function () {
+                if (overrideCheckbox.checked) {
+                    overrideFields.style.display = 'block';
+                    rateInput.readOnly = false;
+                    rateInput.focus();
+                } else {
+                    overrideFields.style.display = 'none';
+                    rateInput.readOnly = true;
+                    lastFetchKey = '';
+                    fetchRate();
+                }
+            });
+
+            fetchRate();
         })();
     </script>
 }

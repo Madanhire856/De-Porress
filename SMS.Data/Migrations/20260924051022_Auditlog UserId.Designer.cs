@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SMS.Data;
 
@@ -11,9 +12,11 @@ using SMS.Data;
 namespace SMS.Data.Migrations
 {
     [DbContext(typeof(SMSDbContext))]
-    partial class SMSDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260924051022_Auditlog UserId")]
+    partial class AuditlogUserId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -120,10 +123,12 @@ namespace SMS.Data.Migrations
                         .HasColumnType("nvarchar(80)");
 
                     b.Property<string>("AfterValue")
-                        .HasColumnType("json");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("BeforeValue")
-                        .HasColumnType("json");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("EntityId")
                         .HasColumnType("uniqueidentifier");
@@ -194,10 +199,10 @@ namespace SMS.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("EntryDate")
+                    b.Property<DateTime>("EntryDate")
                         .HasColumnType("datetime");
 
-                    b.Property<bool?>("IsMatched")
+                    b.Property<bool>("IsMatched")
                         .HasColumnType("bit");
 
                     b.Property<Guid?>("MatchedByUserId")
@@ -214,13 +219,13 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_BankStatementEntry_CreatorId");
 
-                    b.HasIndex("CurrencyId");
+                    b.HasIndex(new[] { "CurrencyId" }, "IX_BankStatementEntry_CurrencyId");
 
-                    b.HasIndex("MatchedByUserId");
+                    b.HasIndex(new[] { "MatchedByUserId" }, "IX_BankStatementEntry_MatchedByUserId");
 
-                    b.HasIndex("MatchedPaymentId");
+                    b.HasIndex(new[] { "MatchedPaymentId" }, "IX_BankStatementEntry_MatchedPaymentId");
 
                     b.ToTable("BankStatementEntry", (string)null);
                 });
@@ -651,9 +656,6 @@ namespace SMS.Data.Migrations
 
                     b.Property<Guid?>("LedgerId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("PaymentDate")
-                        .HasColumnType("datetime");
 
                     b.Property<int>("PaymentMethodId")
                         .HasColumnType("int");
@@ -1518,24 +1520,24 @@ namespace SMS.Data.Migrations
             modelBuilder.Entity("SMS.Data.BankStatementEntry", b =>
                 {
                     b.HasOne("SMS.Data.User", "Creator")
-                        .WithMany("BankStatementEntryCreators")
+                        .WithMany()
                         .HasForeignKey("CreatorId")
                         .IsRequired()
-                        .HasConstraintName("FK_BankStatementEntry_User");
+                        .HasConstraintName("FK_BankStatementEntry_User1");
 
                     b.HasOne("SMS.Data.Currency", "Currency")
-                        .WithMany("BankStatementEntries")
+                        .WithMany()
                         .HasForeignKey("CurrencyId")
                         .IsRequired()
                         .HasConstraintName("FK_BankStatementEntry_Currency");
 
                     b.HasOne("SMS.Data.User", "MatchedByUser")
-                        .WithMany("BankStatementEntryMatchedByUsers")
+                        .WithMany()
                         .HasForeignKey("MatchedByUserId")
-                        .HasConstraintName("FK_BankStatementEntry_User1");
+                        .HasConstraintName("FK_BankStatementEntry_User");
 
                     b.HasOne("SMS.Data.Payment", "MatchedPayment")
-                        .WithMany("BankStatementEntries")
+                        .WithMany()
                         .HasForeignKey("MatchedPaymentId")
                         .HasConstraintName("FK_BankStatementEntry_Payment");
 
@@ -2070,8 +2072,6 @@ namespace SMS.Data.Migrations
 
             modelBuilder.Entity("SMS.Data.Currency", b =>
                 {
-                    b.Navigation("BankStatementEntries");
-
                     b.Navigation("FeesStructures");
 
                     b.Navigation("Payments");
@@ -2103,8 +2103,6 @@ namespace SMS.Data.Migrations
 
             modelBuilder.Entity("SMS.Data.Payment", b =>
                 {
-                    b.Navigation("BankStatementEntries");
-
                     b.Navigation("InverseReversesPayment");
                 });
 
@@ -2177,10 +2175,6 @@ namespace SMS.Data.Migrations
                     b.Navigation("Announcements");
 
                     b.Navigation("AuditLogs");
-
-                    b.Navigation("BankStatementEntryCreators");
-
-                    b.Navigation("BankStatementEntryMatchedByUsers");
 
                     b.Navigation("Classes");
 

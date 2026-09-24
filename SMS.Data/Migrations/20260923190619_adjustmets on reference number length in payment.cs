@@ -29,22 +29,11 @@ namespace SMS.Data.Migrations
                 oldClrType: typeof(decimal),
                 oldType: "decimal(18,2)",
                 oldNullable: true);
-
-            migrationBuilder.CreateIndex(
-                name: "UX_Currency_IsBase",
-                table: "Currency",
-                column: "IsBase",
-                unique: true,
-                filter: "([IsBase]=(1))");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "UX_Currency_IsBase",
-                table: "Currency");
-
             migrationBuilder.AlterColumn<string>(
                 name: "ReferenceNumber",
                 table: "Payment",

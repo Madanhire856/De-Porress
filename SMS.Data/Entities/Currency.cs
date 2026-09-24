@@ -9,15 +9,17 @@ public partial class Currency
 
     public string Name { get; set; } = null!;
 
-    public bool? IsBase { get; set; }
-
-    public decimal? ExchangeRateToBase { get; set; }
-
     public string Symbol { get; set; } = null!;
 
     public DateTime? CreationDate { get; set; }
 
     public Guid? CreatorId { get; set; }
+
+    public decimal? ExchangeRateToBase { get; set; }
+
+    public bool IsBase { get; set; }
+
+    public virtual ICollection<BankStatementEntry> BankStatementEntries { get; set; } = new List<BankStatementEntry>();
 
     public virtual User? Creator { get; set; }
 

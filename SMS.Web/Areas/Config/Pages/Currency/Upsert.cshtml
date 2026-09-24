@@ -1,9 +1,8 @@
 ﻿@page "{code?}"
 @model SMS.Web.Areas.Config.Pages.Currency.UpsertModel
 @{
-    ViewData["PageTitle"] = string.IsNullOrEmpty(Model.currency.Code) || HttpContext.Request.RouteValues.ContainsKey("code")
-        ? "Edit Currency"
-        : "Add Currency";
+    var isEditMode = HttpContext.Request.RouteValues.ContainsKey("code");
+    ViewData["PageTitle"] = isEditMode ? "Edit Currency" : "Add Currency";
     ViewData["PageSubTitle"] = "Create or modify a currency";
 }
 
@@ -27,11 +26,11 @@
                     <input asp-for="currency.Code"
                            class="form-control"
                            placeholder="e.g. USD"
-                           readonly="@(HttpContext.Request.RouteValues.ContainsKey("code"))"
+                           readonly="@isEditMode"
                            required />
                     <span asp-validation-for="currency.Code" class="text-danger"></span>
                     <small style="color: var(--sms-text-muted); font-size: 0.75rem;">
-                        3-letter ISO code (e.g. USD, ZWL, ZAR).
+                        3-letter ISO code (e.g. USD, ZWG, ZAR).
                     </small>
                 </div>
 
@@ -39,7 +38,10 @@
                     <label class="form-label" asp-for="currency.Name">
                         Currency Name <span class="required">*</span>
                     </label>
-                    <input asp-for="currency.Name" class="form-control" placeholder="e.g. United States Dollar" required />
+                    <input asp-for="currency.Name"
+                           class="form-control"
+                           placeholder="e.g. United States Dollar"
+                           required />
                     <span asp-validation-for="currency.Name" class="text-danger"></span>
                 </div>
 
@@ -47,17 +49,43 @@
                     <label class="form-label" asp-for="currency.Symbol">
                         Currency Symbol <span class="required">*</span>
                     </label>
-                    <input asp-for="currency.Symbol" class="form-control" placeholder="e.g. $" required />
+                    <input asp-for="currency.Symbol"
+                           class="form-control"
+                           placeholder="e.g. $"
+                           required />
                     <span asp-validation-for="currency.Symbol" class="text-danger"></span>
                 </div>
+
             </div>
+
+            <!-- ===== BASE CURRENCY ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-scale-balanced"></i> Base Currency
+            </div>
+
+            <div class="rights-list" style="margin-bottom: 1rem;">
+                <label class="right-checkbox">
+                    <input asp-for="currency.IsBase" type="checkbox" id="isBaseCheckbox" />
+                    <span>Set this currency as the base currency</span>
+                </label>
+            </div>
+
+            <div style="background: #F9FAFB; border: 1px solid var(--sms-border); border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.8rem; color: #6B7280; display: flex; gap: 0.5rem;">
+                <i class="fa-solid fa-circle-info" style="color: var(--sms-gold); margin-top: 2px;"></i>
+                <span>
+                    Only one currency can be the base currency. Marking this one
+                    will automatically unmark any other currency currently set as base.
+                    The base currency is the one all other currencies convert into.
+                </span>
+            </div>
+
         </div>
 
         <div class="card-footer">
-           
+          
             <button type="submit" class="btn btn-primary">
                 <i class="fa-solid fa-floppy-disk"></i>
-                Save Currency
+                @(isEditMode ? "Save Changes" : "Create Currency")
             </button>
         </div>
     </div>

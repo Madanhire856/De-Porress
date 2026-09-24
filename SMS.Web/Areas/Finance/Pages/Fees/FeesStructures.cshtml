@@ -7,7 +7,7 @@
     ViewData["PageTitle"] = "Fee Structure";
     ViewData["PageSubTitle"] = "Fees charged by grade, term, and levy type";
     var canEdit = CurrentUser.HasRight(AccessRights.GenerateInvoices);
-    var colSpan = canEdit ? 6 : 5;
+    const int colSpan = 7;
 }
 
 @section actionbar {
@@ -42,10 +42,8 @@
                 <th>Term</th>
                 <th>Levy Type</th>
                 <th style="text-align: right;">Amount</th>
-                @if (canEdit)
-                {
-                    <th style="width: 110px;">Actions</th>
-                }
+                <th>Created By</th>
+                <th>Created On</th>
             </tr>
         </thead>
         <tbody>
@@ -62,31 +60,17 @@
                                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
                             </a>
                         </td>
-                        <td><strong>@r.GradeName</strong></td>
+                        <td>@r.GradeName</td>
                         <td>@r.TermDisplay</td>
                         <td>@r.LevyName</td>
                         <td style="text-align: right; font-weight: 600;">
                             @r.Amount.ToString("N2")
                             <small class="info-value-mono">@r.CurrencyCode</small>
                         </td>
-                        @if (canEdit)
-                        {
-                            <td>
-                                <a asp-page="./Upsert" asp-route-id="@r.Id"
-                                   class="btn btn-ghost btn-sm" title="Edit">
-                                    <i class="fa-solid fa-pen"></i>
-                                </a>
-                                <form method="post"
-                                      asp-page-handler="Delete"
-                                      asp-route-id="@r.Id"
-                                      onsubmit="return confirm('Delete this fee?');"
-                                      style="display: inline;">
-                                    <button type="submit" class="btn btn-ghost btn-sm" title="Delete">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        }
+                        <td>@r.CreatedByName</td>
+                        <td class="info-value-mono" style="font-size: 0.78rem;">
+                            @(r.CreationDate?.ToString("dd MMM yyyy HH:mm") ?? "—")
+                        </td>
                     </tr>
                 }
             }

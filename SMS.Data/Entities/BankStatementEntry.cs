@@ -7,7 +7,7 @@ public partial class BankStatementEntry
 {
     public Guid Id { get; set; }
 
-    public DateTime EntryDate { get; set; }
+    public DateTime? EntryDate { get; set; }
 
     public decimal? Amount { get; set; }
 
@@ -17,7 +17,7 @@ public partial class BankStatementEntry
 
     public string CurrencyId { get; set; } = null!;
 
-    public bool IsMatched { get; set; }
+    public bool? IsMatched { get; set; }
 
     public Guid? MatchedPaymentId { get; set; }
 

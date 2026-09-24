@@ -6,6 +6,7 @@ using SMS.Data;
 using SMS.Lib;
 using SMS.Web.Areas.Config.Pages.Currency.ViewModels;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SMS.Web.Areas.Config.Pages.Currency
@@ -25,9 +26,11 @@ namespace SMS.Web.Areas.Config.Pages.Currency
         [BindProperty]
         public CurrencyVM currency { get; set; } = new();
 
+        // =============================================================
+        //  GET
+        // =============================================================
         public async Task<IActionResult> OnGetAsync(string? code)
         {
-            // ---- Rights guard ----
             if (string.IsNullOrEmpty(code) && !_currentUser.HasRight(AccessRights.CreateCurrencies))
                 return Forbid();
             if (!string.IsNullOrEmpty(code) && !_currentUser.HasRight(AccessRights.EditCurrencies))
@@ -35,7 +38,6 @@ namespace SMS.Web.Areas.Config.Pages.Currency
 
             if (!string.IsNullOrEmpty(code))
             {
-                // === EDIT ===
                 var entity = await _context.Currencies
                     .AsNoTracking()
                     .FirstOrDefaultAsync(c => c.Code == code);
@@ -46,18 +48,20 @@ namespace SMS.Web.Areas.Config.Pages.Currency
                     {
                         Code = entity.Code,
                         Name = entity.Name,
-                        Symbol = entity.Symbol
+                        Symbol = entity.Symbol,
+                        IsBase = entity.IsBase 
                     };
                 }
             }
-            // else: CREATE mode — CurrencyVM already initialized with defaults
 
             return Page();
         }
 
+        // =============================================================
+        //  POST
+        // =============================================================
         public async Task<IActionResult> OnPostAsync(string? code)
         {
-            // ---- Same guard on POST ----
             if (string.IsNullOrEmpty(code) && !_currentUser.HasRight(AccessRights.CreateCurrencies))
                 return Forbid();
             if (!string.IsNullOrEmpty(code) && !_currentUser.HasRight(AccessRights.EditCurrencies))
@@ -71,7 +75,6 @@ namespace SMS.Web.Areas.Config.Pages.Currency
             if (string.IsNullOrEmpty(code))
             {
                 // === CREATE ===
-                // Uniqueness — Code
                 var clash = await _context.Currencies
                     .FirstOrDefaultAsync(c => c.Code == currency.Code);
 
@@ -86,6 +89,7 @@ namespace SMS.Web.Areas.Config.Pages.Currency
                     Code = currency.Code,
                     Name = currency.Name,
                     Symbol = currency.Symbol,
+                    IsBase = false,    
                     CreatorId = _currentUser.UserId,
                     CreationDate = DateTime.Now
                 };
@@ -102,6 +106,44 @@ namespace SMS.Web.Areas.Config.Pages.Currency
 
                 entity.Name = currency.Name;
                 entity.Symbol = currency.Symbol;
+            }
+
+            // =========================================================
+            //  BASE CURRENCY HANDLING
+            // =========================================================
+            var wasBase = entity.IsBase == true;
+
+            if (currency.IsBase == true)
+            {
+                // ---- Setting this currency as base ----
+                // Clear any other currency's base flag BEFORE setting this one.
+                // This avoids a unique-index collision on UX_Currency_IsBase.
+                await _context.Currencies
+                    .Where(c => c.IsBase == true && c.Code != entity.Code)
+                    .ExecuteUpdateAsync(s => s.SetProperty(c => c.IsBase, false));
+
+                entity.IsBase = true;
+                entity.ExchangeRateToBase = 1.0m;
+            }
+            else
+            {
+                // ---- User un-checked IsBase ----
+                // If this was the base currency, refuse unless another base exists.
+                if (wasBase)
+                {
+                    var anotherBaseExists = await _context.Currencies
+                        .AnyAsync(c => c.IsBase == true && c.Code != entity.Code);
+
+                    if (!anotherBaseExists)
+                    {
+                        ModelState.AddModelError(string.Empty,
+                            "At least one currency must be marked as the base currency. " +
+                            "Set another currency as base first, then uncheck this one.");
+                        return Page();
+                    }
+
+                    entity.IsBase = false;
+                }
             }
 
             await _context.SaveChangesAsync();

@@ -45,6 +45,10 @@ public partial class Payment
 
     public Guid? ReversesPaymentId { get; set; }
 
+    public DateTime PaymentDate { get; set; }
+
+    public virtual ICollection<BankStatementEntry> BankStatementEntries { get; set; } = new List<BankStatementEntry>();
+
     public virtual User Creator { get; set; } = null!;
 
     public virtual Currency? Currency { get; set; }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -19,14 +20,15 @@ namespace SMS.Data.Migrations
                 oldClrType: typeof(Guid),
                 oldType: "uniqueidentifier");
 
-            // ---- 2. Widen value columns: json → nvarchar(max) nullable ----
+            // ---- 2. Widen value columns: nvarchar(max) nullable (Replaced invalid "json" type) ----
             migrationBuilder.AlterColumn<string>(
                 name: "BeforeValue",
                 table: "AuditLog",
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "json");
+                oldType: "nvarchar(max)",
+                oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(
                 name: "AfterValue",
@@ -34,7 +36,8 @@ namespace SMS.Data.Migrations
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "json");
+                oldType: "nvarchar(max)",
+                oldNullable: true);
 
             // ---- 3. New context columns ----
             migrationBuilder.AddColumn<string>(
@@ -57,7 +60,7 @@ namespace SMS.Data.Migrations
                 maxLength: 50,
                 nullable: true);
 
-            // ---- 4. Indexes for the common lookups ----
+            // ---- 4. Indexes for common lookups ----
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLog_EntityType_EntityId",
                 table: "AuditLog",
@@ -73,29 +76,22 @@ namespace SMS.Data.Migrations
                 table: "AuditLog",
                 column: "TimeStamp");
 
-            // ============================================================
-            //  IMMUTABLE TRIGGER — blocks UPDATE and DELETE on AuditLog
-            //  Drop first if it somehow already exists (idempotent).
-            // ============================================================
+            // ---- 5. IMMUTABLE TRIGGER — blocks UPDATE and DELETE on AuditLog ----
             migrationBuilder.Sql(@"
                 IF OBJECT_ID('TR_AuditLog_Immutable', 'TR') IS NOT NULL
                     DROP TRIGGER TR_AuditLog_Immutable;
             ");
 
-            // CREATE TRIGGER must be the first statement in a batch,
-            // so wrap it in EXEC(...).
             migrationBuilder.Sql(@"
-                EXEC('
-                    CREATE TRIGGER TR_AuditLog_Immutable
-                    ON AuditLog
-                    AFTER UPDATE, DELETE
-                    AS
-                    BEGIN
-                        RAISERROR(''AuditLog records are immutable and cannot be modified or deleted.'', 16, 1);
-                        ROLLBACK TRANSACTION;
-                    END;
-                ');
-            ");
+                CREATE TRIGGER TR_AuditLog_Immutable
+                ON AuditLog
+                AFTER UPDATE, DELETE
+                AS
+                BEGIN
+                    RAISERROR('AuditLog records are immutable and cannot be modified or deleted.', 16, 1);
+                    ROLLBACK TRANSACTION;
+                END;
+            ", suppressTransaction: true);
         }
 
         /// <inheritdoc />
@@ -133,16 +129,11 @@ namespace SMS.Data.Migrations
                 name: "Username",
                 table: "AuditLog");
 
-            // ---- Revert value columns: nvarchar(max) → json NOT NULL ----
-            // NOTE: This will FAIL if any existing rows have NULL in these
-            // columns. If you're rolling back into a state where the DB has
-            // such rows, run this first:
-            //   UPDATE AuditLog SET BeforeValue = '{}' WHERE BeforeValue IS NULL;
-            //   UPDATE AuditLog SET AfterValue  = '{}' WHERE AfterValue  IS NULL;
+            // ---- Revert value columns to NOT NULL nvarchar(max) ----
             migrationBuilder.AlterColumn<string>(
                 name: "BeforeValue",
                 table: "AuditLog",
-                type: "json",
+                type: "nvarchar(max)",
                 nullable: false,
                 defaultValue: "",
                 oldClrType: typeof(string),
@@ -152,7 +143,7 @@ namespace SMS.Data.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "AfterValue",
                 table: "AuditLog",
-                type: "json",
+                type: "nvarchar(max)",
                 nullable: false,
                 defaultValue: "",
                 oldClrType: typeof(string),
@@ -160,11 +151,6 @@ namespace SMS.Data.Migrations
                 oldNullable: true);
 
             // ---- Revert UserId: nullable → NOT NULL ----
-            // This will FAIL if any existing rows have NULL UserId.
-            // If you're rolling back with system-generated rows present:
-            //   DELETE FROM AuditLog WHERE UserId IS NULL;
-            // Or:
-            //   UPDATE AuditLog SET UserId = '<some-existing-user-guid>' WHERE UserId IS NULL;
             migrationBuilder.AlterColumn<Guid>(
                 name: "UserId",
                 table: "AuditLog",

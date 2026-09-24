@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SMS.Data;
 
@@ -11,9 +12,11 @@ using SMS.Data;
 namespace SMS.Data.Migrations
 {
     [DbContext(typeof(SMSDbContext))]
-    partial class SMSDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260924071041_created BankStatementEntry table")]
+    partial class createdBankStatementEntrytable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -200,7 +203,7 @@ namespace SMS.Data.Migrations
                     b.Property<bool?>("IsMatched")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("MatchedByUserId")
+                    b.Property<Guid>("MatchedByUserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("MatchedOn")
@@ -651,9 +654,6 @@ namespace SMS.Data.Migrations
 
                     b.Property<Guid?>("LedgerId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("PaymentDate")
-                        .HasColumnType("datetime");
 
                     b.Property<int>("PaymentMethodId")
                         .HasColumnType("int");
@@ -1532,6 +1532,7 @@ namespace SMS.Data.Migrations
                     b.HasOne("SMS.Data.User", "MatchedByUser")
                         .WithMany("BankStatementEntryMatchedByUsers")
                         .HasForeignKey("MatchedByUserId")
+                        .IsRequired()
                         .HasConstraintName("FK_BankStatementEntry_User1");
 
                     b.HasOne("SMS.Data.Payment", "MatchedPayment")

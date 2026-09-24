@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using SMS.Data;
@@ -9,17 +10,17 @@ using SMS.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- NEW: Add Entra ID Authentication ---
+// --- Entra ID Authentication ---
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
 
 builder.Services.AddAuthorization();
 
-// --- Current User Service (needed by the audit interceptor) ---
+// --- Current User Service ---
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-// --- Audit interceptor (must be registered before AddDbContext) ---
+// --- Audit interceptor (scoped — resolves its own dependencies lazily) ---
 builder.Services.AddScoped<AuditInterceptor>();
 
 // --- DbContext with audit interceptor wired in ---
@@ -32,8 +33,25 @@ builder.Services.AddDbContext<SMSDbContext>((sp, options) =>
     .AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
 });
 
-// --- Payment Service (single gateway for all payment writes) ---
+// --- Payment Service ---
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+builder.Services.Configure<RbzApiOptions>(
+    builder.Configuration.GetSection("RbzApi"));
+builder.Services.Configure<RbzFeatureOptions>(
+    builder.Configuration.GetSection("RbzFeature"));
+
+builder.Services.AddHttpClient<IRbzRateService, RbzRateService>((sp, client) =>
+{
+    var opts = sp.GetRequiredService<IOptions<RbzApiOptions>>().Value;
+
+    client.BaseAddress = new Uri(opts.BaseUrl.TrimEnd('/') + "/");
+    client.Timeout = TimeSpan.FromSeconds(15);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+    if (!string.IsNullOrWhiteSpace(opts.ApiKey))
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {opts.ApiKey}");
+});
 
 builder.Services.AddRazorPages()
     .AddMicrosoftIdentityUI();

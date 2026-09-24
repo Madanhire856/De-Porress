@@ -943,8 +943,8 @@ textarea.form-control {
     font-size: 0.75rem;
 }
 
-.form-compact .form-grid-2[style*="margin-bottom"] {
-    margin-bottom: 1rem !important;
+.form-compact .form-grid-2-spaced {
+    margin-bottom: 1rem;
 }
 
 @media (max-width: 768px) {
@@ -3435,4 +3435,105 @@ tr.row-clickable {
     .row-action-btn {
         justify-content: center;
     }
+}
+
+/* ==========================================================
+   FEES — UPSERT FORM
+   Small layout helpers extracted from inline styles.
+   ========================================================== */
+
+/* Extra top spacing above a secondary section title */
+.form-section-title.form-section-title-spaced {
+    margin-top: 0.5rem;
+}
+
+/* Rights list with breathing room before the next block */
+.rights-list-spaced {
+    margin-bottom: 1rem;
+}
+
+/* Two-column grid with bottom spacing */
+.form-grid-2-spaced {
+    margin-bottom: 1.5rem;
+}
+
+/* Generic visibility utility — overrides flex/grid display */
+.is-hidden {
+    display: none !important;
+}
+
+/* Informational callout used for bulk-scope hints */
+.bulk-info {
+    background: #F0F4F8;
+    border: 1px solid #DDE5EE;
+    border-left: 3px solid var(--sms-navy);
+    border-radius: 6px;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.85rem;
+    color: #1A2530;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.bulk-info-icon {
+    color: var(--sms-gold);
+    margin-top: 2px;
+}
+
+/* ----------------------------------------------------------
+   Horizontal scope selector (radio group)
+   ---------------------------------------------------------- */
+
+/* Rights list laid out horizontally */
+.rights-list-inline {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+    .rights-list-inline .right-checkbox {
+        padding: 0.3rem 0.75rem;
+        border: 1px solid var(--sms-border);
+        border-radius: 6px;
+        background: #FFFFFF;
+        transition: background-color 0.15s, border-color 0.15s;
+    }
+
+        .rights-list-inline .right-checkbox:hover {
+            background-color: #F9FAFB;
+            border-color: #D1D5DB;
+        }
+
+        /* Highlight the selected option */
+        .rights-list-inline .right-checkbox:has(input[type="radio"]:checked) {
+            background-color: #F0F4F8;
+            border-color: var(--sms-navy);
+        }
+
+        .rights-list-inline .right-checkbox input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--sms-gold);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+/* Compact tweak for the compact form variant */
+.form-compact .rights-list-inline {
+    gap: 0.5rem;
+}
+
+    .form-compact .rights-list-inline .right-checkbox {
+        padding: 0.2rem 0.6rem;
+    }
+
+@media (max-width: 600px) {
+    .rights-list-inline {
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+        .rights-list-inline .right-checkbox {
+            width: 100%;
+        }
 }

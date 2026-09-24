@@ -27,30 +27,27 @@
     // ============================================================
     //  FINANCE AREA FLAGS
     // ============================================================
-    // -- Fees sub-pages --
     var isFeesDashboard   = currentArea == "finance" && currentPage == "/fees/index";
     var isBalances        = currentArea == "finance" && currentPage.StartsWith("/fees/balances");
     var isLedger          = currentArea == "finance" && currentPage.StartsWith("/fees/ledger");
     var isRecordPayment   = currentArea == "finance" && currentPage.StartsWith("/fees/recordpayment");
     var isReversePayment  = currentArea == "finance" && currentPage.StartsWith("/fees/reversepayment");
     var isCashUp          = currentArea == "finance" && currentPage.StartsWith("/fees/cashup");
-    var isBank            = currentArea == "finance" && currentPage.StartsWith("/fees/bank");
     var isOpenTerm        = currentArea == "finance" && currentPage.StartsWith("/fees/openterm");
 
-    // Fee Structure = list page + the Upsert form (both count as "Fee Structure")
+    // Fee Structure = list page + the Upsert form
     var isFeeStructure    = currentArea == "finance"
                          && (currentPage.StartsWith("/fees/feesstructures")
                           || currentPage.StartsWith("/fees/upsert"));
 
     // Any Fees page is open?
     var isFees = isFeesDashboard || isBalances || isLedger || isRecordPayment
-              || isReversePayment || isCashUp || isBank
+              || isReversePayment || isCashUp
               || isFeeStructure || isOpenTerm;
 
     // Any Fees sub-page (excluding the dashboard) is open?
-    // Used to decide whether to expand the nested Fees subgroup.
     var isFeesPages = isBalances || isLedger || isRecordPayment || isReversePayment
-                   || isCashUp || isBank || isFeeStructure || isOpenTerm;
+                   || isCashUp || isFeeStructure || isOpenTerm;
 
     var isProjects = currentArea == "finance" && currentPage.StartsWith("/projects");
     var isFinanceSection = isFees || isProjects;
@@ -65,6 +62,7 @@
     var isUserGroups = currentPage.StartsWith("/usergroups");
     var isEmails = currentPage.StartsWith("/emails");
     var isMessageTemplates = currentPage.StartsWith("/messagetemplates");
+    var isAuditLogs = currentPage.StartsWith("/auditlogs");
 
     // -- Academic Setup --
     var isGrades = currentPage.StartsWith("/grades");
@@ -87,7 +85,7 @@
 
     // -- Configuration active if any child is active --
     var isConfigSection =
-        isUsers || isUserGroups || isEmails || isMessageTemplates ||
+        isUsers || isUserGroups || isEmails || isMessageTemplates || isAuditLogs ||
         isAcademicSetup || isSporting || isVillages || isFinanceSetup;
 
     var currentDisplayName = User.FindFirstValue(ClaimTypes.Name) ?? "Head Teacher";
@@ -134,7 +132,7 @@
                 </div>
             </div>
 
-            <!-- SPORTS & HOUSES DROPDOWN (operations) -->
+            <!-- SPORTS & HOUSES DROPDOWN -->
             <div class="sidebar-dropdown">
                 <a class="sidebar-dropdown-toggle @(isSportsSection ? "active" : "")"
                    data-bs-toggle="collapse" href="#sportsMenu" role="button"
@@ -161,9 +159,7 @@
                 </div>
             </div>
 
-            <!-- ==========================================================
-                 FINANCE DROPDOWN (with nested Fees subgroup)
-                 ========================================================== -->
+            <!-- FINANCE DROPDOWN -->
             <div class="sidebar-dropdown">
                 <a class="sidebar-dropdown-toggle @(isFinanceSection ? "active" : "")"
                    data-bs-toggle="collapse" href="#financeMenu" role="button"
@@ -177,7 +173,7 @@
                 <div class="collapse @(isFinanceSection ? "show" : "")" id="financeMenu">
                     <div class="sidebar-submenu">
 
-                        <!-- --- Fees subgroup --- -->
+                        <!-- Fees subgroup -->
                         <div class="sidebar-subgroup">
                             <a class="sidebar-subgroup-toggle @(isFeesPages ? "active" : "")"
                                data-bs-toggle="collapse" href="#feesPagesMenu" role="button"
@@ -202,11 +198,6 @@
                                     Daily Cash-Up
                                 </a>
 
-                                <a asp-area="Finance" asp-page="/Fees/Bank"
-                                   class="sidebar-sublink @(isBank ? "active" : "")">
-                                    Bank Statement
-                                </a>
-
                                 <a asp-area="Finance" asp-page="/Fees/FeesStructures"
                                    class="sidebar-sublink @(isFeeStructure ? "active" : "")">
                                     Fee Structure
@@ -222,7 +213,6 @@
 
                         <div class="sidebar-divider"></div>
 
-                        <!-- --- Sponsorship --- -->
                         <a asp-area="Finance"
                            asp-page="/Projects/Index"
                            class="sidebar-sublink @(isProjects ? "active" : "")">
@@ -251,9 +241,7 @@
                 </div>
             </div>
 
-            <!-- ==========================================================
-                 CONFIGURATION DROPDOWN
-                 ========================================================== -->
+            <!-- CONFIGURATION DROPDOWN -->
             <div class="sidebar-dropdown">
                 <a class="sidebar-dropdown-toggle @(isConfigSection ? "active" : "")"
                    data-bs-toggle="collapse" href="#configMenu" role="button"
@@ -267,13 +255,11 @@
                 <div class="collapse @(isConfigSection ? "show" : "")" id="configMenu">
                     <div class="sidebar-submenu">
 
-                        <!-- --- Access Control --- -->
                         <a asp-area="Config" asp-page="/Users/Index" class="sidebar-sublink @(isUsers ? "active" : "")">Users</a>
                         <a asp-area="Config" asp-page="/UserGroups/Index" class="sidebar-sublink @(isUserGroups ? "active" : "")">User Groups</a>
 
                         <div class="sidebar-divider"></div>
 
-                        <!-- --- Academic Setup --- -->
                         <div class="sidebar-subgroup">
                             <a class="sidebar-subgroup-toggle @(isAcademicSetup ? "active" : "")"
                                data-bs-toggle="collapse" href="#academicSetupMenu" role="button"
@@ -291,7 +277,6 @@
 
                         <div class="sidebar-divider"></div>
 
-                        <!-- --- Sporting (Sport Types + Houses) --- -->
                         <div class="sidebar-subgroup">
                             <a class="sidebar-subgroup-toggle @(isSporting ? "active" : "")"
                                data-bs-toggle="collapse" href="#sportingMenu" role="button"
@@ -307,12 +292,10 @@
 
                         <div class="sidebar-divider"></div>
 
-                        <!-- --- Location (Villages only) --- -->
                         <a asp-area="Config" asp-page="/Villages/Index" class="sidebar-sublink @(isVillages ? "active" : "")">Villages</a>
 
                         <div class="sidebar-divider"></div>
 
-                        <!-- --- Finance Setup --- -->
                         <div class="sidebar-subgroup">
                             <a class="sidebar-subgroup-toggle @(isFinanceSetup ? "active" : "")"
                                data-bs-toggle="collapse" href="#financeSetupMenu" role="button"
@@ -327,7 +310,10 @@
 
                         <div class="sidebar-divider"></div>
 
-                        <!-- --- Communication --- -->
+                        <a asp-area="Config" asp-page="/AuditLogs/Index" class="sidebar-sublink @(isAuditLogs ? "active" : "")">Audit Logs</a>
+
+                        <div class="sidebar-divider"></div>
+
                         <a asp-area="Config" asp-page="/Emails/Index" class="sidebar-sublink @(isEmails ? "active" : "")">Emails</a>
                         <a asp-area="Config" asp-page="/MessageTemplates/Index" class="sidebar-sublink @(isMessageTemplates ? "active" : "")">Message Templates</a>
 
@@ -338,9 +324,7 @@
         </div>
     </div>
 
-    <!-- ============================================================
-         USER PROFILE + LOGOUT DROPDOWN
-         ============================================================ -->
+    <!-- USER PROFILE + LOGOUT DROPDOWN -->
     <div class="sidebar-bottom">
         <div class="dropdown dropup w-100">
 

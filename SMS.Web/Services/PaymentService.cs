@@ -54,6 +54,7 @@ namespace SMS.Web.Services
             {
                 Id = Guid.NewGuid(),
                 LedgerId = request.LedgerId,
+                PaymentDate = request.PaymentDate.Date,      // ← NEW
                 Amount = request.Amount,
                 CurrencyId = request.CurrencyId,
                 ExchangeRate = request.ExchangeRate,
@@ -122,6 +123,7 @@ namespace SMS.Web.Services
             {
                 Id = Guid.NewGuid(),
                 LedgerId = original.LedgerId,
+                PaymentDate = now.Date,                      // ← NEW: reversal's own date
                 Amount = original.Amount,
                 CurrencyId = original.CurrencyId,
                 ExchangeRate = original.ExchangeRate,
@@ -178,6 +180,13 @@ namespace SMS.Web.Services
         {
             if (request.LedgerId == Guid.Empty)
                 throw new InvalidOperationException("Ledger is required.");
+
+            // ---- NEW: payment date guards ----
+            if (request.PaymentDate == default)
+                throw new InvalidOperationException("Payment date is required.");
+
+            if (request.PaymentDate.Date > DateTime.Today)
+                throw new InvalidOperationException("Payment date cannot be in the future.");
 
             if (request.Amount <= 0m)
                 throw new InvalidOperationException("Amount must be greater than zero.");

@@ -35,6 +35,8 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
             public string LevyName { get; set; } = "";
             public decimal Amount { get; set; }
             public string CurrencyCode { get; set; } = "";
+            public string CreatedByName { get; set; } = "—";
+            public DateTime? CreationDate { get; set; }
         }
 
         // =============================================================
@@ -78,6 +80,7 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
             var rows = await _context.FeesStructures
                 .AsNoTracking()
                 .Include(f => f.Currency)
+                .Include(f => f.Creator)
                 .ToListAsync();
 
             // Populate the [NotMapped] sequence on each row
@@ -104,7 +107,13 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
                 TermDisplay = termDisplay.TryGetValue(f.TermId, out var tn) ? tn : "—",
                 LevyName = ((LevyType)f.LevyTypeId).ToDisplayName(),
                 Amount = f.Amount,
-                CurrencyCode = f.Currency?.Code ?? "—"
+                CurrencyCode = f.Currency?.Code ?? "—",
+                CreatedByName = !string.IsNullOrWhiteSpace(f.Creator?.Name)
+                    ? f.Creator!.Name!
+                    : (!string.IsNullOrWhiteSpace(f.Creator?.Email)
+                        ? f.Creator!.Email!
+                        : "System"),
+                CreationDate = f.CreationDate
             })
             .OrderBy(r => r.GradeName)
             .ThenBy(r => r.TermDisplay)

@@ -134,28 +134,8 @@
                     <div class="info-value">@Model.ClassVM.Capacity</div>
                 </div>
 
-                <div class="info-row">
-                    <div class="info-label">
-                        <i class="fa-solid fa-user-graduate"></i> Enrolled Students
-                    </div>
-                    <div class="info-value">
-                        @if (Model.StudentCount == 0)
-                        {
-                            <span class="sponsor-empty">No students enrolled</span>
-                        }
-                        else
-                        {
-                            @Model.StudentCount
-                        }
-                    </div>
-                </div>
-
-                <div class="info-row">
-                    <div class="info-label">
-                        <i class="fa-solid fa-calendar"></i> Creation Date
-                    </div>
-                    <div class="info-value">@Model.ClassVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</div>
-                </div>
+              
+               
             </div>
 
         </div>

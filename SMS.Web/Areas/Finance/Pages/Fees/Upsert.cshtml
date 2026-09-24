@@ -1,16 +1,23 @@
 ﻿@page "{id:guid?}"
 @model SMS.Web.Areas.Finance.Pages.Fees.UpsertModel
 @using SMS.Lib
+@using SMS.Web.Areas.Finance.Pages.Fees
 @inject ICurrentUserService CurrentUser
 @{
-    ViewData["Title"] = Model.IsEditing ? "Edit Fee" : "New Fee";
+    ViewData["Title"] = "Fee Structure";
     ViewData["PageTitle"] = Model.IsEditing ? "Edit Fee" : "New Fee";
     ViewData["PageSubTitle"] = Model.IsEditing
         ? "Update an existing fee"
         : "Add a fee to the structure";
 }
 
-<form method="post" class="form-compact">
+@section actionbar {
+    <a asp-page="./FeesStructures" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Fee Structure
+    </a>
+}
+
+<form method="post" class="form-compact" id="feeForm">
     <div class="form-card">
         <div class="card-body">
 
@@ -22,19 +29,72 @@
                 <i class="fa-solid fa-file-invoice-dollar"></i> Fee Details
             </div>
 
-            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+            <!-- ===== SCOPE ===== -->
+            @if (!Model.IsEditing)
+            {
+                <div class="form-section-title form-section-title-spaced">
+                    <i class="fa-solid fa-bullseye"></i> Apply To
+                </div>
 
-                <div class="form-group">
+                <div class="rights-list rights-list-spaced rights-list-inline">
+                    <label class="right-checkbox">
+                        <input type="radio" asp-for="Input.Scope"
+                               value="@((int)UpsertModel.ApplyScope.SingleGrade)"
+                               id="scopeSingle" />
+                        <span>One grade</span>
+                    </label>
+
+                    <label class="right-checkbox">
+                        <input type="radio" asp-for="Input.Scope"
+                               value="@((int)UpsertModel.ApplyScope.GradeLevel)"
+                               id="scopeLevel" />
+                        <span>All grades in a level</span>
+                    </label>
+
+                    <label class="right-checkbox">
+                        <input type="radio" asp-for="Input.Scope"
+                               value="@((int)UpsertModel.ApplyScope.Everyone)"
+                               id="scopeEveryone" />
+                        <span>Everyone — all @Model.TotalGradeCount grades in the system</span>
+                    </label>
+                </div>
+            }
+
+            <div class="form-grid-2 form-grid-2-spaced">
+
+                <!-- Grade (Scope = SingleGrade) -->
+                <div class="form-group" id="gradeWrapper">
                     <label class="form-label" asp-for="Input.GradeId">
                         Grade <span class="required">*</span>
                     </label>
                     <select asp-for="Input.GradeId" asp-items="Model.Grades"
-                            class="form-control" required>
+                            class="form-control" id="gradeSelect">
                         <option value="">— Select grade —</option>
                     </select>
                     <span asp-validation-for="Input.GradeId" class="text-danger"></span>
                 </div>
 
+                <!-- Grade Level (Scope = GradeLevel) -->
+                <div class="form-group is-hidden" id="levelWrapper">
+                    <label class="form-label" asp-for="Input.GradeLevelId">
+                        Grade Level <span class="required">*</span>
+                    </label>
+                    <select asp-for="Input.GradeLevelId" asp-items="Model.GradeLevels"
+                            class="form-control" id="levelSelect">
+                        <option value="">— Select level —</option>
+                    </select>
+                    <span asp-validation-for="Input.GradeLevelId" class="text-danger"></span>
+                </div>
+
+                <!-- Bulk info (Scope = GradeLevel or Everyone) -->
+                <div class="form-group full-width is-hidden" id="bulkInfoWrapper">
+                    <div class="bulk-info">
+                        <i class="fa-solid fa-circle-info bulk-info-icon"></i>
+                        <span id="bulkInfoText"></span>
+                    </div>
+                </div>
+
+                <!-- Term -->
                 <div class="form-group">
                     <label class="form-label" asp-for="Input.TermId">
                         Term <span class="required">*</span>
@@ -46,6 +106,7 @@
                     <span asp-validation-for="Input.TermId" class="text-danger"></span>
                 </div>
 
+                <!-- Levy Type -->
                 <div class="form-group">
                     <label class="form-label" asp-for="Input.LevyTypeId">
                         Levy Type <span class="required">*</span>
@@ -57,17 +118,19 @@
                     <span asp-validation-for="Input.LevyTypeId" class="text-danger"></span>
                 </div>
 
+                <!-- Currency (read-only) -->
                 <div class="form-group">
-                    <label class="form-label" asp-for="Input.CurrencyId">
-                        Currency <span class="required">*</span>
-                    </label>
-                    <select asp-for="Input.CurrencyId" asp-items="Model.Currencies"
-                            class="form-control" required>
-                        <option value="">— Select currency —</option>
-                    </select>
-                    <span asp-validation-for="Input.CurrencyId" class="text-danger"></span>
+                    <label class="form-label">Currency</label>
+                    <input type="text"
+                           class="form-control"
+                           value="@Model.BaseCurrency — base currency"
+                           readonly />
+                    <small class="currency-hint">
+                        All fees are quoted in the base currency.
+                    </small>
                 </div>
 
+                <!-- Amount -->
                 <div class="form-group">
                     <label class="form-label" asp-for="Input.Amount">
                         Amount <span class="required">*</span>
@@ -86,9 +149,13 @@
         </div>
 
         <div class="card-footer">
+            @if (Model.IsEditing)
+            {
+                <a asp-page="./Upsert" class="btn btn-secondary">Cancel</a>
+            }
             <button type="submit" class="btn btn-primary">
                 <i class="fa-solid fa-floppy-disk"></i>
-                @(Model.IsEditing ? "Save Changes" : "Add Fee")
+                <span id="submitLabel">@(Model.IsEditing ? "Save Changes" : "Add Fee")</span>
             </button>
         </div>
     </div>
@@ -96,4 +163,79 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    @if (!Model.IsEditing)
+    {
+        <script>
+            (function () {
+                const scopeSingle   = document.getElementById('scopeSingle');
+                const scopeLevel    = document.getElementById('scopeLevel');
+                const scopeEveryone = document.getElementById('scopeEveryone');
+
+                const gradeWrap  = document.getElementById('gradeWrapper');
+                const levelWrap  = document.getElementById('levelWrapper');
+                const bulkInfo   = document.getElementById('bulkInfoWrapper');
+                const bulkText   = document.getElementById('bulkInfoText');
+
+                const gradeSelect = document.getElementById('gradeSelect');
+                const levelSelect = document.getElementById('levelSelect');
+                const submitLabel = document.getElementById('submitLabel');
+
+                // Total grades per level — read from the server-rendered dropdown
+                const levelLabels = {};
+                Array.from(levelSelect.options).forEach(o => {
+                    if (o.value) levelLabels[o.value] = o.text;
+                });
+
+                if (!scopeSingle) return;
+
+                function show(el) { el.classList.remove('is-hidden'); }
+                function hide(el) { el.classList.add('is-hidden'); }
+
+                function sync() {
+                    const s = document.querySelector('input[name="Input.Scope"]:checked');
+                    if (!s) return;
+
+                    const value = parseInt(s.value, 10);
+
+                    // Reset visibility
+                    hide(gradeWrap);
+                    hide(levelWrap);
+                    hide(bulkInfo);
+
+                    if (gradeSelect) gradeSelect.required = false;
+                    if (levelSelect) levelSelect.required = false;
+
+                    if (value === 0) {
+                        // One grade
+                        show(gradeWrap);
+                        if (gradeSelect) gradeSelect.required = true;
+                        submitLabel.textContent = 'Add Fee';
+                    }
+                    else if (value === 1) {
+                        // Grade level
+                        show(levelWrap);
+                        if (levelSelect) levelSelect.required = true;
+                        bulkText.innerHTML = 'The fee will be created for <strong>all grades</strong> in the selected level. ' +
+                                             'Grades that already have this fee for the selected term and levy type will be skipped.';
+                        show(bulkInfo);
+                        submitLabel.textContent = 'Add Fee to Level';
+                    }
+                    else {
+                        // Everyone
+                        bulkText.innerHTML = 'The fee will be created for <strong>all @Model.TotalGradeCount grade(s)</strong> in the system. ' +
+                                             'Grades that already have this fee for the selected term and levy type will be skipped.';
+                        show(bulkInfo);
+                        submitLabel.textContent = 'Add Fee to All Grades';
+                    }
+                }
+
+                scopeSingle.addEventListener('change', sync);
+                scopeLevel.addEventListener('change', sync);
+                scopeEveryone.addEventListener('change', sync);
+
+                sync();
+            })();
+        </script>
+    }
 }

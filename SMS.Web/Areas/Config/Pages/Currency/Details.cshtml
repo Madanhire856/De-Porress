@@ -30,13 +30,15 @@
             </div>
             <div class="profile-info">
                 <h2 class="profile-name">@Model.CurrencyVM.Code — @Model.CurrencyVM.Name</h2>
-                <div class="profile-meta">
-                    <span class="info-value-mono">@Model.CurrencyVM.Symbol</span>
-                    @if (Model.CurrencyVM.CreationDate.HasValue)
+              
+                <div class="profile-badges">
+                    @if (Model.IsBase)
                     {
-                        <span class="meta-sep">·</span>
-                        <span>Created @Model.CurrencyVM.CreationDate.Value.ToString("dd MMM yyyy")</span>
+                        <span class="status-badge status-active">
+                            <i class="fa-solid fa-scale-balanced"></i> Base Currency
+                        </span>
                     }
+                   
                 </div>
             </div>
         </div>
@@ -73,21 +75,30 @@
                 </div>
             </div>
 
-            <!-- RIGHT: Metadata -->
+            <!-- RIGHT: Base Currency & Exchange Rate -->
             <div class="info-column">
                 <div class="info-column-header">
-                    <i class="fa-solid fa-clipboard-list"></i>
-                    <span>Metadata</span>
+                    <i class="fa-solid fa-scale-balanced"></i>
+                    <span>Base Currency</span>
                 </div>
 
                 <div class="info-row">
                     <div class="info-label">
-                        <i class="fa-solid fa-calendar"></i> Creation Date
+                        <i class="fa-solid fa-flag"></i> Status
                     </div>
                     <div class="info-value">
-                        @(Model.CurrencyVM.CreationDate?.ToString("dd MMM yyyy, HH:mm") ?? "—")
+                        @if (Model.IsBase)
+                        {
+                            <span>This is the base currency</span>
+                        }
+                        else
+                        {
+                            <span>Foreign currency — converts to <strong>@Model.BaseCurrencyCode</strong></span>
+                        }
                     </div>
                 </div>
+
+                
             </div>
 
         </div>

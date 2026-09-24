@@ -19,15 +19,18 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
         private readonly SMSDbContext _context;
         private readonly ICurrentUserService _currentUser;
         private readonly IPaymentService _paymentService;
+        private readonly IRbzRateService _rbzService;
 
         public RecordPaymentModel(
             SMSDbContext context,
             ICurrentUserService currentUser,
-            IPaymentService paymentService)
+            IPaymentService paymentService,
+            IRbzRateService rbzService)
         {
             _context = context;
             _currentUser = currentUser;
             _paymentService = paymentService;
+            _rbzService = rbzService;
         }
 
         // Header info
@@ -45,20 +48,29 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
         [BindProperty]
         public PaymentInput Input { get; set; } = new();
 
-        // ---- Page-specific DTOs ----
         public class CurrencyOption
         {
             public string Code { get; set; } = "";
             public string Name { get; set; } = "";
             public string Symbol { get; set; } = "";
             public bool IsBase { get; set; }
-            public decimal ExchangeRateToBase { get; set; }
         }
 
         public class MethodOption
         {
             public int Id { get; set; }
             public string Label { get; set; } = "";
+        }
+
+        // Response shape for the AJAX rate fetch
+        public class RateFetchResponse
+        {
+            public bool Success { get; set; }
+            public decimal? Rate { get; set; }
+            public string? Source { get; set; }
+            public DateTime? ActualRateDate { get; set; }
+            public bool IsStale { get; set; }
+            public string? Message { get; set; }
         }
 
         // =============================================================
@@ -73,10 +85,77 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
             if (!ok) return NotFound();
 
             Input.LedgerId = ledgerId;
+            Input.PaymentDate = DateTime.Today;
             Input.CurrencyId = BaseCurrency;
             Input.ExchangeRate = 1m;
 
             return Page();
+        }
+
+        // =============================================================
+        //  AJAX: fetch the RBZ rate for (currency, date)
+        // =============================================================
+        public async Task<JsonResult> OnGetFetchRateAsync(string currencyId, DateTime paymentDate)
+        {
+            if (!_currentUser.HasRight(AccessRights.RecordPayments))
+                return new JsonResult(new RateFetchResponse { Success = false, Message = "Not authorized." });
+
+            if (string.IsNullOrWhiteSpace(currencyId))
+                return new JsonResult(new RateFetchResponse { Success = false, Message = "Select a currency." });
+
+            if (paymentDate == default)
+                return new JsonResult(new RateFetchResponse { Success = false, Message = "Select a payment date." });
+
+            if (paymentDate.Date > DateTime.Today)
+                return new JsonResult(new RateFetchResponse { Success = false, Message = "Payment date cannot be in the future." });
+
+            // Base currency? Rate is 1, no API call.
+            var baseCurrency = await _context.Currencies
+                .AsNoTracking()
+                .Where(c => c.IsBase == true)
+                .Select(c => c.Code)
+                .FirstOrDefaultAsync() ?? "USD";
+
+            if (string.Equals(currencyId, baseCurrency, StringComparison.OrdinalIgnoreCase))
+            {
+                return new JsonResult(new RateFetchResponse
+                {
+                    Success = true,
+                    Rate = 1m,
+                    Source = "BASE",
+                    ActualRateDate = paymentDate.Date,
+                    IsStale = false,
+                    Message = "Base currency — no conversion needed."
+                });
+            }
+
+            // Foreign currency — ask the service
+            var result = await _rbzService.GetRateAsync(currencyId, paymentDate.Date);
+
+            if (result == null)
+            {
+                return new JsonResult(new RateFetchResponse
+                {
+                    Success = false,
+                    Message = $"Could not fetch the RBZ rate for {currencyId} on {paymentDate:dd MMM yyyy}. " +
+                              "Tick \"Override rate\" and enter the rate from your slip."
+                });
+            }
+
+            var message = result.IsStale
+                ? $"No RBZ rate published for {paymentDate:dd MMM yyyy}. " +
+                  $"Using rate published {result.ActualRateDate:dd MMM yyyy}."
+                : $"RBZ rate published {result.ActualRateDate:dd MMM yyyy}.";
+
+            return new JsonResult(new RateFetchResponse
+            {
+                Success = true,
+                Rate = result.Rate,
+                Source = result.Source,
+                ActualRateDate = result.ActualRateDate,
+                IsStale = result.IsStale,
+                Message = message
+            });
         }
 
         // =============================================================
@@ -93,15 +172,62 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
             if (!ModelState.IsValid)
                 return Page();
 
+            // ---------------------------------------------------------
+            //  Determine the authoritative exchange rate, server-side.
+            //  The client's posted rate is ignored for non-override posts.
+            // ---------------------------------------------------------
+            decimal authoritativeRate;
+            string rateSource;
+
+            if (Input.IsRateOverridden)
+            {
+                // Bursar explicitly overrode — validate and accept their rate.
+                if (string.IsNullOrWhiteSpace(Input.RateOverrideReason))
+                {
+                    ModelState.AddModelError(
+                        "Input.RateOverrideReason",
+                        "Provide a reason for overriding the RBZ rate.");
+                    return Page();
+                }
+
+                if (Input.ExchangeRate <= 0m)
+                {
+                    ModelState.AddModelError(
+                        "Input.ExchangeRate",
+                        "Enter the exchange rate from your slip.");
+                    return Page();
+                }
+
+                authoritativeRate = Input.ExchangeRate;
+                rateSource = "Manual";
+            }
+            else
+            {
+                // Normal path — fetch from RBZ (cache-first), ignore what the client sent.
+                var rateResult = await _rbzService.GetRateAsync(Input.CurrencyId, Input.PaymentDate.Date);
+
+                if (rateResult == null)
+                {
+                    ModelState.AddModelError(string.Empty,
+                        $"Could not fetch the RBZ rate for {Input.CurrencyId} on {Input.PaymentDate:dd MMM yyyy}. " +
+                        "Tick \"Override rate\" and enter the rate from your slip, or try again later.");
+                    return Page();
+                }
+
+                authoritativeRate = rateResult.Rate;
+                rateSource = rateResult.Source;
+            }
+
             try
             {
                 await _paymentService.RecordAsync(new RecordPaymentRequest
                 {
                     LedgerId = Input.LedgerId,
+                    PaymentDate = Input.PaymentDate.Date,
                     Amount = Input.Amount,
                     CurrencyId = Input.CurrencyId,
-                    ExchangeRate = Input.ExchangeRate,
-                    RateSource = Input.RateSource,
+                    ExchangeRate = authoritativeRate,
+                    RateSource = rateSource,
                     PaymentMethodId = Input.PaymentMethodId,
                     ReferenceNumber = Input.ReferenceNumber,
                     ProofOfPaymentUrl = Input.ProofOfPaymentUrl,
@@ -141,7 +267,6 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
                 : ledger.Term!.Name;
             CurrentBalance = ledger.ClosingBalance;
 
-            // Grade via class lookup
             if (ledger.Student.ClassId.HasValue)
             {
                 var cls = await _context.Classes.AsNoTracking()
@@ -150,13 +275,11 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
                 GradeName = cls?.Grade?.Name ?? "—";
             }
 
-            // Base currency
             BaseCurrency = await _context.Currencies.AsNoTracking()
                 .Where(c => c.IsBase == true)
                 .Select(c => c.Code)
                 .FirstOrDefaultAsync() ?? "USD";
 
-            // Currencies (base first, then alpha)
             CurrencyOptions = await _context.Currencies.AsNoTracking()
                 .OrderByDescending(c => c.IsBase)
                 .ThenBy(c => c.Code)
@@ -165,12 +288,10 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
                     Code = c.Code,
                     Name = c.Name,
                     Symbol = c.Symbol,
-                    IsBase = c.IsBase ?? false,
-                    ExchangeRateToBase = c.ExchangeRateToBase ?? 1m
+                    IsBase = c.IsBase
                 })
                 .ToListAsync();
 
-            // Payment methods from the enum
             MethodOptions = Enum.GetValues<PaymentMethod>()
                 .Select(m => new MethodOption
                 {

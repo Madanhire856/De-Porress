@@ -21,12 +21,18 @@ namespace SMS.Web.Areas.Config.Pages.Currency
         public Data.Currency CurrencyVM { get; set; } = null!;
         public string? CreatorEmail { get; set; }
 
+        // ---- Exposed for the view ----
+        public bool IsBase => CurrencyVM.IsBase == true;
+        public decimal? ExchangeRateToBase => CurrencyVM.ExchangeRateToBase;
+        public string BaseCurrencyCode { get; set; } = "—";
+
         public IActionResult OnGet(string? code)
         {
             if (string.IsNullOrEmpty(code))
                 return RedirectToPage("./Index");
 
             CurrencyVM = _context.Currencies
+                .AsNoTracking()
                 .Include(c => c.Creator)
                 .FirstOrDefault(c => c.Code == code);
 
@@ -34,6 +40,15 @@ namespace SMS.Web.Areas.Config.Pages.Currency
                 return NotFound();
 
             CreatorEmail = CurrencyVM.Creator?.Email;
+
+            if (!IsBase)
+            {
+                BaseCurrencyCode = _context.Currencies
+                    .AsNoTracking()
+                    .Where(c => c.IsBase == true)
+                    .Select(c => c.Code)
+                    .FirstOrDefault() ?? "USD";
+            }
 
             return Page();
         }

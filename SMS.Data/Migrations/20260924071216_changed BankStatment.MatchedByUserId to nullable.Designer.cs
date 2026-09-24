@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SMS.Data;
 
@@ -11,9 +12,11 @@ using SMS.Data;
 namespace SMS.Data.Migrations
 {
     [DbContext(typeof(SMSDbContext))]
-    partial class SMSDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260924071216_changed BankStatment.MatchedByUserId to nullable")]
+    partial class changedBankStatmentMatchedByUserIdtonullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -651,9 +654,6 @@ namespace SMS.Data.Migrations
 
                     b.Property<Guid?>("LedgerId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("PaymentDate")
-                        .HasColumnType("datetime");
 
                     b.Property<int>("PaymentMethodId")
                         .HasColumnType("int");

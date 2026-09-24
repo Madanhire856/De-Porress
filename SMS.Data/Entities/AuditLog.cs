@@ -7,7 +7,7 @@ public partial class AuditLog
 {
     public Guid Id { get; set; }
 
-    public Guid UserId { get; set; }
+    public Guid? UserId { get; set; }
 
     public string EntityType { get; set; } = null!;
 
@@ -21,11 +21,11 @@ public partial class AuditLog
 
     public DateTime TimeStamp { get; set; }
 
-    public string? Username { get; set; }
+    public string? IpAddress { get; set; }
 
     public string? Reason { get; set; }
 
-    public string? IpAddress { get; set; }
+    public string? Username { get; set; }
 
-    public virtual User User { get; set; } = null!;
+    public virtual User? User { get; set; }
 }

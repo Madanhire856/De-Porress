@@ -31,6 +31,8 @@ public partial class SMSDbContext : DbContext
 
     public virtual DbSet<Currency> Currencies { get; set; }
 
+    public virtual DbSet<DailyExchangeRate> DailyExchangeRates { get; set; }
+
     public virtual DbSet<FeesStructure> FeesStructures { get; set; }
 
     public virtual DbSet<Grade> Grades { get; set; }
@@ -93,7 +95,7 @@ public partial class SMSDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=SMSDb2;Trusted_Connection=True;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=SMSDb1;Trusted_Connection=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -140,12 +142,20 @@ public partial class SMSDbContext : DbContext
 
         modelBuilder.Entity<AuditLog>(entity =>
         {
-            entity.ToTable("AuditLog");
+            entity.ToTable("AuditLog", tb => tb.HasTrigger("TR_AuditLog_Immutable"));
+
+            entity.HasIndex(e => new { e.EntityType, e.EntityId }, "IX_AuditLog_EntityType_EntityId");
+
+            entity.HasIndex(e => e.TimeStamp, "IX_AuditLog_TimeStamp");
 
             entity.HasIndex(e => e.UserId, "IX_AuditLog_UserId");
 
+            entity.HasIndex(e => new { e.UserId, e.TimeStamp }, "IX_AuditLog_UserId_TimeStamp");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Action).HasMaxLength(80);
+            entity.Property(e => e.AfterValue).HasColumnType("json");
+            entity.Property(e => e.BeforeValue).HasColumnType("json");
             entity.Property(e => e.EntityType).HasMaxLength(50);
             entity.Property(e => e.IpAddress).HasMaxLength(256);
             entity.Property(e => e.TimeStamp).HasColumnType("datetime");
@@ -153,16 +163,14 @@ public partial class SMSDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.AuditLogs)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AuditLog_User");
         });
 
         modelBuilder.Entity<BankStatementEntry>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("BankStatementEntry");
+            entity.ToTable("BankStatementEntry");
 
+            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.BankReference).HasMaxLength(50);
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
@@ -171,21 +179,21 @@ public partial class SMSDbContext : DbContext
             entity.Property(e => e.MatchedOn).HasColumnType("datetime");
             entity.Property(e => e.NotesJson).HasColumnType("text");
 
-            entity.HasOne(d => d.Creator).WithMany()
+            entity.HasOne(d => d.Creator).WithMany(p => p.BankStatementEntryCreators)
                 .HasForeignKey(d => d.CreatorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_BankStatementEntry_User1");
+                .HasConstraintName("FK_BankStatementEntry_User");
 
-            entity.HasOne(d => d.Currency).WithMany()
+            entity.HasOne(d => d.Currency).WithMany(p => p.BankStatementEntries)
                 .HasForeignKey(d => d.CurrencyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_BankStatementEntry_Currency");
 
-            entity.HasOne(d => d.MatchedByUser).WithMany()
+            entity.HasOne(d => d.MatchedByUser).WithMany(p => p.BankStatementEntryMatchedByUsers)
                 .HasForeignKey(d => d.MatchedByUserId)
-                .HasConstraintName("FK_BankStatementEntry_User");
+                .HasConstraintName("FK_BankStatementEntry_User1");
 
-            entity.HasOne(d => d.MatchedPayment).WithMany()
+            entity.HasOne(d => d.MatchedPayment).WithMany(p => p.BankStatementEntries)
                 .HasForeignKey(d => d.MatchedPaymentId)
                 .HasConstraintName("FK_BankStatementEntry_Payment");
         });
@@ -272,6 +280,22 @@ public partial class SMSDbContext : DbContext
             entity.HasOne(d => d.Creator).WithMany(p => p.Currencies)
                 .HasForeignKey(d => d.CreatorId)
                 .HasConstraintName("FK_Currency_User");
+        });
+
+        modelBuilder.Entity<DailyExchangeRate>(entity =>
+        {
+            entity.ToTable("DailyExchangeRate");
+
+            entity.HasIndex(e => new { e.CurrencyCode, e.RequestedDate, e.RateType }, "UX_DailyExchangeRate_CurrencyCode_RequestedDate_RateType").IsUnique();
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.ActualRateDate).HasColumnType("datetime");
+            entity.Property(e => e.CurrencyCode).HasMaxLength(10);
+            entity.Property(e => e.FetchedOn).HasColumnType("datetime");
+            entity.Property(e => e.Rate).HasColumnType("decimal(18, 6)");
+            entity.Property(e => e.RateType).HasMaxLength(20);
+            entity.Property(e => e.RequestedDate).HasColumnType("datetime");
+            entity.Property(e => e.Source).HasMaxLength(20);
         });
 
         modelBuilder.Entity<FeesStructure>(entity =>
@@ -437,6 +461,8 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("Payment", tb => tb.HasTrigger("TR_Payments_Immutable"));
 
+            entity.HasIndex(e => e.CreatorId, "IX_Payment_CreatorId");
+
             entity.HasIndex(e => e.CurrencyId, "IX_Payment_CurrencyId");
 
             entity.HasIndex(e => e.LedgerId, "IX_Payment_LedgerId");
@@ -454,6 +480,7 @@ public partial class SMSDbContext : DbContext
                 .HasColumnType("datetime");
             entity.Property(e => e.CurrencyId).HasMaxLength(5);
             entity.Property(e => e.ExchangeRate).HasColumnType("decimal(18, 6)");
+            entity.Property(e => e.PaymentDate).HasColumnType("datetime");
             entity.Property(e => e.ProofOfPaymentUrl).HasMaxLength(20);
             entity.Property(e => e.RateSource).HasMaxLength(50);
             entity.Property(e => e.ReferenceNumber).HasMaxLength(50);

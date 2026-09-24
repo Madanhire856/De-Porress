@@ -38,6 +38,7 @@ namespace SMS.Web.Services
         /// <summary>Amount paid in the payment currency (e.g. 1200.50).</summary>
         public decimal Amount { get; set; }
 
+        public DateTime PaymentDate { get; set; }
         public string CurrencyId { get; set; } = "";
 
         /// <summary>Rate to base currency. 1 unit of CurrencyId = X base units.</summary>
