@@ -4,20 +4,23 @@
 @model SMS.Web.Areas.Finance.Pages.Fees.CashUpModel
 @{
     ViewData["Title"] = "Daily Cash-Up";
-    ViewData["PageTitle"] = "Daily Cash-Up";
+    ViewData["PageTitle"] = Model.ReportTitle;
     ViewData["PageSubTitle"] = Model.SelectedDateFormatted;
 
     var receiptRange =
         Model.FirstReceiptNumber.HasValue && Model.LastReceiptNumber.HasValue
-            ? $"RCP-{Model.CurrentReceiptYear}-{Model.FirstReceiptNumber.Value:D5} -> RCP-{Model.CurrentReceiptYear}-{Model.LastReceiptNumber.Value:D5}"
+            ? $"RCP-{Model.CurrentReceiptYear}-{Model.FirstReceiptNumber.Value:D5} → RCP-{Model.CurrentReceiptYear}-{Model.LastReceiptNumber.Value:D5}"
             : null;
 
     var cashUpPayload = new
     {
         school = "St. Martin De Porres",
-        title = "Daily Cash-Up Report",
+        title = Model.ReportTitle,
+        subtitle = Model.BasisLabel,
         dateFormatted = Model.SelectedDateFormatted,
         bursar = Model.Bursar,
+        basis = Model.Basis,
+        canViewAllBursars = Model.CanViewAllBursars,
         generatedOn = Model.GeneratedOn.ToString("dd MMM yyyy HH:mm"),
         generatedByName = Model.GeneratedByName,
         baseCurrency = Model.BaseCurrency,
@@ -26,33 +29,62 @@
         {
             payments = Model.TotalPaymentsCount,
             reversals = Model.TotalReversalsCount,
+            lateEntries = Model.LateEntryCount,
+            manualRates = Model.ManualRateCount,
             collected = Model.TotalCollected,
+            reversed = Model.TotalReversed,
             net = Model.NetCollected
         },
+        currencies = Model.CurrencyGroups.Select(c => new
+        {
+            code = c.CurrencyCode,
+            count = c.Count,
+            total = c.TotalAmount,
+            baseTotal = c.TotalBaseAmount
+        }),
         methods = Model.MethodGroups.Select(g => new
         {
             name = g.MethodName,
+            currency = g.CurrencyCode,
             count = g.Count,
-            total = g.Total
+            total = g.Total,
+            baseTotal = g.BaseTotal
+        }),
+        bursars = Model.BursarGroups.Select(b => new
+        {
+            name = b.Name,
+            count = b.Count,
+            baseTotal = b.BaseTotal
         }),
         payments = Model.Payments.Select(p => new
         {
             receipt = p.ReceiptDisplay,
-            time = p.Date.ToString("HH:mm"),
+            paymentDate = p.PaymentDate.ToString("dd MMM"),
+            time = p.PaymentDate.ToString("HH:mm"),
             student = p.StudentName,
             method = p.Method,
+            currency = p.CurrencyId,
+            amount = p.Amount,
+            rate = p.ExchangeRate,
+            rateSource = p.RateSource,
+            baseAmount = p.BaseAmount,
             reference = p.Reference,
-            amount = p.BaseAmount,
-            by = p.CreatedByName
+            by = p.CreatedByName,
+            late = p.IsBackdated,
+            createdOn = p.CreationDate.ToString("dd MMM yyyy HH:mm")
         }),
         reversals = Model.Reversals.Select(r => new
         {
             receipt = r.ReceiptDisplay,
-            time = r.Date.ToString("HH:mm"),
+            paymentDate = r.PaymentDate.ToString("dd MMM"),
+            time = r.PaymentDate.ToString("HH:mm"),
             student = r.StudentName,
             reason = r.ReversalReason,
-            amount = r.BaseAmount,
-            by = r.CreatedByName
+            currency = r.CurrencyId,
+            amount = r.Amount,
+            baseAmount = r.BaseAmount,
+            by = r.CreatedByName,
+            createdOn = r.CreationDate.ToString("dd MMM yyyy HH:mm")
         })
     };
 }
@@ -74,32 +106,51 @@
     <form method="get" class="cashup-filter-form">
         <div class="filter-wrapper">
             <label class="filter-label">Date</label>
-            <input type="date"
+            <input type="text"
+                   id="cashupDate"
                    name="Date"
                    value="@Model.SelectedDate.ToString("yyyy-MM-dd")"
                    class="filter-dropdown"
-                   onchange="this.form.submit();" />
+                   autocomplete="off"
+                   readonly />
         </div>
 
         <div class="filter-wrapper">
-            <label class="filter-label">Bursar</label>
-            <select name="Bursar" class="filter-dropdown" onchange="this.form.submit();">
-                <option value="">All Bursars</option>
-                @foreach (var b in Model.BursarOptions)
-                {
-                    <option value="@b.Name" selected="@(Model.Bursar == b.Name)">
-                        @b.Name (@b.Count)
-                    </option>
-                }
+            <label class="filter-label">Basis</label>
+            <select name="Basis" class="filter-dropdown" onchange="this.form.submit();">
+                <option value="payment" selected="@(Model.Basis != "created")">
+                    Money received on this date
+                </option>
+                <option value="created" selected="@(Model.Basis == "created")">
+                    Entries made on this date
+                </option>
             </select>
         </div>
 
-        @if (!string.IsNullOrWhiteSpace(Model.Bursar))
+        @if (Model.CanViewAllBursars)
         {
-            <a asp-page="./CashUp" asp-route-Date="@Model.SelectedDate.ToString("yyyy-MM-dd")"
-               class="btn btn-ghost btn-sm">
-                <i class="fa-solid fa-xmark"></i> Clear
-            </a>
+            <div class="filter-wrapper">
+                <label class="filter-label">Bursar</label>
+                <select name="Bursar" class="filter-dropdown" onchange="this.form.submit();">
+                    <option value="">All Bursars</option>
+                    @foreach (var b in Model.BursarOptions)
+                    {
+                        <option value="@b.Name" selected="@(Model.Bursar == b.Name)">
+                            @b.Name (@b.Count)
+                        </option>
+                    }
+                </select>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Bursar))
+            {
+                <a asp-page="./CashUp"
+                   asp-route-Date="@Model.SelectedDate.ToString("yyyy-MM-dd")"
+                   asp-route-Basis="@Model.Basis"
+                   class="btn btn-ghost btn-sm">
+                    <i class="fa-solid fa-xmark"></i> Clear Bursar
+                </a>
+            }
         }
     </form>
 </div>
@@ -113,7 +164,8 @@
             <img src="~/images/logo.jpeg" alt="School Logo" class="cashup-logo" />
             <div>
                 <div class="cashup-school">St. Martin De Porres</div>
-                <div class="cashup-title">Daily Cash-Up Report</div>
+                <div class="cashup-title">@Model.ReportTitle</div>
+                <div class="cashup-subtitle">@Model.BasisLabel</div>
             </div>
         </div>
         <div class="cashup-header-right">
@@ -126,6 +178,13 @@
                 <div class="cashup-meta-row">
                     <span>Bursar:</span>
                     <strong>@Model.Bursar</strong>
+                </div>
+            }
+            else if (!Model.CanViewAllBursars)
+            {
+                <div class="cashup-meta-row">
+                    <span>Scope:</span>
+                    <strong>Your payments only</strong>
                 </div>
             }
             <div class="cashup-meta-row">
@@ -150,28 +209,92 @@
         <div class="cashup-stat">
             <div class="cashup-stat-label">Payments</div>
             <div class="cashup-stat-value">@Model.TotalPaymentsCount</div>
+            @if (Model.LateEntryCount > 0)
+            {
+                <div class="cashup-stat-note">
+                    @Model.LateEntryCount backdated
+                </div>
+            }
         </div>
+
         <div class="cashup-stat">
             <div class="cashup-stat-label">Reversals</div>
             <div class="cashup-stat-value @(Model.TotalReversalsCount > 0 ? "text-danger" : "")">
                 @Model.TotalReversalsCount
             </div>
+            @if (Model.ManualRateCount > 0)
+            {
+                <div class="cashup-stat-note">
+                    @Model.ManualRateCount manual rate@(Model.ManualRateCount == 1 ? "" : "s")
+                </div>
+            }
         </div>
+
         <div class="cashup-stat cashup-stat-primary">
-            <div class="cashup-stat-label">Total Collected</div>
+            <div class="cashup-stat-label">Gross Collected</div>
             <div class="cashup-stat-value">
                 @Model.TotalCollected.ToString("N2")
                 <small>@Model.BaseCurrency</small>
             </div>
         </div>
+
         <div class="cashup-stat cashup-stat-net">
-            <div class="cashup-stat-label">Net</div>
+            <div class="cashup-stat-label">Net After Reversals</div>
             <div class="cashup-stat-value">
                 @Model.NetCollected.ToString("N2")
                 <small>@Model.BaseCurrency</small>
             </div>
         </div>
     </div>
+
+    <!-- ===== CURRENCY BREAKDOWN ===== -->
+    @if (Model.CurrencyGroups.Count > 1)
+    {
+        <div class="cashup-section">
+            <div class="cashup-section-title">
+                <i class="fa-solid fa-coins"></i>
+                Totals by Currency
+            </div>
+
+            <table class="cashup-table">
+                <thead>
+                    <tr>
+                        <th>Currency</th>
+                        <th style="text-align:right;">Payments</th>
+                        <th style="text-align:right;">Total Collected</th>
+                        <th style="text-align:right;">In @Model.BaseCurrency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model.CurrencyGroups)
+                    {
+                        <tr>
+                            <td><strong>@c.CurrencyCode</strong></td>
+                            <td style="text-align:right;">@c.Count</td>
+                            <td style="text-align:right; font-weight:600;">
+                                @c.TotalAmount.ToString("N2")
+                                <small class="info-value-mono">@c.CurrencyCode</small>
+                            </td>
+                            <td style="text-align:right; font-weight:600;">
+                                @c.TotalBaseAmount.ToString("N2")
+                                <small class="info-value-mono">@Model.BaseCurrency</small>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td style="text-align:right;"><strong>@Model.TotalPaymentsCount</strong></td>
+                        <td></td>
+                        <td style="text-align:right;">
+                            <strong>@Model.TotalCollected.ToString("N2") @Model.BaseCurrency</strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
 
     <!-- ===== METHOD BREAKDOWN ===== -->
     <div class="cashup-section">
@@ -186,9 +309,11 @@
                 <thead>
                     <tr>
                         <th>Method</th>
+                        <th>Currency</th>
                         <th style="text-align:right;">Count</th>
-                        <th style="text-align:right;">Total (@Model.BaseCurrency)</th>
-                        <th style="width: 180px;">Cash Counted (write-in)</th>
+                        <th style="text-align:right;">Total</th>
+                        <th style="text-align:right;">In @Model.BaseCurrency</th>
+                        <th style="width: 140px;">Cash Counted</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -196,9 +321,13 @@
                     {
                         <tr>
                             <td><strong>@g.MethodName</strong></td>
+                            <td class="info-value-mono">@g.CurrencyCode</td>
                             <td style="text-align:right;">@g.Count</td>
-                            <td style="text-align:right; font-weight: 700;">
+                            <td style="text-align:right; font-weight:600;">
                                 @g.Total.ToString("N2")
+                            </td>
+                            <td style="text-align:right; font-weight:600;">
+                                @g.BaseTotal.ToString("N2")
                             </td>
                             <td class="cashup-writein"></td>
                         </tr>
@@ -206,9 +335,12 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td><strong>Total</strong></td>
+                        <td colspan="2"><strong>Total</strong></td>
                         <td style="text-align:right;"><strong>@Model.TotalPaymentsCount</strong></td>
-                        <td style="text-align:right;"><strong>@Model.TotalCollected.ToString("N2")</strong></td>
+                        <td></td>
+                        <td style="text-align:right;">
+                            <strong>@Model.TotalCollected.ToString("N2")</strong>
+                        </td>
                         <td class="cashup-writein"></td>
                     </tr>
                 </tfoot>
@@ -219,6 +351,39 @@
             <div class="cashup-empty">No payments recorded on this date.</div>
         }
     </div>
+
+    <!-- ===== BURSAR BREAKDOWN ===== -->
+    @if (Model.CanViewAllBursars && Model.BursarGroups.Count > 1)
+    {
+        <div class="cashup-section">
+            <div class="cashup-section-title">
+                <i class="fa-solid fa-users"></i>
+                Breakdown by Bursar
+            </div>
+
+            <table class="cashup-table">
+                <thead>
+                    <tr>
+                        <th>Bursar</th>
+                        <th style="text-align:right;">Payments</th>
+                        <th style="text-align:right;">Total Processed (@Model.BaseCurrency)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.BursarGroups)
+                    {
+                        <tr>
+                            <td><strong>@b.Name</strong></td>
+                            <td style="text-align:right;">@b.Count</td>
+                            <td style="text-align:right; font-weight:600;">
+                                @b.BaseTotal.ToString("N2")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 
     <!-- ===== PAYMENT DETAIL ===== -->
     @if (Model.Payments.Any())
@@ -233,30 +398,81 @@
                 <thead>
                     <tr>
                         <th>Receipt</th>
-                        <th>Time</th>
+                        <th>Paid</th>
                         <th>Student</th>
                         <th>Method</th>
-                        <th>Reference</th>
                         <th style="text-align:right;">Amount</th>
-                        <th>Recorded By</th>
+                        <th style="text-align:right;">Rate</th>
+                        <th style="text-align:right;">@Model.BaseCurrency</th>
+                        <th>Reference</th>
+                        <th>By</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var p in Model.Payments)
                     {
-                        <tr>
+                        <tr class="@(p.IsBackdated ? "cashup-row-late" : "")">
                             <td class="info-value-mono">@p.ReceiptDisplay</td>
-                            <td>@p.Date.ToString("HH:mm")</td>
+                            <td>
+                                @p.PaymentDate.ToString("dd MMM HH:mm")
+                                @if (p.IsBackdated)
+                                {
+                                    <span class="cashup-badge cashup-badge-late"
+                                          title="Entered @p.CreationDate.ToString("dd MMM yyyy HH:mm")">
+                                        Late
+                                    </span>
+                                }
+                            </td>
                             <td>@p.StudentName</td>
-                            <td>@p.Method</td>
-                            <td class="info-value-mono">@(p.Reference ?? "—")</td>
-                            <td style="text-align:right; font-weight: 600;">
+                            <td>
+                                @p.Method
+                                @if (p.CurrencyId != Model.BaseCurrency)
+                                {
+                                    <span class="cashup-badge">@p.CurrencyId</span>
+                                }
+                            </td>
+                            <td style="text-align:right; font-weight:600;">
+                                @p.Amount.ToString("N2")
+                            </td>
+                            <td style="text-align:right;" class="info-value-mono">
+                                @if (p.IsBaseCurrencyRate)
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                                else
+                                {
+                                    @p.ExchangeRate.ToString("N4")
+                                    @if (p.IsManualRate)
+                                    {
+                                        <span class="cashup-badge cashup-badge-manual"
+                                              title="Rate entered manually">M</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="cashup-badge cashup-badge-rbz"
+                                              title="Fetched from RBZ">RBZ</span>
+                                    }
+                                }
+                            </td>
+                            <td style="text-align:right; font-weight:700;">
                                 @p.BaseAmount.ToString("N2")
                             </td>
+                            <td class="info-value-mono">@(p.Reference ?? "—")</td>
                             <td>@p.CreatedByName</td>
                         </tr>
                     }
                 </tbody>
+                <tfoot>
+                    <tr style="background: #F9FAFB;">
+                        <td colspan="6" style="text-align:right; font-weight:600;">
+                            Total
+                        </td>
+                        <td style="text-align:right; font-weight:700;">
+                            @Model.TotalCollected.ToString("N2")
+                        </td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     }
@@ -274,11 +490,11 @@
                 <thead>
                     <tr>
                         <th>Receipt</th>
-                        <th>Time</th>
+                        <th>Date</th>
                         <th>Student</th>
                         <th>Reason</th>
                         <th style="text-align:right;">Amount</th>
-                        <th>Recorded By</th>
+                        <th>By</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -286,16 +502,27 @@
                     {
                         <tr class="cashup-row-reversal">
                             <td class="info-value-mono">@r.ReceiptDisplay</td>
-                            <td>@r.Date.ToString("HH:mm")</td>
+                            <td>@r.PaymentDate.ToString("dd MMM HH:mm")</td>
                             <td>@r.StudentName</td>
                             <td>@(string.IsNullOrWhiteSpace(r.ReversalReason) ? "—" : r.ReversalReason)</td>
-                            <td style="text-align:right; font-weight: 600; color: #B91C1C;">
+                            <td style="text-align:right; font-weight:600; color: #B91C1C;">
                                 −@Math.Abs(r.BaseAmount).ToString("N2")
                             </td>
                             <td>@r.CreatedByName</td>
                         </tr>
                     }
                 </tbody>
+                <tfoot>
+                    <tr style="background: #FEF2F2;">
+                        <td colspan="4" style="text-align:right; font-weight:600; color:#991B1B;">
+                            Total Reversed
+                        </td>
+                        <td style="text-align:right; font-weight:700; color:#B91C1C;">
+                            −@Model.TotalReversed.ToString("N2")
+                        </td>
+                        <td></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     }
@@ -305,9 +532,22 @@
         <div class="cashup-signoff-text">
             <strong>Declaration</strong>
             <p>
-                I confirm that the cash, EcoCash transfers, and bank transfers received on
-                @Model.SelectedDateFormatted have been counted and reconciled to the amounts
-                listed above.
+                @if (Model.Basis == "created")
+                {
+                    <text>
+                        I confirm that the payments listed above were entered into the system
+                        on @Model.SelectedDateFormatted, and that the amounts and references
+                        match the source documents held in the bursar's office.
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        I confirm that the cash, EcoCash transfers, and bank transfers received on
+                        @Model.SelectedDateFormatted have been counted and reconciled to the amounts
+                        listed above.
+                    </text>
+                }
             </p>
         </div>
 
@@ -328,7 +568,6 @@
     <div class="cashup-footer">
         Generated by @Model.GeneratedByName · @Model.GeneratedOn.ToString("dd MMM yyyy HH:mm")
     </div>
-
 </div>
 
 @section Scripts {
@@ -337,8 +576,43 @@
         window.__cashUpLogoUrl = '@Url.Content("~/images/logo.jpeg")';
 
         /* ============================================================
-           Preload the school logo once and cache it as a data URL so
-           jsPDF can embed it without any async work on button click.
+           DATE PICKER — filter form
+           Replaces the native <input type="date"> so the bursar can
+           pick a date on the same calendar used everywhere else.
+           Submits the filter form on selection.
+           ============================================================ */
+        (function () {
+            const dateInput = document.getElementById('cashupDate');
+            if (!dateInput) return;
+
+            if (window.jQuery && jQuery.fn.datepicker) {
+                jQuery(dateInput).datepicker({
+                    dateFormat: 'yy-mm-dd',
+                    changeMonth: true,
+                    changeYear: true,
+                    showAnim: 'fadeIn',
+                    maxDate: 0,
+                    onSelect: function () {
+                        // Re-submit the filter form with the new date
+                        if (dateInput.form) {
+                            dateInput.form.submit();
+                        }
+                    }
+                });
+
+                // Block keyboard input beyond Tab/Shift/Escape — the
+                // field is readonly but this stops arrow-key nudges too.
+                jQuery(dateInput).on('keydown', function (e) {
+                    const allowed = ['Tab', 'Shift', 'Escape'];
+                    if (allowed.indexOf(e.key) === -1) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        })();
+
+        /* ============================================================
+           PRELOAD LOGO for PDF
            ============================================================ */
         (function preloadLogo() {
             const img = new Image();
@@ -363,14 +637,15 @@
             img.src = window.__cashUpLogoUrl;
         })();
 
+        /* ============================================================
+           PDF BUTTON
+           ============================================================ */
         (function () {
             const btn = document.getElementById('btn-cashup-pdf');
             if (!btn) return;
-
             btn.addEventListener('click', function () {
-                try {
-                    generateCashUpPdf();
-                } catch (err) {
+                try { generateCashUpPdf(); }
+                catch (err) {
                     console.error(err);
                     alert('Sorry, the PDF could not be generated. Please try again.');
                 }
@@ -394,19 +669,16 @@
 
             let y = margin;
 
-            /* ============ HEADER (with logo) ============ */
-            const logoSize    = 50;
-            const logoGap     = 14;
-            const logoData    = window.__cashUpLogoData;
+            /* ============ HEADER ============ */
+            const logoSize = 50, logoGap = 14;
+            const logoData = window.__cashUpLogoData;
             let   headerTextX = margin;
 
             if (logoData) {
                 try {
                     doc.addImage(logoData, 'JPEG', margin, y, logoSize, logoSize);
                     headerTextX = margin + logoSize + logoGap;
-                } catch (e) {
-                    console.warn('CashUp: addImage failed', e);
-                }
+                } catch (e) { console.warn(e); }
             }
 
             doc.setFont('helvetica', 'bold');
@@ -419,19 +691,22 @@
             doc.setTextColor(71, 85, 105);
             doc.text(data.title || '', headerTextX, y + 34);
 
-            // Reserve vertical space for the logo row (whichever is taller)
-            y += Math.max(logoSize, 44) + 18;
+            doc.setFontSize(9);
+            doc.setTextColor(100, 116, 139);
+            doc.text(data.subtitle || '', headerTextX, y + 48);
 
-            /* ---- Meta box ---- */
+            y += Math.max(logoSize, 52) + 18;
+
+            /* ============ META BOX ============ */
             const metaBoxH = data.receiptRange ? 62 : 46;
             doc.setDrawColor(203, 213, 225);
             doc.setFillColor(248, 250, 252);
             doc.roundedRect(margin, y, contentW, metaBoxH, 4, 4, 'FD');
 
-            const leftX   = margin + 12;
-            const rightX  = margin + contentW / 2 + 12;
-            const labelW  = 70;
-            let   metaY   = y + 18;
+            const leftX = margin + 12;
+            const rightX = margin + contentW / 2 + 12;
+            const labelW = 70;
+            let metaY = y + 18;
 
             doc.setFontSize(9);
             doc.setTextColor(51, 65, 85);
@@ -446,6 +721,11 @@
                 doc.text('Bursar:', rightX, metaY);
                 doc.setFont('helvetica', 'normal');
                 doc.text(data.bursar, rightX + labelW, metaY);
+            } else if (!data.canViewAllBursars) {
+                doc.setFont('helvetica', 'bold');
+                doc.text('Scope:', rightX, metaY);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Your payments only', rightX + labelW, metaY);
             }
 
             metaY += 16;
@@ -464,16 +744,16 @@
             y += metaBoxH + 18;
 
             /* ============ SUMMARY TILES ============ */
-            const gap       = 8;
-            const tileW     = (contentW - gap * 3) / 4;
-            const tileH     = 50;
+            const gap = 8;
+            const tileW = (contentW - gap * 3) / 4;
+            const tileH = 54;
 
             const tiles = [
-                { label: 'PAYMENTS',  value: String(data.totals.payments),
+                { label: 'PAYMENTS', value: String(data.totals.payments),
                   fill: [248,250,252], text: [15,23,42] },
                 { label: 'REVERSALS', value: String(data.totals.reversals),
                   fill: [248,250,252], text: data.totals.reversals > 0 ? [185,28,28] : [15,23,42] },
-                { label: 'TOTAL COLLECTED', value: `${fmt(data.totals.collected)} ${data.baseCurrency}`,
+                { label: 'GROSS COLLECTED', value: `${fmt(data.totals.collected)} ${data.baseCurrency}`,
                   fill: [30,64,175], text: [255,255,255] },
                 { label: 'NET', value: `${fmt(data.totals.net)} ${data.baseCurrency}`,
                   fill: [22,101,52], text: [255,255,255] }
@@ -490,47 +770,106 @@
                 doc.text(t.label, x + 8, y + 16);
 
                 doc.setFontSize(12);
-                doc.text(t.value, x + 8, y + 36);
+                doc.text(t.value, x + 8, y + 38);
             });
 
-            y += tileH + 24;
+            y += tileH + 16;
 
-            /* ============ METHOD BREAKDOWN ============ */
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(11);
-            doc.setTextColor(15, 23, 42);
-            doc.text('Breakdown by Payment Method', margin, y);
+            // Notes row (backdated / manual rate)
+            const notes = [];
+            if (data.totals.lateEntries > 0)
+                notes.push(`${data.totals.lateEntries} backdated entr${data.totals.lateEntries === 1 ? 'y' : 'ies'}`);
+            if (data.totals.manualRates > 0)
+                notes.push(`${data.totals.manualRates} manual rate${data.totals.manualRates === 1 ? '' : 's'}`);
+
+            if (notes.length) {
+                doc.setFont('helvetica', 'italic');
+                doc.setFontSize(8);
+                doc.setTextColor(146, 64, 14);
+                doc.text(notes.join(' · '), margin, y);
+                y += 14;
+            }
+
             y += 8;
 
-            if (data.methods && data.methods.length) {
+            /* ============ CURRENCY BREAKDOWN ============ */
+            if (data.currencies && data.currencies.length > 1) {
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(11);
+                doc.setTextColor(15, 23, 42);
+                doc.text('Totals by Currency', margin, y);
+                y += 8;
+
                 doc.autoTable({
                     startY: y,
-                    head: [['Method', 'Count', `Total (${data.baseCurrency})`]],
-                    body: data.methods.map(m => [m.name, m.count, fmt(m.total)]),
-                    foot: [['Total', data.totals.payments, fmt(data.totals.collected)]],
+                    head: [['Currency', 'Payments', 'Total', `In ${data.baseCurrency}`]],
+                    body: data.currencies.map(c => [
+                        c.code, c.count, fmt(c.total), fmt(c.baseTotal)
+                    ]),
                     theme: 'grid',
-                    styles: {
-                        fontSize: 9,
-                        cellPadding: 5,
-                        lineColor: [226, 232, 240],
-                        lineWidth: 0.5,
-                        textColor: [30, 41, 59]
+                    styles: { fontSize: 9, cellPadding: 5, lineColor: [226,232,240], lineWidth: 0.5, textColor: [30,41,59] },
+                    headStyles: { fillColor: [30,64,175], textColor: 255, fontStyle: 'bold' },
+                    columnStyles: {
+                        1: { halign: 'right', cellWidth: 70 },
+                        2: { halign: 'right', cellWidth: 100 },
+                        3: { halign: 'right', cellWidth: 100 }
                     },
+                    margin: { left: margin, right: margin }
+                });
+                y = doc.lastAutoTable.finalY + 20;
+            }
+
+            /* ============ METHOD BREAKDOWN ============ */
+            if (data.methods && data.methods.length) {
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(11);
+                doc.setTextColor(15, 23, 42);
+                doc.text('Breakdown by Payment Method', margin, y);
+                y += 8;
+
+                doc.autoTable({
+                    startY: y,
+                    head: [['Method', 'Currency', 'Count', 'Total', `In ${data.baseCurrency}`]],
+                    body: data.methods.map(m => [
+                        m.name, m.currency, m.count, fmt(m.total), fmt(m.baseTotal)
+                    ]),
+                    foot: [['Total', '', data.totals.payments, '', fmt(data.totals.collected)]],
+                    theme: 'grid',
+                    styles: { fontSize: 9, cellPadding: 5, lineColor: [226,232,240], lineWidth: 0.5, textColor: [30,41,59] },
                     headStyles: { fillColor: [30,64,175], textColor: 255, fontStyle: 'bold' },
                     footStyles: { fillColor: [241,245,249], textColor: [15,23,42], fontStyle: 'bold' },
+                    columnStyles: {
+                        2: { halign: 'right', cellWidth: 60 },
+                        3: { halign: 'right', cellWidth: 100 },
+                        4: { halign: 'right', cellWidth: 100 }
+                    },
+                    margin: { left: margin, right: margin }
+                });
+                y = doc.lastAutoTable.finalY + 20;
+            }
+
+            /* ============ BURSAR BREAKDOWN ============ */
+            if (data.canViewAllBursars && data.bursars && data.bursars.length > 1) {
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(11);
+                doc.setTextColor(15, 23, 42);
+                doc.text('Breakdown by Bursar', margin, y);
+                y += 8;
+
+                doc.autoTable({
+                    startY: y,
+                    head: [['Bursar', 'Payments', `Total (${data.baseCurrency})`]],
+                    body: data.bursars.map(b => [b.name, b.count, fmt(b.baseTotal)]),
+                    theme: 'grid',
+                    styles: { fontSize: 9, cellPadding: 5, lineColor: [226,232,240], lineWidth: 0.5, textColor: [30,41,59] },
+                    headStyles: { fillColor: [30,64,175], textColor: 255, fontStyle: 'bold' },
                     columnStyles: {
                         1: { halign: 'right', cellWidth: 70 },
                         2: { halign: 'right', cellWidth: 110 }
                     },
                     margin: { left: margin, right: margin }
                 });
-                y = doc.lastAutoTable.finalY + 24;
-            } else {
-                doc.setFont('helvetica', 'italic');
-                doc.setFontSize(9);
-                doc.setTextColor(100, 116, 139);
-                doc.text('No payments recorded on this date.', margin, y + 14);
-                y += 32;
+                y = doc.lastAutoTable.finalY + 20;
             }
 
             /* ============ PAYMENT DETAIL ============ */
@@ -545,30 +884,42 @@
 
                 doc.autoTable({
                     startY: y,
-                    head: [['Receipt', 'Time', 'Student', 'Method', 'Reference', 'Amount', 'Recorded By']],
+                    head: [['Receipt', 'Paid', 'Student', 'Method', 'Amount', 'Rate', `Base ${data.baseCurrency}`, 'By']],
                     body: data.payments.map(p => [
                         p.receipt,
                         p.time,
                         p.student,
-                        p.method,
-                        p.reference || '-',
+                        p.currency !== data.baseCurrency
+                            ? `${p.method} (${p.currency})`
+                            : p.method,
                         fmt(p.amount),
+                        p.rateSource === 'BASE'
+                            ? '—'
+                            : `${Number(p.rate).toFixed(4)}${p.rateSource === 'Manual' ? ' M' : ''}`,
+                        fmt(p.baseAmount),
                         p.by
                     ]),
                     theme: 'striped',
-                    styles: {
-                        fontSize: 8,
-                        cellPadding: 4,
-                        lineColor: [226, 232, 240],
-                        lineWidth: 0.5,
-                        textColor: [30, 41, 59]
-                    },
+                    styles: { fontSize: 7.5, cellPadding: 3.5, lineColor: [226,232,240], lineWidth: 0.5, textColor: [30,41,59] },
                     headStyles: { fillColor: [30,64,175], textColor: 255, fontStyle: 'bold' },
                     alternateRowStyles: { fillColor: [248, 250, 252] },
-                    columnStyles: { 5: { halign: 'right', cellWidth: 70 } },
+                    columnStyles: {
+                        4: { halign: 'right', cellWidth: 60 },
+                        5: { halign: 'right', cellWidth: 55 },
+                        6: { halign: 'right', cellWidth: 65 }
+                    },
+                    didParseCell: function (d) {
+                        // Highlight backdated rows
+                        if (d.section === 'body') {
+                            const idx = d.row.index;
+                            if (data.payments[idx] && data.payments[idx].late) {
+                                d.cell.styles.fillColor = [255, 251, 235];
+                            }
+                        }
+                    },
                     margin: { left: margin, right: margin }
                 });
-                y = doc.lastAutoTable.finalY + 24;
+                y = doc.lastAutoTable.finalY + 20;
             }
 
             /* ============ REVERSALS ============ */
@@ -583,23 +934,17 @@
 
                 doc.autoTable({
                     startY: y,
-                    head: [['Receipt', 'Time', 'Student', 'Reason', 'Amount', 'Recorded By']],
+                    head: [['Receipt', 'Date', 'Student', 'Reason', 'Amount', 'By']],
                     body: data.reversals.map(r => [
                         r.receipt,
                         r.time,
                         r.student,
                         r.reason || '-',
-                        '-' + fmt(Math.abs(r.amount)),
+                        '-' + fmt(Math.abs(r.baseAmount)),
                         r.by
                     ]),
                     theme: 'grid',
-                    styles: {
-                        fontSize: 8,
-                        cellPadding: 4,
-                        lineColor: [254, 202, 202],
-                        lineWidth: 0.5,
-                        textColor: [127, 29, 29]
-                    },
+                    styles: { fontSize: 8, cellPadding: 4, lineColor: [254,202,202], lineWidth: 0.5, textColor: [127,29,29] },
                     headStyles: { fillColor: [185,28,28], textColor: 255, fontStyle: 'bold' },
                     columnStyles: { 4: { halign: 'right', cellWidth: 70 } },
                     margin: { left: margin, right: margin }
@@ -619,9 +964,11 @@
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
             doc.setTextColor(51, 65, 85);
-            const declaration =
-                `I confirm that the cash, EcoCash transfers, and bank transfers received on ` +
-                `${data.dateFormatted} have been counted and reconciled to the amounts listed above.`;
+
+            const declaration = data.basis === 'created'
+                ? `I confirm that the payments listed above were entered into the system on ${data.dateFormatted}, and that the amounts and references match the source documents held in the bursar's office.`
+                : `I confirm that the cash, EcoCash transfers, and bank transfers received on ${data.dateFormatted} have been counted and reconciled to the amounts listed above.`;
+
             const declLines = doc.splitTextToSize(declaration, contentW);
             doc.text(declLines, margin, y);
             y += declLines.length * 12 + 32;
@@ -647,7 +994,7 @@
             drawSignLine(margin + lineW + 40, 'Verified by (Head Teacher)');
 
             /* ============ FOOTER ============ */
-            const footer = `Generated by ${data.generatedByName} - ${data.generatedOn}`;
+            const footer = `Generated by ${data.generatedByName} · ${data.generatedOn}`;
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8);
             doc.setTextColor(148, 163, 184);
@@ -696,7 +1043,8 @@
             .cashup-table th,
             .cashup-stat-primary,
             .cashup-stat-net,
-            .cashup-writein {
+            .cashup-writein,
+            .cashup-row-late {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }

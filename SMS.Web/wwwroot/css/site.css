@@ -3389,6 +3389,7 @@ textarea.form-control {
     gap: 0.35rem;
     line-height: 1;
     font-weight: 500;
+    border: 1px solid black;
 }
 
     .row-action-btn i {
@@ -3396,13 +3397,16 @@ textarea.form-control {
         line-height: 1;
     }
 
-/* Clickable student name — silent link that reveals on hover */
-.student-link {
-    color: inherit;
-    text-decoration: none;
-    font-weight: 600;
-    transition: color 0.15s ease;
-}
+    .row-action-btn:hover {
+        border: 1px solid black;
+    }
+    /* Clickable student name — silent link that reveals on hover */
+    .student-link {
+        color: inherit;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.15s ease;
+    }
 
     .student-link:hover,
     .student-link:focus {
@@ -3537,3 +3541,28 @@ tr.row-clickable {
             width: 100%;
         }
 }
+/* ==========================================================
+   HOUSE STAT — FADED NAVY ACCENT
+   Used for the live conversion preview on Record Payment.
+   Soft navy wash so it reads as "active/live" without
+   shouting. Distinct from the pale amber .house-stat-warning
+   balance tile and the neutral white student tile.
+   ========================================================== */
+
+.house-stat-accent {
+    background: #E8ECF2;
+    border-color: #C5CFDC;
+}
+
+    .house-stat-accent i {
+        background: var(--sms-navy);
+        color: var(--sms-gold);
+    }
+
+    .house-stat-accent .house-stat-value {
+        color: var(--sms-navy);
+    }
+
+    .house-stat-accent .house-stat-label {
+        color: #5A6675;
+    }

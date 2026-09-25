@@ -5,11 +5,11 @@
 @{
     ViewData["Title"] = "Record Payment";
     ViewData["PageTitle"] = "Record Payment";
-    ViewData["PageSubTitle"] = Model.StudentName;
+    ViewData["PageSubTitle"] = "Record a new payment for a student";
 }
 
 @section actionbar {
-    <a asp-page="./Ledger" asp-route-id="@Model.LedgerId" class="btn btn-secondary">
+    <a asp-page="./Ledger" asp-route-id="@Model.LedgerId" class="btn btn-ghost">
         <i class="fa-solid fa-arrow-left"></i> Back to Ledger
     </a>
 }
@@ -30,6 +30,17 @@
             <div class="house-stat-label">Current Balance (@Model.BaseCurrency)</div>
         </div>
     </div>
+
+    <!-- Live conversion tile -->
+    <div class="house-stat house-stat-accent" id="conversionStatCard" style="display: none;">
+        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+        <div>
+            <div class="house-stat-value" id="conversionAmount">0.00</div>
+            <div class="house-stat-label" id="conversionLabel">
+                Converts to @Model.BaseCurrency
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- ===== PAYMENT FORM ===== -->
@@ -47,7 +58,7 @@
 
             <div class="form-grid-2" style="margin-bottom: 1.5rem;">
 
-                <!-- Payment Date -->
+                <!-- Payment Date — blank by default, no future dates -->
                 <div class="form-group">
                     <label class="form-label" for="paymentDateInput">
                         Payment Date <span class="required">*</span>
@@ -58,7 +69,7 @@
                            class="form-control"
                            placeholder="yyyy-mm-dd"
                            autocomplete="off"
-                           value="@Model.Input.PaymentDate.ToString("yyyy-MM-dd")"
+                           value="@(Model.Input.PaymentDate?.ToString("yyyy-MM-dd") ?? "")"
                            required />
                     <small class="currency-hint">From the slip / SMS / POS receipt</small>
                     <span asp-validation-for="Input.PaymentDate" class="text-danger"></span>
@@ -97,7 +108,7 @@
                     <span asp-validation-for="Input.CurrencyId" class="text-danger"></span>
                 </div>
 
-                <!-- Exchange Rate (read-only; server-authoritative) -->
+                <!-- Exchange Rate -->
                 <div class="form-group">
                     <label class="form-label" asp-for="Input.ExchangeRate">Exchange Rate</label>
                     <input asp-for="Input.ExchangeRate"
@@ -168,14 +179,6 @@
                 </div>
             </div>
 
-            <!-- Live conversion preview -->
-            <div class="conversion-preview" id="conversionPreview" style="display: none;">
-                <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                <span class="conversion-label">Converts to:</span>
-                <strong id="conversionAmount">0.00</strong>
-                <span class="conversion-label">@Model.BaseCurrency</span>
-            </div>
-
         </div>
 
         <div class="card-footer">
@@ -199,14 +202,19 @@
             const currencySelect   = document.getElementById('currencySelect');
             const rateInput        = document.getElementById('rateInput');
             const rateHint         = document.getElementById('rateHint');
-            const preview          = document.getElementById('conversionPreview');
-            const previewAmt       = document.getElementById('conversionAmount');
             const overrideSection  = document.getElementById('overrideSection');
             const overrideCheckbox = document.getElementById('overrideCheckbox');
             const overrideFields   = document.getElementById('overrideFields');
 
+            const conversionStatCard = document.getElementById('conversionStatCard');
+            const conversionAmountEl = document.getElementById('conversionAmount');
+            const conversionLabelEl  = document.getElementById('conversionLabel');
+
+            const BASE_CURRENCY = '@Model.BaseCurrency';
+
             if (!currencySelect) return;
 
+            // ---- jQuery UI date picker — no future dates, no keyboard entry ----
             if (window.jQuery && jQuery.fn.datepicker) {
                 jQuery(dateInput).datepicker({
                     dateFormat: 'yy-mm-dd',
@@ -214,23 +222,42 @@
                     changeYear: true,
                     showAnim: 'fadeIn',
                     maxDate: 0,
-                    onSelect: function () { fetchRate(); }
+                    onSelect: function () { fetchRate(); },
+                    onClose: function (dateText) {
+                        // If the picker closes with no date, keep the field empty.
+                        if (!dateText) jQuery(this).val('');
+                    }
                 });
-                jQuery(dateInput).on('keydown', function (e) { e.preventDefault(); });
+                // Belt-and-braces: the input has `readonly` in the HTML too,
+                // but prevent the picker from ever accepting typed input.
+                jQuery(dateInput).on('keydown', function (e) {
+                    const allowed = ['Tab', 'Shift', 'Escape'];
+                    if (allowed.indexOf(e.key) === -1) {
+                        e.preventDefault();
+                    }
+                });
             }
 
+            // ---- Live conversion stat card ----
             function updatePreview() {
                 const amt  = parseFloat(amountInput?.value) || 0;
                 const rate = parseFloat(rateInput?.value) || 0;
+                const curr = currencySelect?.value || '';
 
-                if (amt > 0 && rate > 0) {
-                    preview.style.display = 'flex';
-                    previewAmt.textContent = (amt * rate).toFixed(2);
+                if (!conversionStatCard) return;
+
+                const isBase = (curr === BASE_CURRENCY);
+
+                if (amt > 0 && rate > 0 && !isBase) {
+                    conversionAmountEl.textContent = (amt * rate).toFixed(2);
+                    conversionLabelEl.textContent  = 'Converts to ' + BASE_CURRENCY;
+                    conversionStatCard.style.display = '';
                 } else {
-                    preview.style.display = 'none';
+                    conversionStatCard.style.display = 'none';
                 }
             }
 
+            // ---- Fetch the rate ----
             let lastFetchKey = '';
             let fetchSeq = 0;
 
@@ -257,6 +284,7 @@
                 rateHint.style.color = '#6B7280';
                 rateInput.value = '';
                 overrideSection.style.display = 'none';
+                updatePreview();
 
                 fetch(`?handler=FetchRate&currencyId=${encodeURIComponent(currency)}&paymentDate=${encodeURIComponent(date)}`)
                     .then(r => r.json())
@@ -292,6 +320,7 @@
                     });
             }
 
+            // ---- Wire up events ----
             currencySelect.addEventListener('change', function () {
                 lastFetchKey = '';
                 fetchRate();
@@ -313,7 +342,7 @@
                 }
             });
 
-            fetchRate();
+            
         })();
     </script>
 }

@@ -166,8 +166,9 @@
                                  && CurrentUser.HasRight(AccessRights.RecordPayments))
                             {
                                 <a asp-page="./ReversePayment" asp-route-id="@p.Id"
-                                   class="btn btn-ghost btn-sm" title="Reverse this payment">
+                                   class="btn btn-ghost btn-sm row-action-btn">
                                     <i class="fa-solid fa-rotate-left"></i>
+                                    <span>Reverse</span>
                                 </a>
                             }
                         </td>

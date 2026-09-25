@@ -9,9 +9,8 @@ namespace SMS.Web.Areas.Finance.Pages.Fees.ViewModels
 
         /// <summary>When the parent actually paid — from the slip / SMS / POS receipt.</summary>
         [Required]
-        [DataType(DataType.Date)]
         [Display(Name = "Payment Date")]
-        public DateTime PaymentDate { get; set; } = DateTime.Today;
+        public DateTime? PaymentDate { get; set; } 
 
         [Required]
         [Range(0.01, 100_000_000, ErrorMessage = "Enter a valid amount greater than zero.")]

@@ -187,11 +187,12 @@ namespace SMS.Lib
                     Icon = "fa-hand-holding-usd",
                     Rights = new()
                     {
-                        new() { Right = AccessRights.ViewFeeBalances,  DisplayName = "View Fee Balances" },
-                        new() { Right = AccessRights.RecordPayments,   DisplayName = "Record Payments" },
-                        new() { Right = AccessRights.GenerateInvoices, DisplayName = "Generate Invoices" },
-                        new() { Right = AccessRights.WaiveFees,        DisplayName = "Waive Fees" },
-                        new() { Right = AccessRights.ViewFeeReports,   DisplayName = "View Fee Reports" }
+                        new() { Right = AccessRights.ViewFeeBalances,      DisplayName = "View Fee Balances" },
+                        new() { Right = AccessRights.RecordPayments,       DisplayName = "Record Payments" },
+                        new() { Right = AccessRights.GenerateInvoices,     DisplayName = "Generate Invoices" },
+                        new() { Right = AccessRights.WaiveFees,            DisplayName = "Waive Fees" },
+                        new() { Right = AccessRights.ViewFeeReports,       DisplayName = "View Fee Reports" },
+                        new() { Right = AccessRights.ViewAllBursarsCashUp, DisplayName = "View All Bursars' Cash-Up" }
                     }
                 },
                 new RightCategory
@@ -227,7 +228,7 @@ namespace SMS.Lib
                         new() { Right = AccessRights.AssignSportsCoaches, DisplayName = "Assign Sports Coaches" }
                     }
                 },
-                            };
+            };
         }
     }
 }

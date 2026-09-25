@@ -94,12 +94,23 @@ namespace SMS.Lib
 
         // ============================================================
         //  FEES
+        //  NOTE: Bits 45–58 are used by later categories. The newest
+        //  fee right (ViewAllBursarsCashUp) takes bit 59 so existing
+        //  stored bitmask values are not shifted.
         // ============================================================
         ViewFeeBalances = 1L << 40,
         RecordPayments = 1L << 41,
         GenerateInvoices = 1L << 42,
         WaiveFees = 1L << 43,
         ViewFeeReports = 1L << 44,
+
+        /// <summary>
+        /// Allows the user to see the cash-up report for every bursar,
+        /// not just their own payments. Without this right, the Cash-Up
+        /// page is silently scoped to the signed-in user's own entries
+        /// and the Bursar filter dropdown is hidden.
+        /// </summary>
+        ViewAllBursarsCashUp = 1L << 59,
 
         // ============================================================
         //  SPONSORS
