@@ -61,7 +61,6 @@ namespace SMS.Lib
         CreateSubjects = 1L << 24,
         EditSubjects = 1L << 25,
 
-
         // ============================================================
         //  TIMETABLE
         // ============================================================
@@ -94,9 +93,6 @@ namespace SMS.Lib
 
         // ============================================================
         //  FEES
-        //  NOTE: Bits 45–58 are used by later categories. The newest
-        //  fee right (ViewAllBursarsCashUp) takes bit 59 so existing
-        //  stored bitmask values are not shifted.
         // ============================================================
         ViewFeeBalances = 1L << 40,
         RecordPayments = 1L << 41,
@@ -145,5 +141,12 @@ namespace SMS.Lib
         CreateSports = 1L << 56,
         EditSports = 1L << 57,
         AssignSportsCoaches = 1L << 58,
+
+        // ============================================================
+        //  PREFECTS
+        // ============================================================
+        ViewPrefects = 1L << 60,
+        CreatePrefects = 1L << 61,
+        EditPrefects = 1L << 62,
     }
 }

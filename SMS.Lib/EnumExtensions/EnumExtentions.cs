@@ -294,5 +294,76 @@ namespace SMS.Lib
             StaffCategory.SENIOR_TEACHER => true,
             _ => false
         };
+
+        // ==========================================================
+        //  PREFECT POST TITLE
+        // ==========================================================
+        public static string ToDisplayName(this PrefectPostTitle p) => p switch
+        {
+            PrefectPostTitle.HEAD_BOY => "Head Boy",
+            PrefectPostTitle.HEAD_GIRL => "Head Girl",
+            PrefectPostTitle.DEPUTY_HEAD_BOY => "Deputy Head Boy",
+            PrefectPostTitle.DEPUTY_HEAD_GIRL => "Deputy Head Girl",
+            PrefectPostTitle.SENIOR_BOY => "Senior Boy",
+            PrefectPostTitle.SENIOR_GIRL => "Senior Girl",
+            PrefectPostTitle.PREFECT => "Prefect",
+            PrefectPostTitle.SPORTS_PREFECT => "Sports Prefect",
+            PrefectPostTitle.FLAG_BEARER => "Flag Bearer",
+            _ => p.ToString()
+        };
+
+        public static IEnumerable<PrefectPostTitle> AllPrefectPostTitles() =>
+            Enum.GetValues<PrefectPostTitle>()
+                .OrderBy(p => (int)p);
+
+        // ==========================================================
+        //  PREFECT STATUS
+        // ==========================================================
+        public static string ToDisplayName(this PrefectStatus s) => s switch
+        {
+            PrefectStatus.ACTIVE => "Active",
+            PrefectStatus.INACTIVE => "Inactive",
+            PrefectStatus.DEMOTED => "Demoted",
+            PrefectStatus.COMPLETED => "Completed",
+            _ => s.ToString()
+        };
+
+        public static IEnumerable<PrefectStatus> AllPrefectStatuses() =>
+            Enum.GetValues<PrefectStatus>()
+                .OrderBy(s => (int)s);
+
+        // ==========================================================
+        //  PREFECT APPOINTMENT STATUS
+        // ==========================================================
+        public static string ToDisplayName(this PrefectAppointmentStatus s) => s switch
+        {
+            PrefectAppointmentStatus.NOMINATED => "Nominated",
+            PrefectAppointmentStatus.APPOINTED => "Appointed",
+            PrefectAppointmentStatus.VETTING_IN_PROGRESS => "Vetting In Progress",
+            PrefectAppointmentStatus.COMPLETED => "Completed",
+            PrefectAppointmentStatus.DEMOTED => "Demoted",
+            _ => s.ToString()
+        };
+
+        public static IEnumerable<PrefectAppointmentStatus> AllPrefectAppointmentStatuses() =>
+            Enum.GetValues<PrefectAppointmentStatus>()
+                .OrderBy(s => (int)s);
+
+        // ==========================================================
+        //  PREFECT — HELPERS
+        // ==========================================================
+        public static bool IsActive(this PrefectStatus s) =>
+            s == PrefectStatus.ACTIVE;
+
+        public static bool IsLeadershipRole(this PrefectPostTitle p) => p switch
+        {
+            PrefectPostTitle.HEAD_BOY => true,
+            PrefectPostTitle.HEAD_GIRL => true,
+            PrefectPostTitle.DEPUTY_HEAD_BOY => true,
+            PrefectPostTitle.DEPUTY_HEAD_GIRL => true,
+            PrefectPostTitle.SENIOR_BOY => true,
+            PrefectPostTitle.SENIOR_GIRL => true,
+            _ => false
+        };
     }
 }

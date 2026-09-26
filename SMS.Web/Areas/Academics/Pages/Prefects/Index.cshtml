@@ -1,0 +1,157 @@
+﻿@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Academics.Pages.Prefects.IndexModel
+@{
+    ViewData["Title"] = "Prefects";
+    ViewData["PageTitle"] = "Prefects";
+    ViewData["PageSubTitle"] = "Manage prefect records";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.CreateLearners))
+    {
+        <a asp-page="./Upsert" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Create
+        </a>
+    }
+}
+
+<div class="table-card">
+
+    <div class="table-count">
+        <i class="fa-solid fa-list-ul me-2"></i>
+        Total: <strong>@Model.Pagination.TotalCount</strong>
+        @(Model.Pagination.TotalCount == 1 ? "prefect" : "prefects")
+    </div>
+
+    <!-- ===== FILTER TOOLBAR ===== -->
+    <form method="get" class="table-toolbar" id="filterForm">
+
+        <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text"
+                   asp-for="Search"
+                   class="search-input"
+                   placeholder="Search by name or surname..."
+                   autocomplete="off"
+                   id="searchInput" />
+        </div>
+
+        <div class="filter-wrapper">
+            <select asp-for="ClassFilter"
+                    asp-items="Model.ClassOptions"
+                    class="filter-dropdown"
+                    id="classFilter">
+                <option value="">All Classes</option>
+            </select>
+        </div>
+
+        <div class="filter-wrapper">
+            <select asp-for="PostTitleFilter"
+                    asp-items="Model.PostTitleOptions"
+                    class="filter-dropdown"
+                    id="postTitleFilter">
+                <option value="">All Positions</option>
+            </select>
+        </div>
+
+        <div class="filter-wrapper">
+            <select asp-for="StatusFilter"
+                    asp-items="Model.StatusOptions"
+                    class="filter-dropdown"
+                    id="statusFilter">
+                <option value="">All Statuses</option>
+            </select>
+        </div>
+
+        <input type="hidden" asp-for="PageSize" />
+        <input type="hidden" asp-for="PageNumber" value="1" id="pageNumberHidden" />
+    </form>
+
+    <!-- ===== TABLE ===== -->
+    <table class="data-table table-compact">
+        <thead>
+            <tr>
+                <th>STD ID</th>
+                <th>Name</th>
+                <th>Surname</th>
+                <th>Class</th>
+                <th>Position</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Prefects.Any())
+            {
+                @foreach (var p in Model.Prefects)
+                {
+                    <tr>
+                        <td>
+                            <a asp-area="Academics"
+                               asp-page="/Students/Details"
+                               asp-route-id="@p.StudentId"
+                               class="reg-link">
+                                @p.StudentNumber
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </td>
+                        <td>@p.Name</td>
+                        <td>@p.Surname</td>
+                        <td>@p.ClassName</td>
+                        <td>@p.PostTitleName</td>
+                        <td>@p.StartDate.ToString("dd MMM yyyy")</td>
+                        <td>@p.EndDate.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <span class="status-badge @p.StatusCssClass">@p.StatusName</span>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="empty-state">
+                        No prefects found matching your criteria.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <partial name="~/Pages/Shared/Pagination/_pagination.cshtml" model="Model.Pagination" />
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const form = document.getElementById('filterForm');
+            const searchInput = document.getElementById('searchInput');
+            const classFilter = document.getElementById('classFilter');
+            const postTitleFilter = document.getElementById('postTitleFilter');
+            const statusFilter = document.getElementById('statusFilter');
+            const pageNumberHidden = document.getElementById('pageNumberHidden');
+
+            if (!form) return;
+
+            function submit() {
+                if (pageNumberHidden) pageNumberHidden.value = '1';
+                form.submit();
+            }
+
+            if (searchInput) {
+                let timer = null;
+                searchInput.addEventListener('input', function () {
+                    clearTimeout(timer);
+                    timer = setTimeout(submit, 500);
+                });
+            }
+
+            if (classFilter)     classFilter.addEventListener('change', submit);
+            if (postTitleFilter) postTitleFilter.addEventListener('change', submit);
+            if (statusFilter)    statusFilter.addEventListener('change', submit);
+        })();
+    </script>
+}

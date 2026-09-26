@@ -1,0 +1,125 @@
+﻿@page "{id:guid?}"
+@model SMS.Web.Areas.Academics.Pages.Prefects.UpsertModel
+@{
+    ViewData["Title"]        = Model.IsEdit ? "Edit Prefect" : "New Prefect";
+    ViewData["PageTitle"]    = Model.IsEdit ? "Edit Prefect" : "New Prefect";
+    ViewData["PageSubTitle"] = Model.IsEdit
+        ? "Update the prefect's appointment"
+        : "Appoint a new prefect";
+}
+
+<form method="post" class="form-compact">
+    <input type="hidden" asp-for="Input.Id" />
+
+    <div class="form-card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <!-- ===================== STUDENT ===================== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-user-graduate"></i> Student
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="Input.StudentId">
+                        Student <span class="required">*</span>
+                    </label>
+                    <select asp-for="Input.StudentId"
+                            asp-items="Model.StudentOptions"
+                            class="form-control">
+                        <option value="">— Select student —</option>
+                    </select>
+                    <span asp-validation-for="Input.StudentId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- =================== APPOINTMENT =================== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-award"></i> Appointment
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.PostTitleId">
+                        Post Title <span class="required">*</span>
+                    </label>
+                    <select asp-for="Input.PostTitleId"
+                            asp-items="Model.PostTitleOptions"
+                            class="form-control">
+                        <option value="">— Select post title —</option>
+                    </select>
+                    <span asp-validation-for="Input.PostTitleId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.StatusId">
+                        Status <span class="required">*</span>
+                    </label>
+                    <select asp-for="Input.StatusId"
+                            asp-items="Model.StatusOptions"
+                            class="form-control">
+                        <option value="">— Select status —</option>
+                    </select>
+                    <span asp-validation-for="Input.StatusId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.StartDate">
+                        Start Date <span class="required">*</span>
+                    </label>
+                    <input asp-for="Input.StartDate"
+                           asp-format="{0:yyyy-MM-dd}"
+                           type="text"
+                           class="form-control datepicker"
+                           placeholder="yyyy-mm-dd"
+                           autocomplete="off" />
+                    <span asp-validation-for="Input.StartDate" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.EndDate">
+                        End Date <span class="required">*</span>
+                    </label>
+                    <input asp-for="Input.EndDate"
+                           asp-format="{0:yyyy-MM-dd}"
+                           type="text"
+                           class="form-control datepicker"
+                           placeholder="yyyy-mm-dd"
+                           autocomplete="off" />
+                    <span asp-validation-for="Input.EndDate" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i>
+                @(Model.IsEdit ? "Save Changes" : "Create Prefect")
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(function () {
+            $('.datepicker').datepicker({
+                dateFormat: 'yy-mm-dd',   // must match the rendered value format
+                changeMonth: true,
+                changeYear: true,
+                showAnim: 'fadeIn',
+                yearRange: 'c-5:c+5'
+            });
+
+            // Date fields must be chosen from the picker, not typed
+            $('.datepicker').on('keydown', function (e) {
+                e.preventDefault();
+            });
+        });
+    </script>
+}

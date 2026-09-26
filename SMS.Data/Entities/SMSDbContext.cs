@@ -93,7 +93,9 @@ public partial class SMSDbContext : DbContext
 
     public virtual DbSet<Village> Villages { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=SMSDb1;Trusted_Connection=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -526,6 +528,11 @@ public partial class SMSDbContext : DbContext
             entity.HasOne(d => d.Nominator).WithMany(p => p.Prefects)
                 .HasForeignKey(d => d.NominatorId)
                 .HasConstraintName("FK_Prefect_Staff");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.Prefects)
+                .HasForeignKey(d => d.StudentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Prefect_Student");
         });
 
         modelBuilder.Entity<Project>(entity =>

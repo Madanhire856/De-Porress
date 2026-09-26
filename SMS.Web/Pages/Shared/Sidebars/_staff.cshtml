@@ -11,10 +11,10 @@
     // ============================================================
     //  ACADEMICS FLAGS
     // ============================================================
-    var isStaff = currentArea == "academics" && currentPage.StartsWith("/staff");
-    var isStudents = currentArea == "academics" && currentPage.StartsWith("/students");
-    var isTimetable = currentPage.StartsWith("/timetable");
-    var isPrefects = currentPage.StartsWith("/prefects");
+    var isStaff      = currentArea == "academics" && currentPage.StartsWith("/staff");
+    var isStudents   = currentArea == "academics" && currentPage.StartsWith("/students");
+    var isTimetable  = currentPage.StartsWith("/timetable");
+    var isPrefects   = currentArea == "academics" && currentPage.StartsWith("/prefects");   // <-- FIXED
     var isAcademicsSection = isStaff || isStudents || isTimetable || isPrefects;
 
     // ============================================================
@@ -35,17 +35,14 @@
     var isCashUp          = currentArea == "finance" && currentPage.StartsWith("/fees/cashup");
     var isOpenTerm        = currentArea == "finance" && currentPage.StartsWith("/fees/openterm");
 
-    // Fee Structure = list page + the Upsert form
     var isFeeStructure    = currentArea == "finance"
                          && (currentPage.StartsWith("/fees/feesstructures")
                           || currentPage.StartsWith("/fees/upsert"));
 
-    // Any Fees page is open?
     var isFees = isFeesDashboard || isBalances || isLedger || isRecordPayment
               || isReversePayment || isCashUp
               || isFeeStructure || isOpenTerm;
 
-    // Any Fees sub-page (excluding the dashboard) is open?
     var isFeesPages = isBalances || isLedger || isRecordPayment || isReversePayment
                    || isCashUp || isFeeStructure || isOpenTerm;
 
@@ -127,7 +124,7 @@
                         <a asp-area="Academics" asp-page="/Students/Index" class="sidebar-sublink @(isStudents ? "active" : "")">Students</a>
                         <a asp-area="Academics" asp-page="/Staff/Index" class="sidebar-sublink @(isStaff ? "active" : "")">Staff</a>
                         <a asp-area="" asp-page="/Timetable/Index" class="sidebar-sublink @(isTimetable ? "active" : "")">Timetable</a>
-                        <a asp-area="" asp-page="/Prefects/Index" class="sidebar-sublink @(isPrefects ? "active" : "")">Prefects</a>
+                        <a asp-area="Academics" asp-page="/Prefects/Index" class="sidebar-sublink @(isPrefects ? "active" : "")">Prefects</a>
                     </div>
                 </div>
             </div>
@@ -173,7 +170,6 @@
                 <div class="collapse @(isFinanceSection ? "show" : "")" id="financeMenu">
                     <div class="sidebar-submenu">
 
-                        <!-- Fees subgroup -->
                         <div class="sidebar-subgroup">
                             <a class="sidebar-subgroup-toggle @(isFeesPages ? "active" : "")"
                                data-bs-toggle="collapse" href="#feesPagesMenu" role="button"
@@ -195,7 +191,7 @@
 
                                 <a asp-area="Finance" asp-page="/Fees/CashUp"
                                    class="sidebar-sublink @(isCashUp ? "active" : "")">
-                                    Daily Cash-Up
+                                    Cash-Up
                                 </a>
 
                                 <a asp-area="Finance" asp-page="/Fees/FeesStructures"

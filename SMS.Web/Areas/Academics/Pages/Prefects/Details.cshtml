@@ -1,0 +1,250 @@
+﻿@page "{id:guid}"
+@model SMS.Web.Areas.Academics.Pages.Prefects.DetailsModel
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@{
+    ViewData["Title"] = "Prefect Details";
+    ViewData["PageTitle"] = "Prefect Details";
+    ViewData["PageSubTitle"] = $"{Model.Prefect.StudentFullName} — {Model.Prefect.PostTitleName}";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.EditPrefects))
+    {
+        <a asp-page="./Upsert" asp-route-id="@Model.Prefect.Id" class="btn btn-secondary">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+        </a>
+    }
+    <a asp-page="./Index" class="btn btn-ghost">
+        <i class="fa-solid fa-arrow-left"></i> Back to List
+    </a>
+}
+
+<div class="details-compact">
+    <div class="details-single">
+
+        <!-- ============================================================= -->
+        <!--  PROFILE HEADER                                              -->
+        <!-- ============================================================= -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                @if (!string.IsNullOrEmpty(Model.Prefect.StudentPhotoUrl))
+                {
+                    <img src="@Model.Prefect.StudentPhotoUrl"
+                         alt="@Model.Prefect.StudentFullName"
+                         style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+                }
+                else
+                {
+                    <span>@Model.Prefect.StudentInitials</span>
+                }
+            </div>
+
+            <div class="profile-info">
+                <h2 class="profile-name">@Model.Prefect.StudentFullName</h2>
+
+                <div class="profile-meta">
+                    <span>@Model.Prefect.StudentClass</span>
+                    <span class="meta-sep">·</span>
+                    <span>@Model.Prefect.PostTitleName</span>
+                    <span class="meta-sep">·</span>
+                    <span class="status-badge @Model.Prefect.StatusCssClass">
+                        @Model.Prefect.StatusName
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!--  TWO-COLUMN BODY                                             -->
+        <!-- ============================================================= -->
+        <div class="info-grid">
+
+            <!-- ============ LEFT: Student Information ============ -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <span>Student Information</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-id-badge"></i> Student Number
+                    </div>
+                    <div class="info-value info-value-mono">
+                        <a asp-area="Academics"
+                           asp-page="/Students/Details"
+                           asp-route-id="@Model.Prefect.StudentId"
+                           class="reg-link">
+                            @Model.Prefect.StudentNumber
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user"></i> First Name
+                    </div>
+                    <div class="info-value">@Model.Prefect.StudentName</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user"></i> Surname
+                    </div>
+                    <div class="info-value">@Model.Prefect.StudentSurname</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-venus-mars"></i> Gender
+                    </div>
+                    <div class="info-value">@Model.Prefect.StudentGenderName</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-cake-candles"></i> Date of Birth
+                    </div>
+                    <div class="info-value">
+                        @if (Model.Prefect.StudentDob.HasValue)
+                        {
+                            @Model.Prefect.StudentDob.Value.ToString("dd MMM yyyy")
+                            @if (Model.Prefect.StudentAge.HasValue)
+                            {
+                                <span class="info-value-mono" style="margin-left:0.4rem;">
+                                    (@Model.Prefect.StudentAge yrs)
+                                </span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="sponsor-empty">—</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-book"></i> Class
+                    </div>
+                    <div class="info-value">@Model.Prefect.StudentClass</div>
+                </div>
+            </div>
+
+            <!-- ============ RIGHT: Appointment ============ -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-award"></i>
+                    <span>Appointment</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-medal"></i> Post Title
+                    </div>
+                    <div class="info-value">@Model.Prefect.PostTitleName</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-circle-check"></i> Status
+                    </div>
+                    <div class="info-value">
+                        <span class="status-badge @Model.Prefect.StatusCssClass">
+                            @Model.Prefect.StatusName
+                        </span>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar-plus"></i> Start Date
+                    </div>
+                    <div class="info-value">
+                        @Model.Prefect.StartDate.ToString("dd MMM yyyy")
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar-xmark"></i> End Date
+                    </div>
+                    <div class="info-value">
+                        @if (Model.Prefect.EndDate.HasValue)
+                        {
+                            @Model.Prefect.EndDate.Value.ToString("dd MMM yyyy")
+                        }
+                        else
+                        {
+                            <span class="sponsor-empty">—</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-hourglass-half"></i> Duration
+                    </div>
+                    <div class="info-value">
+                        <span class="info-value-mono">@Model.Prefect.DurationDisplay</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ============================================================= -->
+        <!--  NOMINATOR                                                    -->
+        <!-- ============================================================= -->
+        <div class="info-column" style="margin-top: 1.25rem;">
+            <div class="info-column-header">
+                <i class="fa-solid fa-user-tie"></i>
+                <span>Nominator</span>
+            </div>
+
+            @if (Model.Prefect.NominatorId.HasValue)
+            {
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user"></i> Name
+                    </div>
+                    <div class="info-value">
+                        @(string.IsNullOrWhiteSpace(Model.Prefect.NominatorName)
+                            ? "—"
+                            : Model.Prefect.NominatorName)
+                    </div>
+                </div>
+
+          
+            }
+            else
+            {
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user"></i> Nominator
+                    </div>
+                    <div class="info-value">
+                        <span class="sponsor-empty">Not specified</span>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- ============================================================= -->
+        <!--  CARD FOOTER                                                  -->
+        <!-- ============================================================= -->
+        <div class="info-card-footer">
+            <div>
+                <span>Created By:</span>
+                <strong>@(string.IsNullOrEmpty(Model.CreatorEmail) ? "System Generated" : Model.CreatorEmail)</strong>
+            </div>
+            <div>
+                <span>Created On:</span>
+                <strong>@(Model.Prefect.CreationDate?.ToString("dd MMM yyyy, HH:mm") ?? "—")</strong>
+            </div>
+        </div>
+
+    </div>
+</div>
