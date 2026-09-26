@@ -53,6 +53,8 @@ public partial class SMSDbContext : DbContext
 
     public virtual DbSet<Prefect> Prefects { get; set; }
 
+    public virtual DbSet<PrefectNomination> PrefectNominations { get; set; }
+
     public virtual DbSet<Project> Projects { get; set; }
 
     public virtual DbSet<ProjectMilestone> ProjectMilestones { get; set; }
@@ -93,9 +95,7 @@ public partial class SMSDbContext : DbContext
 
     public virtual DbSet<Village> Villages { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=SMSDb1;Trusted_Connection=True;TrustServerCertificate=True;");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -154,8 +154,8 @@ public partial class SMSDbContext : DbContext
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Action).HasMaxLength(80);
-            entity.Property(e => e.AfterValue).HasColumnType("json");
-            entity.Property(e => e.BeforeValue).HasColumnType("json");
+            entity.Property(e => e.AfterValue).HasColumnType("text");
+            entity.Property(e => e.BeforeValue).HasColumnType("text");
             entity.Property(e => e.EntityType).HasMaxLength(50);
             entity.Property(e => e.IpAddress).HasMaxLength(256);
             entity.Property(e => e.TimeStamp).HasColumnType("datetime");
@@ -169,6 +169,8 @@ public partial class SMSDbContext : DbContext
         modelBuilder.Entity<BankStatementEntry>(entity =>
         {
             entity.ToTable("BankStatementEntry");
+
+            entity.HasIndex(e => e.MatchedByUserId, "IX_BankStatementEntry_MatchedByUserId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
@@ -480,7 +482,9 @@ public partial class SMSDbContext : DbContext
                 .HasColumnType("datetime");
             entity.Property(e => e.CurrencyId).HasMaxLength(5);
             entity.Property(e => e.ExchangeRate).HasColumnType("decimal(18, 6)");
-            entity.Property(e => e.PaymentDate).HasColumnType("datetime");
+            entity.Property(e => e.PaymentDate)
+                .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "DF_Payment_PaymentDate")
+                .HasColumnType("datetime");
             entity.Property(e => e.ProofOfPaymentUrl).HasMaxLength(20);
             entity.Property(e => e.RateSource).HasMaxLength(50);
             entity.Property(e => e.ReferenceNumber).HasMaxLength(50);
@@ -516,6 +520,8 @@ public partial class SMSDbContext : DbContext
 
             entity.HasIndex(e => e.NominatorId, "IX_Prefect_NominatorId");
 
+            entity.HasIndex(e => e.StudentId, "IX_Prefect_StudentId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
             entity.Property(e => e.EndDate).HasColumnType("datetime");
@@ -533,6 +539,24 @@ public partial class SMSDbContext : DbContext
                 .HasForeignKey(d => d.StudentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Prefect_Student");
+        });
+
+        modelBuilder.Entity<PrefectNomination>(entity =>
+        {
+            entity.ToTable("PrefectNomination");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CreationDate).HasColumnType("datetime");
+
+            entity.HasOne(d => d.NominatedByUser).WithMany(p => p.PrefectNominations)
+                .HasForeignKey(d => d.NominatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PrefectNomination_User");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.PrefectNominations)
+                .HasForeignKey(d => d.StudentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PrefectNomination_Student");
         });
 
         modelBuilder.Entity<Project>(entity =>

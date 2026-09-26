@@ -1,0 +1,81 @@
+@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Academics.Pages.Prefects.BoardModel
+@{
+    ViewData["Title"] = "Prefects Board";
+    ViewData["PageTitle"] = "Prefects Board";
+    ViewData["PageSubTitle"] = "View prefect appointments by status";
+}
+
+<div class="prefect-board-toolbar">
+    <a asp-page="./Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-list"></i> List View
+    </a>
+    @if (CurrentUser.HasRight(AccessRights.CreatePrefects))
+    {
+        <a asp-page="./Upsert" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Appoint Prefect
+        </a>
+    }
+</div>
+
+<div class="prefect-board-summary">
+    <div class="prefect-board-summary-card">
+        <span class="prefect-board-summary-label">All appointments</span>
+        <strong>@Model.AllPrefects.Count</strong>
+    </div>
+    <div class="prefect-board-summary-card">
+        <span class="prefect-board-summary-label">Active</span>
+        <strong>@Model.ActiveCount</strong>
+    </div>
+    <div class="prefect-board-summary-card">
+        <span class="prefect-board-summary-label">Completed</span>
+        <strong>@Model.CompletedCount</strong>
+    </div>
+</div>
+
+<div class="prefect-board-grid">
+    @if (Model.AllPrefects.Count == 0)
+    {
+        <div class="prefect-board-empty">No prefect appointments found.</div>
+    }
+    else
+    {
+        @foreach (var prefect in Model.AllPrefects)
+        {
+            <article class="prefect-board-card">
+                <div class="prefect-board-card-top">
+                    <div class="prefect-board-avatar">
+                        @if (!string.IsNullOrWhiteSpace(prefect.StudentPhotoUrl))
+                        {
+                            <img src="@prefect.StudentPhotoUrl" alt="@prefect.StudentName" />
+                        }
+                        else
+                        {
+                            <span aria-hidden="true">@prefect.Initials</span>
+                        }
+                    </div>
+                    <div class="prefect-board-student">
+                        <h3>@prefect.StudentName</h3>
+                        <span>@prefect.StudentNumber · @prefect.ClassName</span>
+                    </div>
+                </div>
+
+                <div class="prefect-board-post">
+                    <i class="fa-solid fa-award" aria-hidden="true"></i>
+                    @prefect.PostTitle
+                </div>
+
+                <div class="prefect-board-card-meta">
+                    <span class="status-badge @prefect.StatusCssClass">@prefect.StatusName</span>
+                    <span class="prefect-board-term">@prefect.StartDate.ToString("dd MMM yyyy") – @prefect.EndDate.ToString("dd MMM yyyy")</span>
+                </div>
+
+                <a asp-page="./Details" asp-route-id="@prefect.Id" class="prefect-board-details">
+                    View appointment <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                </a>
+            </article>
+        }
+    }
+</div>

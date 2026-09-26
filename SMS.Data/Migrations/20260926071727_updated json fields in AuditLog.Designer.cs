@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SMS.Data;
 
@@ -11,9 +12,11 @@ using SMS.Data;
 namespace SMS.Data.Migrations
 {
     [DbContext(typeof(SMSDbContext))]
-    partial class SMSDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260926071727_updated json fields in AuditLog")]
+    partial class updatedjsonfieldsinAuditLog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -218,9 +221,9 @@ namespace SMS.Data.Migrations
 
                     b.HasIndex("CurrencyId");
 
-                    b.HasIndex("MatchedPaymentId");
+                    b.HasIndex("MatchedByUserId");
 
-                    b.HasIndex(new[] { "MatchedByUserId" }, "IX_BankStatementEntry_MatchedByUserId");
+                    b.HasIndex("MatchedPaymentId");
 
                     b.ToTable("BankStatementEntry", (string)null);
                 });
@@ -693,9 +696,7 @@ namespace SMS.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("PaymentDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "DF_Payment_PaymentDate");
+                        .HasColumnType("datetime");
 
                     b.Property<int>("PaymentMethodId")
                         .HasColumnType("int");
@@ -781,45 +782,13 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("StudentId");
+
                     b.HasIndex(new[] { "CreatorId" }, "IX_Prefect_CreatorId");
 
                     b.HasIndex(new[] { "NominatorId" }, "IX_Prefect_NominatorId");
 
-                    b.HasIndex(new[] { "StudentId" }, "IX_Prefect_StudentId");
-
                     b.ToTable("Prefect", (string)null);
-                });
-
-            modelBuilder.Entity("SMS.Data.PrefectNomination", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime");
-
-                    b.Property<Guid>("NominatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int?>("PostTitleId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("StatusId")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NominatedByUserId");
-
-                    b.HasIndex("StudentId");
-
-                    b.ToTable("PrefectNomination", (string)null);
                 });
 
             modelBuilder.Entity("SMS.Data.Project", b =>
@@ -1862,25 +1831,6 @@ namespace SMS.Data.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("SMS.Data.PrefectNomination", b =>
-                {
-                    b.HasOne("SMS.Data.User", "NominatedByUser")
-                        .WithMany("PrefectNominations")
-                        .HasForeignKey("NominatedByUserId")
-                        .IsRequired()
-                        .HasConstraintName("FK_PrefectNomination_User");
-
-                    b.HasOne("SMS.Data.Student", "Student")
-                        .WithMany("PrefectNominations")
-                        .HasForeignKey("StudentId")
-                        .IsRequired()
-                        .HasConstraintName("FK_PrefectNomination_Student");
-
-                    b.Navigation("NominatedByUser");
-
-                    b.Navigation("Student");
-                });
-
             modelBuilder.Entity("SMS.Data.Project", b =>
                 {
                     b.HasOne("SMS.Data.Staff", "Creator")
@@ -2251,8 +2201,6 @@ namespace SMS.Data.Migrations
                 {
                     b.Navigation("MassRosters");
 
-                    b.Navigation("PrefectNominations");
-
                     b.Navigation("Prefects");
 
                     b.Navigation("StudentGuardians");
@@ -2310,8 +2258,6 @@ namespace SMS.Data.Migrations
                     b.Navigation("PaymentCreators");
 
                     b.Navigation("PaymentReversedBies");
-
-                    b.Navigation("PrefectNominations");
 
                     b.Navigation("Prefects");
 

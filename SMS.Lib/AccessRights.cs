@@ -145,6 +145,7 @@ namespace SMS.Lib
         // ============================================================
         //  PREFECTS
         // ============================================================
+        NominatePrefects = 1L << 59,
         ViewPrefects = 1L << 60,
         CreatePrefects = 1L << 61,
         EditPrefects = 1L << 62,

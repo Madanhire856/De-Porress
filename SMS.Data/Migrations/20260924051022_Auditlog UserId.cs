@@ -11,6 +11,49 @@ namespace SMS.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // -----------------------------------------------------------------
+            //  AUDIT LOG NORMALISATION
+            //  See earlier notes: '{}' not 'null' (native json parser);
+            //  CONVERT(nvarchar(max), ...) for text/nvarchar comparison;
+            //  trigger disabled here and re-enabled at the very end of Up.
+            // -----------------------------------------------------------------
+            migrationBuilder.Sql(@"
+                IF OBJECT_ID(N'dbo.TR_AuditLog_Immutable', N'TR') IS NOT NULL
+                    DISABLE TRIGGER dbo.TR_AuditLog_Immutable ON dbo.AuditLog;
+
+                UPDATE dbo.AuditLog
+                SET BeforeValue =
+                    CASE
+                        WHEN BeforeValue IS NULL
+                            THEN N'{}'
+                        WHEN CONVERT(nvarchar(max), BeforeValue) = N'null'
+                            THEN N'{}'
+                        WHEN ISJSON(CONVERT(nvarchar(max), BeforeValue), VALUE) = 1
+                            THEN CONVERT(nvarchar(max), BeforeValue)
+                        ELSE N'""' + STRING_ESCAPE(CONVERT(nvarchar(max), BeforeValue), 'json') + N'""'
+                    END
+                WHERE BeforeValue IS NULL
+                   OR CONVERT(nvarchar(max), BeforeValue) = N'null'
+                   OR ISNULL(ISJSON(CONVERT(nvarchar(max), BeforeValue), VALUE), 0) = 0;
+
+                UPDATE dbo.AuditLog
+                SET AfterValue =
+                    CASE
+                        WHEN AfterValue IS NULL
+                            THEN N'{}'
+                        WHEN CONVERT(nvarchar(max), AfterValue) = N'null'
+                            THEN N'{}'
+                        WHEN ISJSON(CONVERT(nvarchar(max), AfterValue), VALUE) = 1
+                            THEN CONVERT(nvarchar(max), AfterValue)
+                        ELSE N'""' + STRING_ESCAPE(CONVERT(nvarchar(max), AfterValue), 'json') + N'""'
+                    END
+                WHERE AfterValue IS NULL
+                   OR CONVERT(nvarchar(max), AfterValue) = N'null'
+                   OR ISNULL(ISJSON(CONVERT(nvarchar(max), AfterValue), VALUE), 0) = 0;
+            ");
+
+            // ---- DDL. Trigger stays disabled for the duration. ----
+
             migrationBuilder.AlterColumn<bool>(
                 name: "IsBase",
                 table: "Currency",
@@ -34,7 +77,7 @@ namespace SMS.Data.Migrations
                 table: "AuditLog",
                 type: "nvarchar(max)",
                 nullable: false,
-                defaultValue: "",
+                defaultValue: "{}",
                 oldClrType: typeof(string),
                 oldType: "nvarchar(max)",
                 oldNullable: true);
@@ -44,50 +87,81 @@ namespace SMS.Data.Migrations
                 table: "AuditLog",
                 type: "nvarchar(max)",
                 nullable: false,
-                defaultValue: "",
+                defaultValue: "{}",
                 oldClrType: typeof(string),
                 oldType: "nvarchar(max)",
                 oldNullable: true);
 
-            migrationBuilder.AddPrimaryKey(
-                name: "PK_BankStatementEntry",
-                table: "BankStatementEntry",
-                column: "Id");
+            // ---- PK on BankStatementEntry (guarded; already exists) ----
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM   sys.key_constraints
+                    WHERE  parent_object_id = OBJECT_ID(N'dbo.BankStatementEntry')
+                      AND  type = 'PK'
+                )
+                BEGIN
+                    ALTER TABLE dbo.BankStatementEntry
+                        ADD CONSTRAINT PK_BankStatementEntry PRIMARY KEY (Id);
+                END
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_AuditLog_EntityType_EntityId",
-                table: "AuditLog",
-                columns: new[] { "EntityType", "EntityId" });
+            // ---- AuditLog indexes (guarded; already created by the
+            //      'Audit adjustments' migration) ----
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT 1 FROM sys.indexes
+                    WHERE name = 'IX_AuditLog_EntityType_EntityId'
+                      AND object_id = OBJECT_ID(N'dbo.AuditLog')
+                )
+                    CREATE INDEX IX_AuditLog_EntityType_EntityId
+                        ON dbo.AuditLog (EntityType, EntityId);
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_AuditLog_TimeStamp",
-                table: "AuditLog",
-                column: "TimeStamp");
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT 1 FROM sys.indexes
+                    WHERE name = 'IX_AuditLog_TimeStamp'
+                      AND object_id = OBJECT_ID(N'dbo.AuditLog')
+                )
+                    CREATE INDEX IX_AuditLog_TimeStamp
+                        ON dbo.AuditLog (TimeStamp);
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_AuditLog_UserId_TimeStamp",
-                table: "AuditLog",
-                columns: new[] { "UserId", "TimeStamp" });
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (
+                    SELECT 1 FROM sys.indexes
+                    WHERE name = 'IX_AuditLog_UserId_TimeStamp'
+                      AND object_id = OBJECT_ID(N'dbo.AuditLog')
+                )
+                    CREATE INDEX IX_AuditLog_UserId_TimeStamp
+                        ON dbo.AuditLog (UserId, TimeStamp);
+            ");
+
+            // ---- Re-enable immutable trigger now that DDL is done ----
+            migrationBuilder.Sql(@"
+                IF OBJECT_ID(N'dbo.TR_AuditLog_Immutable', N'TR') IS NOT NULL
+                    ENABLE TRIGGER dbo.TR_AuditLog_Immutable ON dbo.AuditLog;
+            ");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_BankStatementEntry",
-                table: "BankStatementEntry");
+            // Disable trigger around the AlterColumns below.
+            migrationBuilder.Sql(@"
+                IF OBJECT_ID(N'dbo.TR_AuditLog_Immutable', N'TR') IS NOT NULL
+                    DISABLE TRIGGER dbo.TR_AuditLog_Immutable ON dbo.AuditLog;
+            ");
 
-            migrationBuilder.DropIndex(
-                name: "IX_AuditLog_EntityType_EntityId",
-                table: "AuditLog");
-
-            migrationBuilder.DropIndex(
-                name: "IX_AuditLog_TimeStamp",
-                table: "AuditLog");
-
-            migrationBuilder.DropIndex(
-                name: "IX_AuditLog_UserId_TimeStamp",
-                table: "AuditLog");
+            // NOTE: Do NOT drop PK_BankStatementEntry here — it belongs to an
+            // earlier migration. Do NOT drop the three AuditLog indexes here
+            // either — they were created by the 'Audit adjustments' migration.
+            //
+            // migrationBuilder.DropPrimaryKey(name: "PK_BankStatementEntry", table: "BankStatementEntry");
+            // migrationBuilder.DropIndex(name: "IX_AuditLog_EntityType_EntityId", table: "AuditLog");
+            // migrationBuilder.DropIndex(name: "IX_AuditLog_TimeStamp", table: "AuditLog");
+            // migrationBuilder.DropIndex(name: "IX_AuditLog_UserId_TimeStamp", table: "AuditLog");
 
             migrationBuilder.AlterColumn<bool>(
                 name: "IsBase",
@@ -122,6 +196,12 @@ namespace SMS.Data.Migrations
                 nullable: true,
                 oldClrType: typeof(string),
                 oldType: "nvarchar(max)");
+
+            // Re-enable trigger.
+            migrationBuilder.Sql(@"
+                IF OBJECT_ID(N'dbo.TR_AuditLog_Immutable', N'TR') IS NOT NULL
+                    ENABLE TRIGGER dbo.TR_AuditLog_Immutable ON dbo.AuditLog;
+            ");
         }
     }
 }

@@ -228,6 +228,18 @@ namespace SMS.Lib
                         new() { Right = AccessRights.AssignSportsCoaches, DisplayName = "Assign Sports Coaches" }
                     }
                 },
+                new RightCategory
+                {
+                    Title = "Prefects",
+                    Icon = "fa-award",
+                    Rights = new()
+                    {
+                        new() { Right = AccessRights.NominatePrefects, DisplayName = "Nominate Prefects" },
+                        new() { Right = AccessRights.ViewPrefects, DisplayName = "View Prefects" },
+                        new() { Right = AccessRights.CreatePrefects, DisplayName = "Create Prefect Appointments" },
+                        new() { Right = AccessRights.EditPrefects, DisplayName = "Edit Prefect Appointments" }
+                    }
+                },
             };
         }
     }

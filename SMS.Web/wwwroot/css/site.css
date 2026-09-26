@@ -3566,3 +3566,210 @@ tr.row-clickable {
     .house-stat-accent .house-stat-label {
         color: #5A6675;
     }
+
+/* Prefects board */
+.prefect-board-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+}
+
+.prefect-board-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.prefect-board-summary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem 1.25rem;
+    background: #fff;
+    border: 1px solid var(--sms-border);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.prefect-board-summary-label { color: var(--sms-text-muted); font-size: 0.82rem; }
+.prefect-board-summary-card strong { color: var(--sms-navy); font-size: 1.5rem; }
+
+.prefect-board-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: 1rem;
+    align-items: stretch;
+}
+
+.prefect-board-card {
+    padding: 0.9rem;
+    background: #fff;
+    border: 1px solid var(--sms-border);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.prefect-board-card-top { display: flex; align-items: center; gap: 0.7rem; }
+
+.prefect-board-avatar {
+    display: grid;
+    width: 56px;
+    height: 56px;
+    flex: 0 0 56px;
+    place-items: center;
+    overflow: hidden;
+    color: #1E40AF;
+    background-color: #EFF6FF;
+    border-radius: 50%;
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.prefect-board-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.prefect-board-student h3 { margin: 0 0 0.1rem; color: var(--sms-text-main); font-size: 0.95rem; font-weight: 700; }
+.prefect-board-student span { color: var(--sms-text-muted); font-size: 0.78rem; }
+
+.prefect-board-post {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.85rem 0;
+    color: var(--sms-navy);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.prefect-board-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.prefect-board-term { color: var(--sms-text-muted); font-size: 0.72rem; }
+
+.prefect-board-details {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.7rem;
+    color: var(--sms-navy);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.prefect-board-details:hover { color: var(--sms-gold); }
+.prefect-board-empty { padding: 1.2rem 0.5rem; color: #6b7280; text-align: center; font-size: 0.82rem; }
+
+@media (max-width: 767.98px) {
+    .prefect-board-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+    .prefect-board-summary-card { padding: 0.75rem; }
+    .prefect-board-summary-label { font-size: 0.7rem; }
+    .prefect-board-summary-card strong { font-size: 1.2rem; }
+}
+
+/* Prefect nominations */
+.nomination-page-actions { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+
+.prefect-nomination-form {
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--sms-border);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.nomination-form-section { padding: 1.5rem; }
+.nomination-form-section + .nomination-form-section { border-top: 1px solid var(--sms-border); }
+
+.nomination-section-heading { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1.15rem; }
+.nomination-section-heading h2 { margin: 0 0 0.2rem; color: var(--sms-navy); font-size: 1rem; font-weight: 700; }
+.nomination-section-heading p { margin: 0; color: var(--sms-text-muted); font-size: 0.82rem; }
+
+.nomination-section-icon {
+    display: grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: 0 0 2.5rem;
+    place-items: center;
+    color: var(--sms-gold);
+    background: var(--sms-navy);
+    border-radius: 6px;
+}
+
+.nomination-student-toolbar { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; }
+.nomination-student-toolbar .form-control { max-width: 420px; }
+.nomination-selected-count { color: var(--sms-navy); font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
+
+.nomination-student-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 0.65rem;
+    max-height: 390px;
+    overflow-y: auto;
+    padding: 0.15rem 0.25rem 0.15rem 0.15rem;
+}
+
+.nomination-student-option {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
+    padding: 0.7rem;
+    border: 1px solid var(--sms-border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.nomination-student-option:hover { border-color: var(--sms-gold); background: #FFFCF2; }
+.nomination-student-option[hidden] { display: none; }
+.nomination-student-option input { width: 1rem; height: 1rem; flex: 0 0 1rem; accent-color: var(--sms-navy); }
+
+.nomination-student-avatar {
+    display: grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: 0 0 2.5rem;
+    place-items: center;
+    color: #1E40AF;
+    background: #EFF6FF;
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.nomination-student-copy { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.nomination-student-copy strong { overflow: hidden; color: var(--sms-text-main); font-size: 0.85rem; text-overflow: ellipsis; white-space: nowrap; }
+.nomination-student-copy small { overflow: hidden; color: var(--sms-text-muted); font-size: 0.74rem; text-overflow: ellipsis; white-space: nowrap; }
+.nomination-student-check { color: var(--sms-gold); opacity: 0; }
+.nomination-student-option:has(input:checked) { border-color: var(--sms-navy); background: #F7F9FB; }
+.nomination-student-option:has(input:checked) .nomination-student-check { opacity: 1; }
+
+.nomination-fields { display: grid; grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1.3fr); gap: 1rem; }
+.nomination-fields .form-group { margin: 0; }
+.nomination-reason-field textarea { resize: vertical; }
+
+.nomination-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: #F9FAFB;
+    border-top: 1px solid var(--sms-border);
+}
+
+.nomination-form-footer > span { color: var(--sms-text-muted); font-size: 0.78rem; }
+.nomination-empty { padding: 1rem; color: var(--sms-text-muted); text-align: center; }
+
+@media (max-width: 767.98px) {
+    .nomination-form-section { padding: 1rem; }
+    .nomination-fields { grid-template-columns: 1fr; }
+    .nomination-form-footer { align-items: stretch; flex-direction: column; padding: 1rem; }
+    .nomination-form-footer .btn { width: 100%; }
+}

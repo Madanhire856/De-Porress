@@ -77,6 +77,8 @@ public partial class User
 
     public virtual ICollection<Payment> PaymentReversedBies { get; set; } = new List<Payment>();
 
+    public virtual ICollection<PrefectNomination> PrefectNominations { get; set; } = new List<PrefectNomination>();
+
     public virtual ICollection<Prefect> Prefects { get; set; } = new List<Prefect>();
 
     public virtual ICollection<ProjectMilestone> ProjectMilestones { get; set; } = new List<ProjectMilestone>();

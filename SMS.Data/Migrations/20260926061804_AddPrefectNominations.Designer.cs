@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SMS.Data;
 
@@ -11,9 +12,11 @@ using SMS.Data;
 namespace SMS.Data.Migrations
 {
     [DbContext(typeof(SMSDbContext))]
-    partial class SMSDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260926061804_AddPrefectNominations")]
+    partial class AddPrefectNominations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -120,10 +123,10 @@ namespace SMS.Data.Migrations
                         .HasColumnType("nvarchar(80)");
 
                     b.Property<string>("AfterValue")
-                        .HasColumnType("text");
+                        .HasColumnType("json");
 
                     b.Property<string>("BeforeValue")
-                        .HasColumnType("text");
+                        .HasColumnType("json");
 
                     b.Property<Guid>("EntityId")
                         .HasColumnType("uniqueidentifier");
@@ -218,9 +221,9 @@ namespace SMS.Data.Migrations
 
                     b.HasIndex("CurrencyId");
 
-                    b.HasIndex("MatchedPaymentId");
+                    b.HasIndex("MatchedByUserId");
 
-                    b.HasIndex(new[] { "MatchedByUserId" }, "IX_BankStatementEntry_MatchedByUserId");
+                    b.HasIndex("MatchedPaymentId");
 
                     b.ToTable("BankStatementEntry", (string)null);
                 });
@@ -693,9 +696,7 @@ namespace SMS.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("PaymentDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "DF_Payment_PaymentDate");
+                        .HasColumnType("datetime");
 
                     b.Property<int>("PaymentMethodId")
                         .HasColumnType("int");
@@ -781,11 +782,11 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("StudentId");
+
                     b.HasIndex(new[] { "CreatorId" }, "IX_Prefect_CreatorId");
 
                     b.HasIndex(new[] { "NominatorId" }, "IX_Prefect_NominatorId");
-
-                    b.HasIndex(new[] { "StudentId" }, "IX_Prefect_StudentId");
 
                     b.ToTable("Prefect", (string)null);
                 });
@@ -801,11 +802,13 @@ namespace SMS.Data.Migrations
                     b.Property<Guid>("NominatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int?>("PostTitleId")
+                    b.Property<int>("PostTitleId")
                         .HasColumnType("int");
 
                     b.Property<string>("Reason")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
@@ -815,9 +818,11 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NominatedByUserId");
+                    b.HasIndex(new[] { "NominatedByUserId" }, "IX_PrefectNomination_NominatedByUserId");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex(new[] { "StatusId" }, "IX_PrefectNomination_StatusId");
+
+                    b.HasIndex(new[] { "StudentId" }, "IX_PrefectNomination_StudentId");
 
                     b.ToTable("PrefectNomination", (string)null);
                 });
@@ -1864,21 +1869,17 @@ namespace SMS.Data.Migrations
 
             modelBuilder.Entity("SMS.Data.PrefectNomination", b =>
                 {
-                    b.HasOne("SMS.Data.User", "NominatedByUser")
-                        .WithMany("PrefectNominations")
+                    b.HasOne("SMS.Data.User", null)
+                        .WithMany()
                         .HasForeignKey("NominatedByUserId")
                         .IsRequired()
                         .HasConstraintName("FK_PrefectNomination_User");
 
-                    b.HasOne("SMS.Data.Student", "Student")
-                        .WithMany("PrefectNominations")
+                    b.HasOne("SMS.Data.Student", null)
+                        .WithMany()
                         .HasForeignKey("StudentId")
                         .IsRequired()
                         .HasConstraintName("FK_PrefectNomination_Student");
-
-                    b.Navigation("NominatedByUser");
-
-                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("SMS.Data.Project", b =>
@@ -2251,8 +2252,6 @@ namespace SMS.Data.Migrations
                 {
                     b.Navigation("MassRosters");
 
-                    b.Navigation("PrefectNominations");
-
                     b.Navigation("Prefects");
 
                     b.Navigation("StudentGuardians");
@@ -2310,8 +2309,6 @@ namespace SMS.Data.Migrations
                     b.Navigation("PaymentCreators");
 
                     b.Navigation("PaymentReversedBies");
-
-                    b.Navigation("PrefectNominations");
 
                     b.Navigation("Prefects");
 

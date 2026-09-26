@@ -49,6 +49,8 @@ public partial class Student
 
     public virtual ICollection<MassRoster> MassRosters { get; set; } = new List<MassRoster>();
 
+    public virtual ICollection<PrefectNomination> PrefectNominations { get; set; } = new List<PrefectNomination>();
+
     public virtual ICollection<Prefect> Prefects { get; set; } = new List<Prefect>();
 
     public virtual ICollection<StudentGuardian> StudentGuardians { get; set; } = new List<StudentGuardian>();
