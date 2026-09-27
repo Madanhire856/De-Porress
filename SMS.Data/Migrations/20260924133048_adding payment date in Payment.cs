@@ -6,11 +6,21 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SMS.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class addingpaymentdateinPayment : Migration   // ← changed
+    public partial class addingpaymentdateinPayment : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // ─────────────────────────────────────────────────────────────
+            // 0. Drop the append-only trigger FIRST. It blocks the UPDATE
+            //    in step 2, and we are removing it permanently — it is NOT
+            //    recreated at the end of this migration.
+            // ─────────────────────────────────────────────────────────────
+            migrationBuilder.Sql(@"
+                IF OBJECT_ID('TR_Payments_Immutable', 'TR') IS NOT NULL
+                    DROP TRIGGER [TR_Payments_Immutable];
+            ");
+
             // -----------------------------------------------------------------
             //  PaymentDate may already exist in the DB (added manually, or by
             //  a previous partial run of this migration), while the EF

@@ -71,7 +71,7 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
         // =============================================================
         public async Task<IActionResult> OnGetAsync(Guid id)
         {
-            if (!_currentUser.HasRight(AccessRights.RecordPayments))
+            if (!_currentUser.HasRight(AccessRights.ReversePayments))
                 return Forbid();
 
             var ok = await LoadAsync(id);
@@ -99,7 +99,7 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
         // =============================================================
         public async Task<IActionResult> OnPostAsync()
         {
-            if (!_currentUser.HasRight(AccessRights.RecordPayments))
+            if (!_currentUser.HasRight(AccessRights.ReversePayments))
                 return Forbid();
 
             var ok = await LoadAsync(Input.PaymentId);

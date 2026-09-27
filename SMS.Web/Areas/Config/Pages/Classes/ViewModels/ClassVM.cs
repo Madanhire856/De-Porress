@@ -18,7 +18,7 @@ namespace SMS.Web.Areas.Config.Pages.Classes.ViewModels
         [Range(1, 200, ErrorMessage = "Capacity must be between 1 and 200.")]
         public int Capacity { get; set; }
 
-        [Required(ErrorMessage = "Please select a class teacher.")]
+       
         public Guid? ClassTeacherId { get; set; }
     }
 }

@@ -5,10 +5,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SMS.Data.Migrations
 {
-    /// <inheritdoc />
     public partial class Addingprefectnominationtable : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<DateTime>(
@@ -36,11 +34,13 @@ namespace SMS.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PrefectNomination", x => x.Id);
+
                     table.ForeignKey(
                         name: "FK_PrefectNomination_Student",
                         column: x => x.StudentId,
                         principalTable: "Student",
                         principalColumn: "Id");
+
                     table.ForeignKey(
                         name: "FK_PrefectNomination_User",
                         column: x => x.NominatedByUserId,
@@ -59,7 +59,6 @@ namespace SMS.Data.Migrations
                 column: "StudentId");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
@@ -73,7 +72,9 @@ namespace SMS.Data.Migrations
                 oldClrType: typeof(DateTime),
                 oldType: "datetime",
                 oldDefaultValue: new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
-                .OldAnnotation("Relational:DefaultConstraintName", "DF_Payment_PaymentDate");
+                .OldAnnotation(
+                    "Relational:DefaultConstraintName",
+                    "DF_Payment_PaymentDate");
         }
     }
 }

@@ -19,8 +19,6 @@ public partial class Currency
 
     public bool IsBase { get; set; }
 
-    public virtual ICollection<BankStatementEntry> BankStatementEntries { get; set; } = new List<BankStatementEntry>();
-
     public virtual User? Creator { get; set; }
 
     public virtual ICollection<FeesStructure> FeesStructures { get; set; } = new List<FeesStructure>();

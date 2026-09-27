@@ -89,6 +89,79 @@ namespace SMS.Web.Services
         }
 
         // =========================================================
+        //  CORRECT PAYMENT
+        // =========================================================
+        public async Task<Payment> CorrectAsync(CorrectPaymentRequest request)
+        {
+            if (request.PaymentId == Guid.Empty)
+                throw new InvalidOperationException("Payment is required.");
+            if (request.PaymentDate == default || request.PaymentDate.Date > DateTime.Today)
+                throw new InvalidOperationException("Enter a valid payment date that is not in the future.");
+            if (request.Amount <= 0m)
+                throw new InvalidOperationException("Amount must be greater than zero.");
+            if (string.IsNullOrWhiteSpace(request.CorrectionReason) || request.CorrectionReason.Trim().Length < 10)
+                throw new InvalidOperationException("The correction reason must be at least 10 characters.");
+
+            var payment = await _context.Payments
+                .FirstOrDefaultAsync(p => p.Id == request.PaymentId)
+                ?? throw new InvalidOperationException("Payment not found.");
+
+            if (payment.IsReversal)
+                throw new InvalidOperationException("A reversal entry cannot be corrected.");
+
+            var ledger = payment.LedgerId.HasValue
+                ? await _context.StudentLedgers.FirstOrDefaultAsync(l => l.Id == payment.LedgerId.Value)
+                : null;
+
+            var exchangeRate = payment.ExchangeRate ?? 1m;
+            var correctedBaseAmount = Math.Round(request.Amount * exchangeRate, 2, MidpointRounding.AwayFromZero);
+            if (correctedBaseAmount <= 0m)
+                throw new InvalidOperationException("Corrected amount is too small. Check the payment amount.");
+
+            var correction = new PaymentCorrection
+            {
+                Id = Guid.NewGuid(),
+                PaymentId = payment.Id,
+                CorrectedById = request.UserId,
+                CorrectedByName = string.IsNullOrWhiteSpace(request.UserDisplayName) ? "System" : request.UserDisplayName,
+                CorrectedOn = DateTime.Now,
+                Reason = request.CorrectionReason.Trim(),
+                PreviousAmount = payment.Amount ?? 0m,
+                CorrectedAmount = request.Amount,
+                PreviousBaseAmount = payment.BaseAmount ?? payment.Amount ?? 0m,
+                CorrectedBaseAmount = correctedBaseAmount,
+                PreviousPaymentDate = payment.PaymentDate,
+                CorrectedPaymentDate = request.PaymentDate.Date,
+                PreviousPaymentMethodId = payment.PaymentMethodId,
+                CorrectedPaymentMethodId = request.PaymentMethodId,
+                PreviousReferenceNumber = payment.ReferenceNumber,
+                CorrectedReferenceNumber = Trim(request.ReferenceNumber)
+            };
+
+            payment.PaymentDate = request.PaymentDate.Date;
+            payment.Amount = request.Amount;
+            payment.BaseAmount = correctedBaseAmount;
+            payment.PaymentMethodId = request.PaymentMethodId;
+            payment.ReferenceNumber = Trim(request.ReferenceNumber);
+            payment.ProofOfPaymentUrl = Trim(request.ProofOfPaymentUrl);
+            payment.CorrectionReason = request.CorrectionReason.Trim();
+            _context.PaymentCorrections.Add(correction);
+
+            if (ledger != null)
+            {
+                var totalPaid = await _context.Payments
+                    .Where(p => p.LedgerId == ledger.Id && p.Id != payment.Id)
+                    .SumAsync(p => (decimal?)p.BaseAmount ?? 0m);
+                var closingBalance = ledger.OpeningBalance - totalPaid - correctedBaseAmount;
+                ledger.ClosingBalance = closingBalance;
+                ledger.StatusId = ComputeStatus(closingBalance, totalPaid + correctedBaseAmount);
+            }
+
+            await _context.SaveChangesAsync();
+            return payment;
+        }
+
+        // =========================================================
         //  REVERSE PAYMENT
         // =========================================================
         public async Task<Payment> ReverseAsync(ReversePaymentRequest request)

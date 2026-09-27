@@ -23,8 +23,6 @@ public partial class SMSDbContext : DbContext
 
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
 
-    public virtual DbSet<BankStatementEntry> BankStatementEntries { get; set; }
-
     public virtual DbSet<Class> Classes { get; set; }
 
     public virtual DbSet<Competition> Competitions { get; set; }
@@ -50,6 +48,8 @@ public partial class SMSDbContext : DbContext
     public virtual DbSet<MassRoster> MassRosters { get; set; }
 
     public virtual DbSet<Payment> Payments { get; set; }
+
+    public virtual DbSet<PaymentCorrection> PaymentCorrections { get; set; }
 
     public virtual DbSet<Prefect> Prefects { get; set; }
 
@@ -95,7 +95,9 @@ public partial class SMSDbContext : DbContext
 
     public virtual DbSet<Village> Villages { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=SMSDb1;Trusted_Connection=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -142,7 +144,7 @@ public partial class SMSDbContext : DbContext
 
         modelBuilder.Entity<AuditLog>(entity =>
         {
-            entity.ToTable("AuditLog", tb => tb.HasTrigger("TR_AuditLog_Immutable"));
+            entity.ToTable("AuditLog");
 
             entity.HasIndex(e => new { e.EntityType, e.EntityId }, "IX_AuditLog_EntityType_EntityId");
 
@@ -154,8 +156,6 @@ public partial class SMSDbContext : DbContext
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Action).HasMaxLength(80);
-            entity.Property(e => e.AfterValue).HasColumnType("text");
-            entity.Property(e => e.BeforeValue).HasColumnType("text");
             entity.Property(e => e.EntityType).HasMaxLength(50);
             entity.Property(e => e.IpAddress).HasMaxLength(256);
             entity.Property(e => e.TimeStamp).HasColumnType("datetime");
@@ -164,40 +164,6 @@ public partial class SMSDbContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.AuditLogs)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_AuditLog_User");
-        });
-
-        modelBuilder.Entity<BankStatementEntry>(entity =>
-        {
-            entity.ToTable("BankStatementEntry");
-
-            entity.HasIndex(e => e.MatchedByUserId, "IX_BankStatementEntry_MatchedByUserId");
-
-            entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.BankReference).HasMaxLength(50);
-            entity.Property(e => e.CreationDate).HasColumnType("datetime");
-            entity.Property(e => e.CurrencyId).HasMaxLength(5);
-            entity.Property(e => e.EntryDate).HasColumnType("datetime");
-            entity.Property(e => e.MatchedOn).HasColumnType("datetime");
-            entity.Property(e => e.NotesJson).HasColumnType("text");
-
-            entity.HasOne(d => d.Creator).WithMany(p => p.BankStatementEntryCreators)
-                .HasForeignKey(d => d.CreatorId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_BankStatementEntry_User");
-
-            entity.HasOne(d => d.Currency).WithMany(p => p.BankStatementEntries)
-                .HasForeignKey(d => d.CurrencyId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_BankStatementEntry_Currency");
-
-            entity.HasOne(d => d.MatchedByUser).WithMany(p => p.BankStatementEntryMatchedByUsers)
-                .HasForeignKey(d => d.MatchedByUserId)
-                .HasConstraintName("FK_BankStatementEntry_User1");
-
-            entity.HasOne(d => d.MatchedPayment).WithMany(p => p.BankStatementEntries)
-                .HasForeignKey(d => d.MatchedPaymentId)
-                .HasConstraintName("FK_BankStatementEntry_Payment");
         });
 
         modelBuilder.Entity<Class>(entity =>
@@ -216,7 +182,6 @@ public partial class SMSDbContext : DbContext
 
             entity.HasOne(d => d.ClassTeacher).WithMany(p => p.Classes)
                 .HasForeignKey(d => d.ClassTeacherId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Class_Staff");
 
             entity.HasOne(d => d.Creator).WithMany(p => p.Classes)
@@ -288,7 +253,9 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("DailyExchangeRate");
 
-            entity.HasIndex(e => new { e.CurrencyCode, e.RequestedDate, e.RateType }, "UX_DailyExchangeRate_CurrencyCode_RequestedDate_RateType").IsUnique();
+            entity.HasIndex(e => new { e.CurrencyCode, e.RequestedDate, e.RateType }, "UX_DailyExchangeRate_CurrencyCode_RequestedDate_RateType")
+                .IsUnique()
+                .HasFilter("([RateType] IS NOT NULL)");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.ActualRateDate).HasColumnType("datetime");
@@ -461,7 +428,7 @@ public partial class SMSDbContext : DbContext
 
         modelBuilder.Entity<Payment>(entity =>
         {
-            entity.ToTable("Payment", tb => tb.HasTrigger("TR_Payments_Immutable"));
+            entity.ToTable("Payment");
 
             entity.HasIndex(e => e.CreatorId, "IX_Payment_CreatorId");
 
@@ -476,6 +443,7 @@ public partial class SMSDbContext : DbContext
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.BaseAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CorrectionReason).HasMaxLength(500);
             entity.Property(e => e.CreatedByName).HasMaxLength(50);
             entity.Property(e => e.CreationDate)
                 .HasDefaultValueSql("(getdate())", "DF_Payment_CreationDate")
@@ -512,6 +480,40 @@ public partial class SMSDbContext : DbContext
                 .HasConstraintName("FK_Payment_Payment");
         });
 
+        modelBuilder.Entity<PaymentCorrection>(entity =>
+        {
+            entity.ToTable("PaymentCorrection");
+
+            entity.HasIndex(e => e.CorrectedById, "IX_PaymentCorrection_CorrectedById");
+
+            entity.HasIndex(e => e.CorrectedOn, "IX_PaymentCorrection_CorrectedOn");
+
+            entity.HasIndex(e => e.PaymentId, "IX_PaymentCorrection_PaymentId");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CorrectedAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CorrectedBaseAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CorrectedByName).HasMaxLength(50);
+            entity.Property(e => e.CorrectedOn).HasColumnType("datetime");
+            entity.Property(e => e.CorrectedPaymentDate).HasColumnType("datetime");
+            entity.Property(e => e.CorrectedReferenceNumber).HasMaxLength(50);
+            entity.Property(e => e.PreviousAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PreviousBaseAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PreviousPaymentDate).HasColumnType("datetime");
+            entity.Property(e => e.PreviousReferenceNumber).HasMaxLength(50);
+            entity.Property(e => e.Reason).HasMaxLength(500);
+
+            entity.HasOne(d => d.CorrectedBy).WithMany(p => p.PaymentCorrections)
+                .HasForeignKey(d => d.CorrectedById)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PaymentCorrection_User");
+
+            entity.HasOne(d => d.Payment).WithMany(p => p.PaymentCorrections)
+                .HasForeignKey(d => d.PaymentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PaymentCorrection_Payment");
+        });
+
         modelBuilder.Entity<Prefect>(entity =>
         {
             entity.ToTable("Prefect");
@@ -544,6 +546,10 @@ public partial class SMSDbContext : DbContext
         modelBuilder.Entity<PrefectNomination>(entity =>
         {
             entity.ToTable("PrefectNomination");
+
+            entity.HasIndex(e => e.NominatedByUserId, "IX_PrefectNomination_NominatedByUserId");
+
+            entity.HasIndex(e => e.StudentId, "IX_PrefectNomination_StudentId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");

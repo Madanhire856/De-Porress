@@ -9,6 +9,18 @@ namespace SMS.Data.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // ─────────────────────────────────────────────────────────────
+            // 1. Drop the append-only trigger FIRST. It must go before the
+            //    backfill UPDATE below, and we are NOT recreating it.
+            // ─────────────────────────────────────────────────────────────
+            migrationBuilder.Sql(@"
+                IF OBJECT_ID('TR_Payments_Immutable', 'TR') IS NOT NULL
+                    DROP TRIGGER [TR_Payments_Immutable];
+            ");
+
+            // ─────────────────────────────────────────────────────────────
+            // 2. Recreate ReceiptSequence with the correct schema
+            // ─────────────────────────────────────────────────────────────
             migrationBuilder.DropTable(
                 name: "ReceiptSequece");
 
@@ -25,7 +37,9 @@ namespace SMS.Data.Migrations
                     table.PrimaryKey("PK_ReceiptSequence", x => x.Year);
                 });
 
-            // ---- CUSTOM — backfill existing payments with receipt numbers ----
+            // ─────────────────────────────────────────────────────────────
+            // 3. Backfill existing payments with receipt numbers
+            // ─────────────────────────────────────────────────────────────
             migrationBuilder.Sql(@"
                 DECLARE @year INT = 2025;
                 DECLARE @counter INT = 0;
@@ -44,32 +58,16 @@ namespace SMS.Data.Migrations
                     VALUES (@year, @counter, GETDATE());
                 END
             ");
-
-            // ---- CUSTOM — drop trigger in its own batch ----
-            migrationBuilder.Sql(@"
-                IF OBJECT_ID('TR_Payments_Immutable', 'TR') IS NOT NULL
-                    DROP TRIGGER TR_Payments_Immutable;
-            ");
-
-            // ---- CUSTOM — create trigger in its own batch ----
-            // SQL Server requires CREATE TRIGGER to be the first statement
-            // in a batch, so it cannot share a Sql() call with anything else.
-            migrationBuilder.Sql(@"
-                CREATE TRIGGER TR_Payments_Immutable
-                ON Payment
-                INSTEAD OF UPDATE, DELETE
-                AS
-                BEGIN
-                    RAISERROR('Payments table is append-only. Create a reversal entry instead.', 16, 1);
-                    ROLLBACK TRANSACTION;
-                END;
-            ");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // ---- CUSTOM — drop trigger first ----
-            migrationBuilder.Sql("DROP TRIGGER IF EXISTS TR_Payments_Immutable;");
+            // Ensure the trigger is not recreated — if a future migration
+            // ever needs it back, add it there.
+            migrationBuilder.Sql(@"
+                IF OBJECT_ID('TR_Payments_Immutable', 'TR') IS NOT NULL
+                    DROP TRIGGER [TR_Payments_Immutable];
+            ");
 
             migrationBuilder.DropTable(
                 name: "ReceiptSequence");

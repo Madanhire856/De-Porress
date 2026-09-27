@@ -189,6 +189,7 @@ namespace SMS.Lib
                     {
                         new() { Right = AccessRights.ViewFeeBalances,      DisplayName = "View Fee Balances" },
                         new() { Right = AccessRights.RecordPayments,       DisplayName = "Record Payments" },
+                        new() { Right = AccessRights.ReversePayments,      DisplayName = "Reverse Payments" },
                         new() { Right = AccessRights.GenerateInvoices,     DisplayName = "Generate Invoices" },
                         new() { Right = AccessRights.WaiveFees,            DisplayName = "Waive Fees" },
                         new() { Right = AccessRights.ViewFeeReports,       DisplayName = "View Fee Reports" },

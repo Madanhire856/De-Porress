@@ -41,6 +41,7 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
         public string StatusClass { get; set; } = "";
 
         public List<PaymentItem> Payments { get; set; } = new();
+        public List<CorrectionItem> Corrections { get; set; } = new();
 
         public class PaymentItem
         {
@@ -58,7 +59,24 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
             public bool IsReversal { get; set; }
             public Guid? ReversesPaymentId { get; set; }
             public string? ReversalReason { get; set; }
+            public string? CorrectionReason { get; set; }
             public bool AlreadyReversed { get; set; }
+            public string? ReversalReceiptDisplay { get; set; }
+            public string? ReversedPaymentReceiptDisplay { get; set; }
+            public DateTime? ReversedOn { get; set; }
+            public string? ReversedByName { get; set; }
+        }
+
+        public class CorrectionItem
+        {
+            public string ReceiptDisplay { get; set; } = "";
+            public string CorrectedByName { get; set; } = "";
+            public DateTime CorrectedOn { get; set; }
+            public string Reason { get; set; } = "";
+            public decimal PreviousAmount { get; set; }
+            public decimal CorrectedAmount { get; set; }
+            public decimal PreviousBaseAmount { get; set; }
+            public decimal CorrectedBaseAmount { get; set; }
         }
 
         public async Task<IActionResult> OnGetAsync(Guid id)
@@ -121,9 +139,17 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
                 .Select(p => p.ReversesPaymentId!.Value)
                 .ToHashSet();
 
+            var paymentsById = paymentRows.ToDictionary(p => p.Id);
+            var reversalsByOriginalId = paymentRows
+                .Where(p => p.IsReversal && p.ReversesPaymentId.HasValue)
+                .GroupBy(p => p.ReversesPaymentId!.Value)
+                .ToDictionary(g => g.Key, g => g.First());
+
             Payments = paymentRows.Select(p =>
             {
                 var method = EnumExtensions.ParsePaymentMethod(p.PaymentMethodId);
+                reversalsByOriginalId.TryGetValue(p.Id, out var linkedReversal);
+                paymentsById.TryGetValue(p.ReversesPaymentId ?? Guid.Empty, out var reversedPayment);
                 return new PaymentItem
                 {
                     Id = p.Id,
@@ -139,12 +165,41 @@ namespace SMS.Web.Areas.Finance.Pages.Fees
                     IsReversal = p.IsReversal,
                     ReversesPaymentId = p.ReversesPaymentId,
                     ReversalReason = p.ReversalReason,
-                    AlreadyReversed = reversedIds.Contains(p.Id)
+                    CorrectionReason = p.CorrectionReason,
+                    AlreadyReversed = reversedIds.Contains(p.Id),
+                    ReversalReceiptDisplay = linkedReversal == null
+                        ? null
+                        : $"RCP-{linkedReversal.ReceiptYear}-{linkedReversal.ReceiptNumber:D5}",
+                    ReversedPaymentReceiptDisplay = reversedPayment == null
+                        ? null
+                        : $"RCP-{reversedPayment.ReceiptYear}-{reversedPayment.ReceiptNumber:D5}",
+                    ReversedOn = p.ReversedOn,
+                    ReversedByName = p.IsReversal ? p.CreatedByName : null
                 };
             }).ToList();
 
             TotalPaid = Payments.Where(p => !p.IsReversal).Sum(p => p.BaseAmount);
             TotalReversed = Payments.Where(p => p.IsReversal).Sum(p => Math.Abs(p.BaseAmount));
+
+            if (_currentUser.HasRight(AccessRights.ReversePayments))
+            {
+                Corrections = await _context.PaymentCorrections
+                    .AsNoTracking()
+                    .Where(c => c.Payment.LedgerId == id)
+                    .OrderByDescending(c => c.CorrectedOn)
+                    .Select(c => new CorrectionItem
+                    {
+                        ReceiptDisplay = $"RCP-{c.Payment.ReceiptYear}-{c.Payment.ReceiptNumber:D5}",
+                        CorrectedByName = c.CorrectedByName,
+                        CorrectedOn = c.CorrectedOn,
+                        Reason = c.Reason,
+                        PreviousAmount = c.PreviousAmount,
+                        CorrectedAmount = c.CorrectedAmount,
+                        PreviousBaseAmount = c.PreviousBaseAmount,
+                        CorrectedBaseAmount = c.CorrectedBaseAmount
+                    })
+                    .ToListAsync();
+            }
 
             return Page();
         }

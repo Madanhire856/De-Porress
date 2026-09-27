@@ -121,8 +121,8 @@
             <div class="reversal-warning">
                 <i class="fa-solid fa-circle-info"></i>
                 <span>
-                    Reversing creates a compensating negative entry against the student's ledger.
-                    The original payment stays in the system for audit. This action cannot be undone.
+                    This creates a linked reversal entry against the student's ledger. The ledger keeps the
+                    original receipt, reversal receipt, reason, authorized user, and reversal date for audit.
                 </span>
             </div>
 
@@ -165,6 +165,7 @@
                     <p>Are you sure you want to reverse receipt <strong>#@Model.Payment.ReceiptDisplay</strong>?</p>
                     <p><strong>Amount:</strong> @Model.Payment.BaseAmount.ToString("N2") @Model.BaseCurrency</p>
                     <p><strong>Student:</strong> @Model.StudentName</p>
+                    <p><strong>Audit record:</strong> your name, the reversal date, and the reason will be recorded on the ledger.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

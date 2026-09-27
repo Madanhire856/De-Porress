@@ -96,6 +96,11 @@ namespace SMS.Lib
         // ============================================================
         ViewFeeBalances = 1L << 40,
         RecordPayments = 1L << 41,
+        /// <summary>
+        /// Allows a user to reverse an incorrectly recorded payment.
+        /// This is separate from the right to record payments.
+        /// </summary>
+        ReversePayments = 1L << 63,
         GenerateInvoices = 1L << 42,
         WaiveFees = 1L << 43,
         ViewFeeReports = 1L << 44,

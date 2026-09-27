@@ -6,14 +6,14 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SMS.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class changedBankStatmentMatchedByUserIdtonullable : Migration
+    public partial class nullableteacherclassTeacherIdinClass : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<Guid>(
-                name: "MatchedByUserId",
-                table: "BankStatementEntry",
+                name: "ClassTeacherId",
+                table: "Class",
                 type: "uniqueidentifier",
                 nullable: true,
                 oldClrType: typeof(Guid),
@@ -24,8 +24,8 @@ namespace SMS.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<Guid>(
-                name: "MatchedByUserId",
-                table: "BankStatementEntry",
+                name: "ClassTeacherId",
+                table: "Class",
                 type: "uniqueidentifier",
                 nullable: false,
                 defaultValue: new Guid("00000000-0000-0000-0000-000000000000"),

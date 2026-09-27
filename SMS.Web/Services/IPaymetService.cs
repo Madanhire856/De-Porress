@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace SMS.Web.Services
 {
     /// <summary>
-    /// The single entry point for creating or reversing payments.
+    /// The single entry point for creating, correcting, or reversing payments.
     /// Every page that touches Payment rows must go through this service —
     /// never directly through the DbContext.
     /// </summary>
@@ -17,6 +17,8 @@ namespace SMS.Web.Services
         /// exchange rate and creator's display name.
         /// </summary>
         Task<Payment> RecordAsync(RecordPaymentRequest request);
+
+        Task<Payment> CorrectAsync(CorrectPaymentRequest request);
 
         /// <summary>
         /// Reverses an existing payment by creating a compensating entry.
@@ -56,6 +58,19 @@ namespace SMS.Web.Services
     {
         public Guid OriginalPaymentId { get; set; }
         public string Reason { get; set; } = "";
+        public Guid UserId { get; set; }
+        public string UserDisplayName { get; set; } = "";
+    }
+
+    public class CorrectPaymentRequest
+    {
+        public Guid PaymentId { get; set; }
+        public DateTime PaymentDate { get; set; }
+        public decimal Amount { get; set; }
+        public int PaymentMethodId { get; set; }
+        public string? ReferenceNumber { get; set; }
+        public string? ProofOfPaymentUrl { get; set; }
+        public string CorrectionReason { get; set; } = "";
         public Guid UserId { get; set; }
         public string UserDisplayName { get; set; } = "";
     }

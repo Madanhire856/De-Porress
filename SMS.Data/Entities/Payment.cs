@@ -47,7 +47,7 @@ public partial class Payment
 
     public DateTime PaymentDate { get; set; }
 
-    public virtual ICollection<BankStatementEntry> BankStatementEntries { get; set; } = new List<BankStatementEntry>();
+    public string? CorrectionReason { get; set; }
 
     public virtual User Creator { get; set; } = null!;
 
@@ -56,6 +56,8 @@ public partial class Payment
     public virtual ICollection<Payment> InverseReversesPayment { get; set; } = new List<Payment>();
 
     public virtual StudentLedger? Ledger { get; set; }
+
+    public virtual ICollection<PaymentCorrection> PaymentCorrections { get; set; } = new List<PaymentCorrection>();
 
     public virtual User? ReversedBy { get; set; }
 

@@ -48,9 +48,9 @@
 
                 <div class="form-group">
                     <label class="form-label" asp-for="cls.ClassTeacherId">
-                        Class Teacher <span class="required">*</span>
+                        Class Teacher
                     </label>
-                    <select asp-for="cls.ClassTeacherId" asp-items="Model.Teachers" class="form-control" required>
+                    <select asp-for="cls.ClassTeacherId" asp-items="Model.Teachers" class="form-control">
                         <option value="">— Select teacher —</option>
                     </select>
                     <span asp-validation-for="cls.ClassTeacherId" class="text-danger"></span>

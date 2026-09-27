@@ -60,7 +60,7 @@
             {
                 @foreach (var c in Model.Classes)
                 {
-                    var teacherName = Model.TeacherNames.TryGetValue(c.ClassTeacherId, out var t) ? t : "—";
+                    var teacherName = Model.TeacherNames.TryGetValue((Guid)c.ClassTeacherId, out var t) ? t : "—";
                     var gradeName = Model.GradeNames.TryGetValue(c.GradeId, out var g) ? g : "—";
                     var studentCount = Model.StudentCounts.TryGetValue(c.Id, out var sc) ? sc : 0;
 

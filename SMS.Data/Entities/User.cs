@@ -49,10 +49,6 @@ public partial class User
 
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
 
-    public virtual ICollection<BankStatementEntry> BankStatementEntryCreators { get; set; } = new List<BankStatementEntry>();
-
-    public virtual ICollection<BankStatementEntry> BankStatementEntryMatchedByUsers { get; set; } = new List<BankStatementEntry>();
-
     public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
 
     public virtual ICollection<Competition> Competitions { get; set; } = new List<Competition>();
@@ -72,6 +68,8 @@ public partial class User
     public virtual ICollection<House> Houses { get; set; } = new List<House>();
 
     public virtual ICollection<MassEvent> MassEvents { get; set; } = new List<MassEvent>();
+
+    public virtual ICollection<PaymentCorrection> PaymentCorrections { get; set; } = new List<PaymentCorrection>();
 
     public virtual ICollection<Payment> PaymentCreators { get; set; } = new List<Payment>();
 

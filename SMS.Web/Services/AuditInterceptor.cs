@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SMS.Data;
 using SMS.Lib;
 
@@ -20,6 +21,7 @@ namespace SMS.Web.Services
     public class AuditInterceptor : SaveChangesInterceptor
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<AuditInterceptor>? _logger;
 
         private static readonly SemaphoreSlim _fileLock = new(1, 1);
         private static readonly AsyncLocal<List<AuditLog>?> _pendingAuditRows = new();
@@ -27,8 +29,13 @@ namespace SMS.Web.Services
         public AuditInterceptor(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
+            _logger = serviceProvider.GetService<ILogger<AuditInterceptor>>();
         }
 
+        // =========================================================
+        //  WATCHED ENTITIES
+        //  Only changes to these types produce audit rows.
+        // =========================================================
         private static readonly HashSet<string> Watched = new(StringComparer.Ordinal)
         {
             nameof(Payment),
@@ -49,6 +56,10 @@ namespace SMS.Web.Services
             nameof(User),
         };
 
+        // ---------------------------------------------------------
+        //  NoisyFields — if the ONLY changed fields belong to this
+        //  set, the audit row is suppressed entirely.
+        // ---------------------------------------------------------
         private static readonly HashSet<string> NoisyFields = new(StringComparer.Ordinal)
         {
             "LastLoginDate",
@@ -62,11 +73,14 @@ namespace SMS.Web.Services
             "TwoFactorAuthEnabled",
         };
 
+        // ---------------------------------------------------------
+        //  DisplayHiddenFields — filtered out of the text-file
+        //  rendering. Does NOT suppress the audit row.
+        // ---------------------------------------------------------
         private static readonly HashSet<string> DisplayHiddenFields = new(StringComparer.Ordinal)
         {
             "Id",
             "CreatorId",
-            "Creator",
             "CreationDate",
             "LastLoginDate",
             "ActivationDate",
@@ -117,7 +131,7 @@ namespace SMS.Web.Services
         };
 
         // =========================================================
-        //  SYNC
+        //  SYNC PIPELINE
         // =========================================================
         public override InterceptionResult<int> SavingChanges(
             DbContextEventData eventData,
@@ -137,7 +151,7 @@ namespace SMS.Web.Services
         }
 
         // =========================================================
-        //  ASYNC
+        //  ASYNC PIPELINE
         // =========================================================
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
             DbContextEventData eventData,
@@ -159,7 +173,7 @@ namespace SMS.Web.Services
         }
 
         // =========================================================
-        //  DB ROWS
+        //  DB ROW GENERATION
         // =========================================================
         private List<AuditLog> AddAuditEntries(DbContext? context)
         {
@@ -173,10 +187,12 @@ namespace SMS.Web.Services
                 .Where(e => e.Entity.GetType().Name != nameof(AuditLog))
                 .Where(e => Watched.Contains(e.Entity.GetType().Name))
                 .Where(e => !OnlyNoisyFieldsChanged(e))
+                .Where(e => HasRealChanges(e))
                 .ToList();
 
             if (entries.Count == 0) return result;
 
+            // ---- Caller identity ----
             Guid? userId = null;
             string userName = "System";
             string? ip = null;
@@ -190,14 +206,20 @@ namespace SMS.Web.Services
                     userName = currentUser.Name ?? "System";
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Audit: ICurrentUserService resolution failed.");
+            }
 
             try
             {
                 var http = _serviceProvider.GetService<IHttpContextAccessor>();
                 ip = http?.HttpContext?.Connection?.RemoteIpAddress?.ToString();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Audit: IHttpContextAccessor resolution failed.");
+            }
 
             var now = DateTime.Now;
 
@@ -205,7 +227,15 @@ namespace SMS.Web.Services
             {
                 var entityName = entry.Entity.GetType().Name;
                 var entityId = GetEntityId(entry);
-                if (entityId == Guid.Empty) continue;
+
+                if (entityId == Guid.Empty)
+                {
+                    _logger?.LogWarning(
+                        "Audit skipped: {Entity} has an empty primary key. " +
+                        "Set Id = Guid.NewGuid() before Add().",
+                        entityName);
+                    continue;
+                }
 
                 var action = entry.State switch
                 {
@@ -225,7 +255,12 @@ namespace SMS.Web.Services
                     if (entry.State != EntityState.Deleted)
                         after = Serialise(entry, useOriginal: false);
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex,
+                        "Audit serialisation failed for {Entity} ({Action}).",
+                        entityName, action);
+                }
 
                 result.Add(new AuditLog
                 {
@@ -243,11 +278,29 @@ namespace SMS.Web.Services
             }
 
             if (result.Count > 0)
-                context.Set<AuditLog>().AddRange(result);
+            {
+                try
+                {
+                    context.Set<AuditLog>().AddRange(result);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Audit: failed to enqueue audit rows.");
+                    return new List<AuditLog>(); // don't flush partial rows
+                }
+            }
 
             return result;
         }
 
+        // =========================================================
+        //  FILTERS
+        // =========================================================
+
+        /// <summary>
+        /// True when the only modified properties are in the NoisyFields set.
+        /// Such updates are not worth auditing.
+        /// </summary>
         private static bool OnlyNoisyFieldsChanged(EntityEntry entry)
         {
             if (entry.State != EntityState.Modified)
@@ -264,8 +317,22 @@ namespace SMS.Web.Services
             return changed.All(name => NoisyFields.Contains(name));
         }
 
+        /// <summary>
+        /// True if at least one marked property actually changed value.
+        /// Filters out EF "modified" flags set on navigations that didn't
+        /// really change anything.
+        /// </summary>
+        private static bool HasRealChanges(EntityEntry entry)
+        {
+            if (entry.State != EntityState.Modified)
+                return true;
+
+            return entry.Properties.Any(p =>
+                p.IsModified && !Equals(p.OriginalValue, p.CurrentValue));
+        }
+
         // =========================================================
-        //  TEXT FILE WRITE
+        //  TEXT FILE FLUSH
         // =========================================================
         private void FlushToFile(List<AuditLog>? logs)
         {
@@ -307,7 +374,13 @@ namespace SMS.Web.Services
                     _fileLock.Release();
                 }
             }
-            catch { /* never break the save */ }
+            catch (Exception ex)
+            {
+                // The DB row is the source of truth. The text file is a
+                // convenience copy — log and move on.
+                _logger?.LogWarning(ex,
+                    "Audit text-file flush failed; DB rows were still written.");
+            }
         }
 
         // =========================================================

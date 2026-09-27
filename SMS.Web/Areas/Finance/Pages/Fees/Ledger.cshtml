@@ -163,7 +163,7 @@
                         <td>
                             @if (!p.IsReversal
                                  && !p.AlreadyReversed
-                                 && CurrentUser.HasRight(AccessRights.RecordPayments))
+                                 && CurrentUser.HasRight(AccessRights.ReversePayments))
                             {
                                 <a asp-page="./ReversePayment" asp-route-id="@p.Id"
                                    class="btn btn-ghost btn-sm row-action-btn">
@@ -174,11 +174,24 @@
                         </td>
                     </tr>
 
-                    @if (p.IsReversal && !string.IsNullOrWhiteSpace(p.ReversalReason))
+                    @if (p.IsReversal)
                     {
                         <tr class="ledger-reversal-note">
                             <td colspan="7">
-                                <i class="fa-solid fa-quote-left"></i> @p.ReversalReason
+                                <i class="fa-solid fa-link"></i>
+                                Reversal of <strong>@p.ReversedPaymentReceiptDisplay</strong>
+                                by <strong>@p.ReversedByName</strong>
+                                on <strong>@((p.ReversedOn ?? p.Date).ToString("dd MMM yyyy HH:mm"))</strong>.
+                                Reason: @(string.IsNullOrWhiteSpace(p.ReversalReason) ? "—" : p.ReversalReason)
+                            </td>
+                        </tr>
+                    }
+                    else if (p.AlreadyReversed)
+                    {
+                        <tr class="ledger-reversal-note">
+                            <td colspan="7">
+                                <i class="fa-solid fa-link"></i>
+                                Reversed by linked receipt <strong>@p.ReversalReceiptDisplay</strong>.
                             </td>
                         </tr>
                     }
