@@ -11,7 +11,8 @@ namespace SMS.Web.Areas.Identity.Pages.Account
     {
         public IActionResult OnGet(string? returnUrl = null)
         {
-            returnUrl ??= Url.Content("~/");
+            if (string.IsNullOrEmpty(returnUrl) || !Url.IsLocalUrl(returnUrl))
+                returnUrl = Url.Content("~/");
 
             var properties = new AuthenticationProperties
             {

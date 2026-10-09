@@ -1,325 +1,45 @@
-﻿@* Pages/Shared/SideBars/_staff.cshtml *@
 @using System.Security.Claims
-
+@using SMS.Lib
+@using SMS.Web.Services
+@inject ICurrentUserService CurrentUser
+@inject WorkspaceAccess Access
 @{
-    var currentArea = ViewContext.RouteData.Values["area"]?.ToString()?.ToLower() ?? "";
-    var currentPage = ViewContext.RouteData.Values["page"]?.ToString()?.ToLower() ?? "";
-
-    // Dashboard
-    var isDashboard = string.IsNullOrEmpty(currentArea) && (currentPage == "/index" || currentPage.StartsWith("/dashboard"));
-
-    // ============================================================
-    //  ACADEMICS FLAGS
-    // ============================================================
-    var isStaff      = currentArea == "academics" && currentPage.StartsWith("/staff");
-    var isStudents   = currentArea == "academics" && currentPage.StartsWith("/students");
-    var isTimetable  = currentPage.StartsWith("/timetable");
-    var isPrefects   = currentArea == "academics" && currentPage.StartsWith("/prefects");   // <-- FIXED
-    var isAcademicsSection = isStaff || isStudents || isTimetable || isPrefects;
-
-    // ============================================================
-    //  SPORTS AREA FLAGS
-    // ============================================================
-    var isHouseAssignments = currentArea == "sports" && currentPage.StartsWith("/houses");
-    var isSportsList = currentArea == "sports" && currentPage.StartsWith("/sporting/");
-    var isSportsSection = isHouseAssignments || isSportsList;
-
-    // ============================================================
-    //  FINANCE AREA FLAGS
-    // ============================================================
-    var isFeesDashboard   = currentArea == "finance" && currentPage == "/fees/index";
-    var isBalances        = currentArea == "finance" && currentPage.StartsWith("/fees/balances");
-    var isLedger          = currentArea == "finance" && currentPage.StartsWith("/fees/ledger");
-    var isRecordPayment   = currentArea == "finance" && currentPage.StartsWith("/fees/recordpayment");
-    var isReversePayment  = currentArea == "finance" && currentPage.StartsWith("/fees/reversepayment");
-    var isCashUp          = currentArea == "finance" && currentPage.StartsWith("/fees/cashup");
-    var isOpenTerm        = currentArea == "finance" && currentPage.StartsWith("/fees/openterm");
-
-    var isFeeStructure    = currentArea == "finance"
-                         && (currentPage.StartsWith("/fees/feesstructures")
-                          || currentPage.StartsWith("/fees/upsert"));
-
-    var isFees = isFeesDashboard || isBalances || isLedger || isRecordPayment
-              || isReversePayment || isCashUp
-              || isFeeStructure || isOpenTerm;
-
-    var isFeesPages = isBalances || isLedger || isRecordPayment || isReversePayment
-                   || isCashUp || isFeeStructure || isOpenTerm;
-
-    var isProjects = currentArea == "finance" && currentPage.StartsWith("/projects");
-    var isFinanceSection = isFees || isProjects;
-
-    // Faith Group (top-level)
-    var isMass = currentPage.StartsWith("/mass");
-
-    // ============================================================
-    //  CONFIGURATION SUB-FLAGS
-    // ============================================================
-    var isUsers = currentPage.StartsWith("/users");
-    var isUserGroups = currentPage.StartsWith("/usergroups");
-    var isEmails = currentPage.StartsWith("/emails");
-    var isMessageTemplates = currentPage.StartsWith("/messagetemplates");
-    var isAuditLogs = currentPage.StartsWith("/auditlogs");
-
-    // -- Academic Setup --
-    var isGrades = currentPage.StartsWith("/grades");
-    var isClasses = currentPage.StartsWith("/classes");
-    var isSubjects = currentPage.StartsWith("/subjects");
-    var isTerms = currentPage.StartsWith("/terms");
-    var isAcademicSetup = isGrades || isClasses || isSubjects || isTerms;
-
-    // -- Sporting (Config) --
-    var isConfigSportTypes = currentArea == "config" && currentPage.StartsWith("/sporttypes");
-    var isConfigHouses = currentArea == "config" && currentPage.StartsWith("/houses");
-    var isSporting = isConfigSportTypes || isConfigHouses;
-
-    // -- Location (Config only) --
-    var isVillages = currentArea == "config" && currentPage.StartsWith("/villages");
-
-    // -- Finance Setup --
-    var isCurrencies = currentPage.StartsWith("/currency");
-    var isFinanceSetup = isCurrencies;
-
-    // -- Configuration active if any child is active --
-    var isConfigSection =
-        isUsers || isUserGroups || isEmails || isMessageTemplates || isAuditLogs ||
-        isAcademicSetup || isSporting || isVillages || isFinanceSetup;
-
-    var currentDisplayName = User.FindFirstValue(ClaimTypes.Name) ?? "Head Teacher";
-    var initialMarker = currentDisplayName.Length >= 1 ? currentDisplayName.Substring(0, 1).ToUpper() : "U";
-    var currentEmail = User.FindFirstValue("preferred_username")
-                       ?? User.FindFirstValue(ClaimTypes.Email)
-                       ?? "";
+    var currentArea = ViewContext.RouteData.Values["area"]?.ToString() ?? "";
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+    var isDashboard = currentArea == "" && currentPage.Equals("/Index", StringComparison.OrdinalIgnoreCase);
+    var currentDisplayName = CurrentUser.Name ?? User.FindFirstValue(ClaimTypes.Name) ?? "Staff";
+    var currentRoleName = Access.Name;
+    var initialMarker = currentDisplayName.Length > 0 ? currentDisplayName[..1].ToUpperInvariant() : "U";
+    var groups = Access.Navigation.GroupBy(f => f.Group).ToList();
 }
-
 <div class="sidebar-wrapper">
-    <!-- FIXED HEADER -->
-    <div class="sidebar-header">
-        <img class="logo" src="~/images/logo.jpeg" alt="Logo" />
-        <h6 class="school-name">St. Martin De Porres</h6>
-    </div>
-
-    <div class="sidebar-top">
-        <div class="sidebar-menu">
-
-            <!-- Dashboard -->
-            <a asp-area="" asp-page="/Index" class="sidebar-link @(isDashboard ? "active" : "")">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>Dashboard</span>
-            </a>
-
-            <!-- ACADEMICS DROPDOWN -->
+    <div class="sidebar-header"><img class="logo" src="~/Images/logo.jpeg" alt="School crest" /><h6 class="school-name">St. Martin De Porres</h6></div>
+    <div class="sidebar-top"><div class="sidebar-menu">
+        @if (Access.CanViewDashboard)
+        {
+            <a asp-area="" asp-page="/Index" class="sidebar-link @(isDashboard ? "active" : "")"><i class="fas fa-tachometer-alt" aria-hidden="true"></i><span>@Access.Name dashboard</span></a>
+        }
+        @foreach (var group in groups)
+        {
+            var id = "workspaceMenu" + groups.IndexOf(group);
+            var active = group.Any(f => f.Area.Equals(currentArea, StringComparison.OrdinalIgnoreCase)
+                && currentPage.StartsWith(f.Page[..(f.Page.LastIndexOf('/') + 1)], StringComparison.OrdinalIgnoreCase));
             <div class="sidebar-dropdown">
-                <a class="sidebar-dropdown-toggle @(isAcademicsSection ? "active" : "")"
-                   data-bs-toggle="collapse" href="#academicsMenu" role="button"
-                   aria-expanded="@(isAcademicsSection ? "true" : "false")" aria-controls="academicsMenu">
-                    <div class="left-side">
-                        <i class="fas fa-graduation-cap main-icon"></i>
-                        <span>Academics</span>
-                    </div>
-                    <i class="fas fa-chevron-down chevron"></i>
-                </a>
-                <div class="collapse @(isAcademicsSection ? "show" : "")" id="academicsMenu">
-                    <div class="sidebar-submenu">
-                        <a asp-area="Academics" asp-page="/Students/Index" class="sidebar-sublink @(isStudents ? "active" : "")">Students</a>
-                        <a asp-area="Academics" asp-page="/Staff/Index" class="sidebar-sublink @(isStaff ? "active" : "")">Staff</a>
-                        <a asp-area="" asp-page="/Timetable/Index" class="sidebar-sublink @(isTimetable ? "active" : "")">Timetable</a>
-                        <a asp-area="Academics" asp-page="/Prefects/Index" class="sidebar-sublink @(isPrefects ? "active" : "")">Prefects</a>
-                    </div>
-                </div>
+                <a class="sidebar-dropdown-toggle @(active ? "active" : "")" data-bs-toggle="collapse" href="#@id" role="button" aria-expanded="@(active ? "true" : "false")" aria-controls="@id"><div class="left-side"><i class="fas @group.First().Icon main-icon" aria-hidden="true"></i><span>@group.Key</span></div><i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+                <div class="collapse @(active ? "show" : "")" id="@id"><div class="sidebar-submenu">
+                    @foreach (var item in group)
+                    {
+                        var selected = item.Area.Equals(currentArea, StringComparison.OrdinalIgnoreCase) && item.Page.Equals(currentPage, StringComparison.OrdinalIgnoreCase);
+                        <a asp-area="@item.Area" asp-page="@item.Page" class="sidebar-sublink @(selected ? "active" : "")">@item.Title</a>
+                    }
+                </div></div>
             </div>
-
-            <!-- SPORTS & HOUSES DROPDOWN -->
-            <div class="sidebar-dropdown">
-                <a class="sidebar-dropdown-toggle @(isSportsSection ? "active" : "")"
-                   data-bs-toggle="collapse" href="#sportsMenu" role="button"
-                   aria-expanded="@(isSportsSection ? "true" : "false")" aria-controls="sportsMenu">
-                    <div class="left-side">
-                        <i class="fas fa-futbol main-icon"></i>
-                        <span>Sports &amp; Houses</span>
-                    </div>
-                    <i class="fas fa-chevron-down chevron"></i>
-                </a>
-                <div class="collapse @(isSportsSection ? "show" : "")" id="sportsMenu">
-                    <div class="sidebar-submenu">
-                        <a asp-area="Sports"
-                           asp-page="/Houses/Index"
-                           class="sidebar-sublink @(isHouseAssignments ? "active" : "")">
-                            House Assignments
-                        </a>
-                        <a asp-area="Sports"
-                           asp-page="/Sporting/Index"
-                           class="sidebar-sublink @(isSportsList ? "active" : "")">
-                            Sports
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FINANCE DROPDOWN -->
-            <div class="sidebar-dropdown">
-                <a class="sidebar-dropdown-toggle @(isFinanceSection ? "active" : "")"
-                   data-bs-toggle="collapse" href="#financeMenu" role="button"
-                   aria-expanded="@(isFinanceSection ? "true" : "false")" aria-controls="financeMenu">
-                    <div class="left-side">
-                        <i class="fas fa-hand-holding-usd main-icon"></i>
-                        <span>Finance</span>
-                    </div>
-                    <i class="fas fa-chevron-down chevron"></i>
-                </a>
-                <div class="collapse @(isFinanceSection ? "show" : "")" id="financeMenu">
-                    <div class="sidebar-submenu">
-
-                        <div class="sidebar-subgroup">
-                            <a class="sidebar-subgroup-toggle @(isFeesPages ? "active" : "")"
-                               data-bs-toggle="collapse" href="#feesPagesMenu" role="button"
-                               aria-expanded="@(isFeesPages ? "true" : "false")" aria-controls="feesPagesMenu">
-                                <i class="fas fa-chevron-right subgroup-chevron"></i>
-                                <span>Fees</span>
-                            </a>
-                            <div class="collapse @(isFeesPages ? "show" : "")" id="feesPagesMenu">
-
-                                <a asp-area="Finance" asp-page="/Fees/Index"
-                                   class="sidebar-sublink @(isFeesDashboard ? "active" : "")">
-                                    Dashboard
-                                </a>
-
-                                <a asp-area="Finance" asp-page="/Fees/Balances"
-                                   class="sidebar-sublink @(isBalances ? "active" : "")">
-                                    Student Balances
-                                </a>
-
-                                <a asp-area="Finance" asp-page="/Fees/CashUp"
-                                   class="sidebar-sublink @(isCashUp ? "active" : "")">
-                                    Cash-Up
-                                </a>
-
-                                <a asp-area="Finance" asp-page="/Fees/FeesStructures"
-                                   class="sidebar-sublink @(isFeeStructure ? "active" : "")">
-                                    Fee Structure
-                                </a>
-
-                                <a asp-area="Finance" asp-page="/Fees/OpenTerm"
-                                   class="sidebar-sublink @(isOpenTerm ? "active" : "")">
-                                    Open Term
-                                </a>
-
-                            </div>
-                        </div>
-
-                        <div class="sidebar-divider"></div>
-
-                        <a asp-area="Finance"
-                           asp-page="/Projects/Index"
-                           class="sidebar-sublink @(isProjects ? "active" : "")">
-                            Sponsorship
-                        </a>
-
-                    </div>
-                </div>
-            </div>
-
-            <!-- FAITH DROPDOWN -->
-            <div class="sidebar-dropdown">
-                <a class="sidebar-dropdown-toggle @(isMass ? "active" : "")"
-                   data-bs-toggle="collapse" href="#faithMenu" role="button"
-                   aria-expanded="@(isMass ? "true" : "false")" aria-controls="faithMenu">
-                    <div class="left-side">
-                        <i class="fas fa-church main-icon"></i>
-                        <span>Faith</span>
-                    </div>
-                    <i class="fas fa-chevron-down chevron"></i>
-                </a>
-                <div class="collapse @(isMass ? "show" : "")" id="faithMenu">
-                    <div class="sidebar-submenu">
-                        <a asp-area="" asp-page="/Mass/Index" class="sidebar-sublink @(isMass ? "active" : "")">Mass & Liturgy</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CONFIGURATION DROPDOWN -->
-            <div class="sidebar-dropdown">
-                <a class="sidebar-dropdown-toggle @(isConfigSection ? "active" : "")"
-                   data-bs-toggle="collapse" href="#configMenu" role="button"
-                   aria-expanded="@(isConfigSection ? "true" : "false")" aria-controls="configMenu">
-                    <div class="left-side">
-                        <i class="fas fa-cog main-icon"></i>
-                        <span>Configuration</span>
-                    </div>
-                    <i class="fas fa-chevron-down chevron"></i>
-                </a>
-                <div class="collapse @(isConfigSection ? "show" : "")" id="configMenu">
-                    <div class="sidebar-submenu">
-
-                        <a asp-area="Config" asp-page="/Users/Index" class="sidebar-sublink @(isUsers ? "active" : "")">Users</a>
-                        <a asp-area="Config" asp-page="/UserGroups/Index" class="sidebar-sublink @(isUserGroups ? "active" : "")">User Groups</a>
-
-                        <div class="sidebar-divider"></div>
-
-                        <div class="sidebar-subgroup">
-                            <a class="sidebar-subgroup-toggle @(isAcademicSetup ? "active" : "")"
-                               data-bs-toggle="collapse" href="#academicSetupMenu" role="button"
-                               aria-expanded="@(isAcademicSetup ? "true" : "false")" aria-controls="academicSetupMenu">
-                                <i class="fas fa-chevron-right subgroup-chevron"></i>
-                                <span>Academic Setup</span>
-                            </a>
-                            <div class="collapse @(isAcademicSetup ? "show" : "")" id="academicSetupMenu">
-                                <a asp-area="Config" asp-page="/Grades/Index" class="sidebar-sublink @(isGrades ? "active" : "")">Grades</a>
-                                <a asp-area="Config" asp-page="/Classes/Index" class="sidebar-sublink @(isClasses ? "active" : "")">Classes</a>
-                                <a asp-area="Config" asp-page="/Subjects/Index" class="sidebar-sublink @(isSubjects ? "active" : "")">Subjects</a>
-                                <a asp-area="Config" asp-page="/Terms/Index" class="sidebar-sublink @(isTerms ? "active" : "")">Terms</a>
-                            </div>
-                        </div>
-
-                        <div class="sidebar-divider"></div>
-
-                        <div class="sidebar-subgroup">
-                            <a class="sidebar-subgroup-toggle @(isSporting ? "active" : "")"
-                               data-bs-toggle="collapse" href="#sportingMenu" role="button"
-                               aria-expanded="@(isSporting ? "true" : "false")" aria-controls="sportingMenu">
-                                <i class="fas fa-chevron-right subgroup-chevron"></i>
-                                <span>Sporting</span>
-                            </a>
-                            <div class="collapse @(isSporting ? "show" : "")" id="sportingMenu">
-                                <a asp-area="Config" asp-page="/SportTypes/Index" class="sidebar-sublink @(isConfigSportTypes ? "active" : "")">Sport Types</a>
-                                <a asp-area="Config" asp-page="/Houses/Index" class="sidebar-sublink @(isConfigHouses ? "active" : "")">Houses</a>
-                            </div>
-                        </div>
-
-                        <div class="sidebar-divider"></div>
-
-                        <a asp-area="Config" asp-page="/Villages/Index" class="sidebar-sublink @(isVillages ? "active" : "")">Villages</a>
-
-                        <div class="sidebar-divider"></div>
-
-                        <div class="sidebar-subgroup">
-                            <a class="sidebar-subgroup-toggle @(isFinanceSetup ? "active" : "")"
-                               data-bs-toggle="collapse" href="#financeSetupMenu" role="button"
-                               aria-expanded="@(isFinanceSetup ? "true" : "false")" aria-controls="financeSetupMenu">
-                                <i class="fas fa-chevron-right subgroup-chevron"></i>
-                                <span>Finance Setup</span>
-                            </a>
-                            <div class="collapse @(isFinanceSetup ? "show" : "")" id="financeSetupMenu">
-                                <a asp-area="Config" asp-page="/Currency/Index" class="sidebar-sublink @(isCurrencies ? "active" : "")">Currencies</a>
-                            </div>
-                        </div>
-
-                        <div class="sidebar-divider"></div>
-
-                        <a asp-area="Config" asp-page="/AuditLogs/Index" class="sidebar-sublink @(isAuditLogs ? "active" : "")">Audit Logs</a>
-
-                        <div class="sidebar-divider"></div>
-
-                        <a asp-area="Config" asp-page="/Emails/Index" class="sidebar-sublink @(isEmails ? "active" : "")">Emails</a>
-                        <a asp-area="Config" asp-page="/MessageTemplates/Index" class="sidebar-sublink @(isMessageTemplates ? "active" : "")">Message Templates</a>
-
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
+        }
+        @if (groups.Count == 0)
+        {
+            <p class="sidebar-access-note">No modules are assigned to this account. Contact your administrator.</p>
+        }
+    </div></div>
     <!-- USER PROFILE + LOGOUT DROPDOWN -->
     <div class="sidebar-bottom">
         <div class="dropdown dropup w-100">
@@ -328,7 +48,7 @@
                 <div class="sidebar-avatar">@initialMarker</div>
                 <div class="sidebar-user-info">
                     <div class="sidebar-user-name">@currentDisplayName</div>
-                    <div class="sidebar-user-role">Head Teacher</div>
+                    <div class="sidebar-user-role">@currentRoleName</div>
                 </div>
                 <i class="fas fa-chevron-up sidebar-user-chevron"></i>
             </div>

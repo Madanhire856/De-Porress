@@ -23,6 +23,40 @@ namespace SMS.Web.Services
         // =========================================================
         public async Task<Payment> RecordAsync(RecordPaymentRequest request)
         {
+            if (request.SubmissionId == Guid.Empty)
+                throw new InvalidOperationException("Reload the payment form before recording a payment.");
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                // SQL Server locks are shared across requests and application instances.
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                var resource = "RecordPayment:" + request.LedgerId.ToString("N");
+                await _context.Database.ExecuteSqlInterpolatedAsync($@"
+                    DECLARE @result int;
+                    EXEC @result = sys.sp_getapplock @Resource={resource}, @LockMode='Exclusive', @LockOwner='Transaction', @LockTimeout=15000;
+                    IF @result < 0 THROW 51000, 'Payment is busy. Retry the same confirmation.', 1;");
+                var existing = await _context.Payments.AsNoTracking().FirstOrDefaultAsync(p => p.Id == request.SubmissionId);
+                if (existing != null)
+                {
+                    if (existing.CreatorId != request.UserId || existing.LedgerId != request.LedgerId)
+                        throw new InvalidOperationException("This submission belongs to another payment.");
+                    if (existing.Amount != request.Amount || existing.CurrencyId != request.CurrencyId
+                        || existing.PaymentDate.Date != request.PaymentDate.Date || existing.PaymentMethodId != request.PaymentMethodId)
+                        throw new InvalidOperationException("This form already recorded a different payment. Open a new payment form.");
+                    await transaction.CommitAsync();
+                    return existing;
+                }
+                // A retry after a rollback must not retain the unsuccessful insert.
+                foreach (var entry in _context.ChangeTracker.Entries<Payment>().Where(e => e.Entity.Id == request.SubmissionId).ToList())
+                    entry.State = EntityState.Detached;
+                var payment = await RecordCoreAsync(request);
+                await transaction.CommitAsync();
+                return payment;
+            });
+        }
+
+        private async Task<Payment> RecordCoreAsync(RecordPaymentRequest request)
+        {
             ValidateRecordRequest(request);
 
             // Compute the base-currency amount. Round to 2 decimals — money.
@@ -52,7 +86,7 @@ namespace SMS.Web.Services
 
             var payment = new Payment
             {
-                Id = Guid.NewGuid(),
+                Id = request.SubmissionId,
                 LedgerId = request.LedgerId,
                 PaymentDate = request.PaymentDate.Date,      // ← NEW
                 Amount = request.Amount,

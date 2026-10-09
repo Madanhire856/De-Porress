@@ -10,6 +10,10 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @if (ViewData["Description"] is string description)
+    {
+        <meta name="description" content="@description" />
+    }
     <title>@ViewData["Title"] - St Martin De Porres</title>
 
     <!-- Bootstrap CSS kept for utility classes used in some pages -->

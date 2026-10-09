@@ -29,7 +29,6 @@ namespace SMS.Web.Areas.Config.Pages.Classes
         public ClassVM cls { get; set; } = new();
 
         public List<SelectListItem> Grades { get; set; } = new();
-        public List<SelectListItem> Teachers { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(Guid? id)
         {
@@ -60,11 +59,10 @@ namespace SMS.Web.Areas.Config.Pages.Classes
                         Id = entity.Id,
                         GradeId = entity.GradeId,
                         Name = entity.Name,
-                        Capacity = entity.Capacity,
-                        ClassTeacherId = entity.ClassTeacherId
+                        Capacity = entity.Capacity
                     };
 
-                    await LoadLookupsAsync(includeStaffId: entity.ClassTeacherId);
+                    await LoadLookupsAsync();
                     return Page();
                 }
             }
@@ -82,7 +80,7 @@ namespace SMS.Web.Areas.Config.Pages.Classes
             if (id != null && !_currentUser.HasRight(AccessRights.EditClasses))
                 return Forbid();
 
-            await LoadLookupsAsync(includeStaffId: cls.ClassTeacherId);
+            await LoadLookupsAsync();
 
             if (!ModelState.IsValid)
                 return Page();
@@ -121,14 +119,13 @@ namespace SMS.Web.Areas.Config.Pages.Classes
             entity.GradeId = cls.GradeId ?? Guid.Empty;
             entity.Name = cls.Name;
             entity.Capacity = cls.Capacity;
-            entity.ClassTeacherId = cls.ClassTeacherId ?? Guid.Empty;
 
             await _context.SaveChangesAsync();
 
             return RedirectToPage("./Details", new { area = "Config", id = entity.Id });
         }
 
-        private async Task LoadLookupsAsync(Guid? includeStaffId = null)
+        private async Task LoadLookupsAsync()
         {
             Grades = await _context.Grades
                 .AsNoTracking()
@@ -140,37 +137,6 @@ namespace SMS.Web.Areas.Config.Pages.Classes
                 })
                 .ToListAsync();
 
-            var teachingCategoryIds = new[]
-            {
-                (int)StaffCategory.GENERAL_TEACHER,
-                (int)StaffCategory.SENIOR_TEACHER,
-                (int)StaffCategory.STUDENT_TEACHER
-            };
-
-            var teacherRows = await _context.Staff
-                .AsNoTracking()
-                .Where(s =>
-                    s.IsActive == true
-                    && (teachingCategoryIds.Contains(s.CategoryId)
-                        || (includeStaffId.HasValue && s.Id == includeStaffId.Value)))
-                .OrderBy(s => s.Surname)
-                .ThenBy(s => s.Name)
-                .Select(s => new
-                {
-                    s.Id,
-                    s.Name,
-                    s.Surname,
-                    s.CategoryId
-                })
-                .ToListAsync();
-
-            Teachers = teacherRows
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = $"{s.Name} {s.Surname} — {((StaffCategory)s.CategoryId).ToDisplayName()}"
-                })
-                .ToList();
         }
     }
 }

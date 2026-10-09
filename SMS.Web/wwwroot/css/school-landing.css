@@ -1,0 +1,1008 @@
+.school-site{
+    --school-ink:#172d40;
+    --school-gold:#b78d38;
+    --school-paper:#faf8f2;
+    --school-gutter:clamp(18px,3vw,48px);
+    color:var(--school-ink);
+    background:var(--school-paper);
+    font-family:'Segoe UI',sans-serif
+}
+.school-site a{
+    text-decoration:none;
+    color:inherit
+}
+.school-site p{
+    font-size:16px;
+    line-height:1.85;
+    color:#63707b
+}
+.school-site h1,.school-site h2,.school-site h3{
+    font-family:Georgia,'Times New Roman',serif;
+    font-weight:400
+}
+.school-site h2{
+    font-size:clamp(32px,3.4vw,48px);
+    line-height:1.2;
+    letter-spacing:-1.3px;
+    margin:0 0 24px
+}
+.school-site em{
+    color:var(--school-gold);
+    font-weight:400
+}
+.school-site .school-eyebrow{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:2.5px;
+    color:#8b6c30;
+    margin:0 0 22px;
+    line-height:1.4
+}
+.school-topline{
+    background:var(--school-ink);
+    color:#e1dfd8;
+    display:flex;
+    justify-content:space-between;
+    padding:9px var(--school-gutter);
+    font-size:11px;
+    letter-spacing:.6px
+}
+.school-topline i{
+    margin-right:9px;
+    color:#d7b771
+}
+.school-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:28px;
+    padding:16px var(--school-gutter);
+    background:#fffefb;
+    border-bottom:1px solid #e9e5db
+}
+.school-brand{
+    display:flex;
+    align-items:center;
+    gap:13px;
+    flex-shrink:0
+}
+.school-brand img{
+    object-fit:cover;
+    border-radius:4px
+}
+.school-brand>span,.school-footer-brand{
+    font-family:Georgia,serif;
+    font-size:21px
+}
+.school-brand small,.school-footer-brand small{
+    display:block;
+    font-family:'Segoe UI',sans-serif;
+    letter-spacing:3px;
+    font-size:9px;
+    margin-top:7px
+}
+.school-header nav{
+    display:flex;
+    gap:24px;
+    font-size:12px
+}
+.school-header nav a:hover,.school-footer nav a:hover{
+    color:#b78d38
+}
+.school-portal{
+    border:1px solid #d9dddf;
+    border-radius:3px;
+    padding:12px 16px;
+    font-size:11px;
+    white-space:nowrap
+}
+.school-portal i{
+    margin-left:12px
+}
+.school-hero{
+    display:grid;
+    grid-template-columns:1fr 1.1fr;
+    gap:32px;
+    margin:0;
+    padding:42px var(--school-gutter) 36px;
+    align-items:center
+}
+.school-hero h1{
+    font-size:clamp(42px,4.8vw,68px);
+    letter-spacing:-3px;
+    line-height:1.08;
+    margin:0 0 28px
+}
+.school-hero-copy>p:not(.school-eyebrow){
+    max-width:500px
+}
+.school-buttons{
+    display:flex;
+    align-items:center;
+    gap:26px;
+    margin-top:32px;
+    flex-wrap:wrap
+}
+.school-site .school-button{
+    display:inline-flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:32px;
+    background:var(--school-ink);
+    color:white;
+    padding:16px 23px;
+    font-size:12px;
+    border-radius:3px;
+    transition:background .2s
+}
+.school-site .school-button:hover{
+    background:#2b4860
+}
+.school-text-link{
+    font-size:12px;
+    font-weight:600;
+    display:inline-flex;
+    gap:14px;
+    align-items:center
+}
+.school-hero-address{
+    display:flex;
+    align-items:center;
+    gap:13px;
+    font-size:11px;
+    color:#7a8389;
+    line-height:1.7;
+    margin-top:26px
+}
+.school-hero-address i{
+    color:#b78d38;
+    font-size:18px
+}
+.school-hero-address strong{
+    font-weight:500;
+    color:#374e61
+}
+.school-values-strip{
+    display:flex;
+    justify-content:center;
+    gap:5vw;
+    border-top:1px solid #e6e1d4;
+    border-bottom:1px solid #e6e1d4;
+    padding:20px var(--school-gutter);
+    font-size:12px
+}
+.school-values-strip span{
+    display:flex;
+    gap:13px;
+    align-items:center
+}
+.school-values-strip i{
+    font-size:18px;
+    color:#af893a
+}
+.school-section{
+    padding:48px var(--school-gutter);
+    margin:0;
+    scroll-margin-top:20px
+}
+.school-about{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8vw
+}
+.school-about p:first-child:not(.school-eyebrow){
+    margin-top:0
+}
+.school-faith{
+    background:var(--school-ink);
+    color:#fff7e6;
+    padding:38px var(--school-gutter);
+    display:grid;
+    grid-template-columns:.4fr 1fr;
+    gap:32px;
+    align-items:center;
+    scroll-margin-top:20px
+}
+.school-faith h2{
+    max-width:700px
+}
+.school-faith p:not(.school-eyebrow){
+    color:#bdc8d0;
+    max-width:660px
+}
+.school-faith em{
+    color:#e0be75
+}
+.school-faith .school-eyebrow{
+    color:#d5b56f
+}
+.school-faith-symbol{
+    height:210px;
+    border:1px solid #c4ac692e;
+    border-radius:170px 170px 0 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:35px;
+    max-width:210px;
+    width:100%;
+    margin:auto
+}
+.school-faith-symbol i{
+    font-size:60px;
+    color:#d7b772
+}
+.school-faith-symbol span{
+    font-size:9px;
+    letter-spacing:2.4px;
+    color:#d7b772
+}
+.school-faith-values{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:26px
+}
+.school-faith-values span{
+    font-size:11px;
+    border:1px solid #65717c;
+    padding:9px 13px;
+    border-radius:2px
+}
+.school-section-heading{
+    display:flex;
+    justify-content:space-between;
+    gap:50px;
+    align-items:center;
+    margin-bottom:22px
+}
+.school-section-heading>p{
+    max-width:370px
+}
+.school-learning-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:22px
+}
+.school-learning-grid article{
+    position:relative;
+    background:#fffefb;
+    border:1px solid #e5e0d4;
+    padding:26px;
+    border-radius:4px
+}
+.school-card-number{
+    position:absolute;
+    right:26px;
+    top:24px;
+    color:#c8c0b0;
+    font-size:11px
+}
+.school-learning-grid i{
+    color:#b78d38;
+    font-size:26px;
+    margin:10px 0 27px
+}
+.school-learning-grid h3{
+    font-size:24px;
+    margin:0 0 16px
+}
+.school-learning-grid p{
+    font-size:14px;
+    margin:0
+}
+
+
+
+
+
+
+
+
+
+.school-contact{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:32px;
+    align-items:center
+}
+.school-address-card{
+    display:flex;
+    align-items:flex-start;
+    gap:22px;
+    padding:30px;
+    border:1px solid #e2dccd;
+    background:#fffefb;
+    border-radius:4px
+}
+.school-address-card>i{
+    color:#b78d38;
+    font-size:26px;
+    margin-top:5px
+}
+.school-address-card h3{
+    font-size:25px;
+    margin:0 0 16px
+}
+.school-address-card address{
+    font-style:normal;
+    font-size:15px;
+    line-height:1.9;
+    margin:0
+}
+.school-address-card p{
+    font-size:12px;
+    margin:20px 0 0
+}
+.school-footer{
+    background:#102333;
+    color:#eee8da;
+    padding:32px var(--school-gutter) 20px;
+    display:flex;
+    justify-content:space-between;
+    gap:30px;
+    flex-wrap:wrap
+}
+.school-footer p{
+    font-size:12px;
+    color:#a6b3bd;
+    margin:16px 0 0
+}
+.school-footer nav{
+    display:flex;
+    gap:27px;
+    font-size:12px;
+    align-items:center;
+    flex-wrap:wrap
+}
+.school-footer-bottom{
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+    width:100%;
+    border-top:1px solid #ffffff1a;
+    padding-top:20px;
+    margin-top:15px;
+    font-size:10px;
+    color:#96a6b1
+}
+.school-site a:focus-visible{
+    outline:3px solid #b78d38;
+    outline-offset:5px
+}
+.school-skip{
+    position:absolute;
+    left:20px;
+    top:-100px;
+    background:white;
+    padding:14px;
+    z-index:10
+}
+.school-skip:focus{
+    top:10px
+}
+.public-wrapper:has(.school-site){
+    scroll-behavior:smooth;
+    background:#faf8f2
+}
+@media(max-width:1100px){
+    .school-header{
+    flex-wrap:wrap;
+    gap:20px
+}
+.school-header nav{
+    order:3;
+    width:100%;
+    justify-content:center;
+    border-top:1px solid #eee8dc;
+    padding-top:18px
+}
+.school-hero{
+    gap:4vw;
+    padding-top:55px
+}
+.school-section{
+    padding:40px var(--school-gutter)
+}
+.school-learning-grid article{
+    padding:25px
+}
+.school-learning-grid h3{
+    font-size:22px
+}
+.school-values-strip{
+    gap:5vw
+}
+
+}
+@media(max-width:700px){
+    .school-topline{
+    font-size:9px
+}
+.school-header{
+    padding:14px var(--school-gutter);
+    gap:16px
+}
+.school-brand>span{
+    font-size:17px
+}
+.school-brand img{
+    width:40px;
+    height:49px
+}
+.school-portal{
+    font-size:10px;
+    padding:10px
+}
+.school-portal i{
+    display:none
+}
+.school-header nav{
+    gap:18px;
+    justify-content:flex-start;
+    overflow:auto;
+    font-size:11px;
+    white-space:nowrap;
+    padding-bottom:4px
+}
+.school-hero{
+    grid-template-columns:1fr;
+    padding:30px var(--school-gutter);
+    gap:40px
+}
+.school-hero h1{
+    letter-spacing:-2px
+}
+.school-hero-copy>p:not(.school-eyebrow){
+    font-size:15px
+}
+.school-hero-address{
+    margin-top:27px
+}
+.school-values-strip{
+    flex-wrap:wrap;
+    justify-content:flex-start;
+    padding:18px var(--school-gutter);
+    gap:18px 25px;
+    font-size:11px
+}
+.school-values-strip i{
+    font-size:14px
+}
+.school-section{
+    padding:34px var(--school-gutter)
+}
+.school-about,
+.school-faith{
+    grid-template-columns:1fr;
+    padding:34px var(--school-gutter);
+    gap:32px
+}
+.school-faith-symbol{
+    height:160px;
+    max-width:160px;
+    gap:18px
+}
+.school-faith-symbol i{
+    font-size:45px
+}
+.school-faith-symbol span{
+    font-size:7px;
+    letter-spacing:1px
+}
+.school-section-heading{
+    display:block;
+    margin-bottom:26px
+}
+.school-learning-grid{
+    grid-template-columns:1fr;
+    gap:15px
+}
+.school-learning-grid article{
+    padding:27px
+}
+.school-learning-grid i{
+    margin:0 0 18px
+}
+
+.school-address-card{
+    padding:24px
+}
+.school-footer{
+    padding:30px var(--school-gutter) 20px;
+    gap:26px
+}
+.school-footer nav{
+    gap:20px
+}
+.school-footer-bottom{
+    flex-direction:column;
+    gap:8px
+}
+.school-site p{
+    font-size:15px
+}
+
+}
+@media(prefers-reduced-motion:reduce){
+    .public-wrapper:has(.school-site){
+    scroll-behavior:auto
+}
+.school-site .school-button{
+    transition:none
+}
+
+}
+
+
+.school-motto{
+    margin:26px 0 0;
+    padding:0 0 0 17px;
+    border-left:2px solid var(--school-gold);
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:20px;
+    line-height:1.6;
+    max-width:450px;
+    color:#526477
+}
+.school-motto>span{
+    display:block;
+    font-family:'Segoe UI',sans-serif;
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:2px;
+    color:#927132;
+    margin-bottom:5px
+}
+.school-leadership{
+    border-top:1px solid #e6e1d4
+}
+.school-leadership-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:22px
+}
+.school-leadership-grid article{
+    display:flex;
+    align-items:center;
+    gap:22px;
+    padding:26px;
+    background:#fffefb;
+    border:1px solid #e5e0d4;
+    border-radius:4px
+}
+.school-leader-icon{
+    display:grid;
+    place-items:center;
+    width:65px;
+    height:65px;
+    flex-shrink:0;
+    background:#f0ecdf;
+    border-radius:50%;
+    color:#a58644;
+    font-size:23px
+}
+.school-leadership-grid .school-eyebrow{
+    margin-bottom:10px;
+    font-size:9px
+}
+.school-leadership-grid h3{
+    font-size:26px;
+    margin:0;
+    line-height:1.3
+}
+.school-site .school-placeholder-label{
+    display:inline-block;
+    font-size:11px;
+    padding:5px 10px;
+    background:#e6dfcd;
+    border-radius:3px;
+    color:#72613c;
+    margin:0 0 5px
+}
+
+.school-contact-details{
+    margin:24px 0 0
+}
+.school-contact-details>div{
+    display:flex;
+    justify-content:space-between;
+    gap:22px;
+    padding:11px 0;
+    border-top:1px solid #e9e3d6;
+    font-size:12px
+}
+.school-contact-details dt{
+    font-weight:600
+}
+.school-contact-details dd{
+    color:#7c858b;
+    margin:0
+}
+@media(max-width:700px){
+    .school-leadership-grid{
+    grid-template-columns:1fr;
+    gap:15px
+}
+.school-leadership-grid article{
+    padding:24px;
+    gap:17px
+}
+.school-leadership-grid h3{
+    font-size:23px
+}
+.school-leader-icon{
+    width:52px;
+    height:52px;
+    font-size:20px
+}
+.school-motto{
+    font-size:18px
+}
+.school-leadership{
+    border-top:1px solid #e6e1d4
+}
+
+}
+
+
+/* Photography slots: replace the placeholder with a .school-photo image. */
+.school-front-photo, .school-bus-photo {
+     margin: 0;
+     border: 1px solid #dedacb;
+     border-radius: 10px;
+     overflow: hidden;
+     background: #f0ede3;
+     
+}
+
+.school-front-photo {
+     position: relative;
+     min-height: 420px;
+     
+}
+
+.school-photo-placeholder {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
+     gap: 14px;
+     min-height: 340px;
+     padding: 24px;
+     text-align: center;
+     color: #526477;
+     background: radial-gradient(ellipse at 50% 35%, #fffdf4, #e6e1d3);
+     
+}
+
+.school-front-photo .school-photo-placeholder {
+     min-height: 420px;
+     
+}
+
+.school-photo-placeholder i {
+     font-size: 52px;
+     color: #a58a51;
+     
+}
+
+.school-photo-placeholder>span {
+     font-family: Georgia, serif;
+     font-size: 28px;
+     
+}
+
+.school-photo-placeholder small {
+     font-size: 12px;
+     color: #6c757a;
+     
+}
+
+.school-photo {
+     display: block;
+     width: 100%;
+     height: 100%;
+     object-fit: cover;
+     
+}
+
+.school-front-photo .school-photo {
+     min-height: 420px;
+     
+}
+
+.school-front-photo figcaption {
+     position: absolute;
+     inset: auto 0 0;
+     padding: 20px 24px;
+     background: #172d40;
+     color: #fff9e9;
+     font-family: Georgia, serif;
+     font-size: 22px;
+     
+}
+
+.school-front-photo figcaption span, .school-bus-photo figcaption span {
+     display: block;
+     font-family: 'Segoe UI', sans-serif;
+     font-size: 9px;
+     letter-spacing: 2px;
+     color: #d8ba77;
+     margin-bottom: 6px;
+     
+}
+
+.school-campus {
+     border-top: 1px solid #e6e1d4;
+     
+}
+
+.school-bus-photo {
+     display: grid;
+     grid-template-columns: 1.25fr 1fr;
+     
+}
+
+.school-bus-photo figcaption {
+     display: flex;
+     justify-content: center;
+     flex-direction: column;
+     padding: 32px;
+     background: #172d40;
+     
+}
+
+.school-bus-photo h3 {
+     color: #fff9e9;
+     font-size: 30px;
+     margin: 10px 0;
+     
+}
+
+.school-bus-photo figcaption p {
+     color: #bdc8d0;
+     font-size: 14px;
+     margin: 12px 0 0;
+     
+}
+
+.school-brand img {
+     width: 52px;
+     height: 64px;
+     
+}
+
+
+/* Subtle entrance and interaction motion;
+     content stays visible without animation support. */
+@keyframes school-enter {
+     from {
+     opacity: 0;
+     transform: translateY(18px);
+     
+}
+ to {
+     opacity: 1;
+     transform: translateY(0);
+     
+}
+ 
+}
+
+.school-hero-copy {
+     animation: school-enter .7s ease-out both;
+     
+}
+
+.school-front-photo {
+     animation: school-enter .9s .12s ease-out both;
+     
+}
+
+.school-header nav a {
+     position: relative;
+     padding-bottom: 4px;
+     
+}
+
+.school-header nav a::after {
+     content: '';
+     position: absolute;
+     bottom: 0;
+     left: 0;
+     width: 100%;
+     height: 2px;
+     background: var(--school-gold);
+     transform: scaleX(0);
+     transform-origin: left;
+     transition: transform .2s ease;
+     
+}
+
+.school-header nav a:hover::after, .school-header nav a:focus-visible::after {
+     transform: scaleX(1);
+     
+}
+
+.school-learning-grid article, .school-leadership-grid article {
+     transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+     
+}
+
+.school-learning-grid article:hover, .school-leadership-grid article:hover {
+     transform: translateY(-4px);
+     border-color: #c6ac72;
+     box-shadow: 0 10px 25px #172d400c;
+     
+}
+
+.school-site .school-button {
+     transition: background .2s ease, transform .2s ease;
+     
+}
+
+.school-site .school-button:hover {
+     transform: translateY(-2px);
+     
+}
+
+@media (max-width: 700px) {
+    
+    .school-brand img {
+     width: 40px;
+     height: 49px;
+     
+}
+
+    .school-front-photo, .school-front-photo .school-photo-placeholder, .school-front-photo .school-photo {
+     min-height: 300px;
+     
+}
+
+    .school-bus-photo {
+     grid-template-columns: 1fr;
+     
+}
+
+    .school-photo-placeholder {
+     min-height: 240px;
+     
+}
+
+    .school-bus-photo figcaption {
+     padding: 24px;
+     
+}
+
+    .school-section-heading {
+     margin-bottom: 20px;
+     
+}
+
+    .school-header nav {
+     gap: 16px;
+     
+}
+
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+    
+    .school-site *, .school-site *::before, .school-site *::after {
+     animation: none !important;
+     transition: none !important;
+     
+}
+
+    .school-learning-grid article:hover, .school-leadership-grid article:hover, .school-site .school-button:hover {
+     transform: none;
+     
+}
+
+
+}
+
+/* IntersectionObserver triggers these transitions inside the page scroll container. */
+.school-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1), box-shadow .25s ease, border-color .25s ease;
+}
+.school-reveal.school-reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.school-learning-grid .school-reveal:nth-child(2),
+.school-leadership-grid .school-reveal:nth-child(2) {
+    transition-delay: .1s;
+}
+.school-learning-grid .school-reveal:nth-child(3) {
+    transition-delay: .2s;
+}
+@media (prefers-reduced-motion: reduce) {
+    .school-reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
+
+/* Mobile type scale: preserve hierarchy without oversized headings or tiny links. */
+@media (max-width: 700px) {
+    .school-site { --school-gutter: clamp(16px, 4vw, 24px); }
+    .school-site p,
+    .school-hero-copy > p:not(.school-eyebrow) {
+        font-size: .9375rem;
+        line-height: 1.65;
+    }
+    .school-hero h1 {
+        font-size: clamp(2.125rem, 8.8vw, 2.75rem);
+        line-height: 1.12;
+        letter-spacing: -.04em;
+        margin-bottom: 20px;
+    }
+    .school-site h2 {
+        font-size: clamp(1.625rem, 6.8vw, 2rem);
+        line-height: 1.25;
+        letter-spacing: -.025em;
+        margin-bottom: 18px;
+    }
+    .school-learning-grid h3,
+    .school-leadership-grid h3,
+    .school-address-card h3,
+    .school-bus-photo h3 {
+        font-size: clamp(1.1875rem, 5vw, 1.375rem);
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+    .school-motto { font-size: 1.0625rem; line-height: 1.55; }
+    .school-brand { min-width: 0; flex-shrink: 1; gap: 9px; }
+    .school-brand > span { font-size: 1rem; line-height: 1.3; }
+    .school-brand small,
+    .school-footer-brand small { font-size: .625rem; letter-spacing: .16em; }
+    .school-site .school-eyebrow,
+    .school-leadership-grid .school-eyebrow,
+    .school-motto > span { font-size: .625rem; letter-spacing: .14em; line-height: 1.5; }
+    .school-site .school-eyebrow { margin-bottom: 14px; }
+    .school-header nav { gap: 18px; font-size: .8125rem; }
+    .school-header nav a { display: inline-flex; align-items: center; min-height: 44px; }
+    .school-portal { font-size: .75rem; padding: 12px; min-height: 44px; }
+    .school-site .school-button,
+    .school-text-link { font-size: .8125rem; min-height: 44px; }
+    .school-site .school-button { padding: 13px 18px; }
+    .school-topline { font-size: .6875rem; line-height: 1.5; gap: 10px; flex-wrap: wrap; letter-spacing: .02em; }
+    .school-values-strip,
+    .school-hero-address { font-size: .75rem; line-height: 1.6; }
+    .school-learning-grid p,
+    .school-bus-photo figcaption p { font-size: .875rem; line-height: 1.65; }
+    .school-contact { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    .school-contact > div,
+    .school-leadership-grid article > div { min-width: 0; }
+    .school-address-card { padding: 20px; gap: 16px; }
+    .school-address-card address { font-size: .875rem; line-height: 1.7; overflow-wrap: anywhere; }
+    .school-address-card p,
+    .school-contact-details > div { font-size: .75rem; line-height: 1.6; }
+    .school-photo-placeholder > span { font-size: 1.375rem; }
+    .school-photo-placeholder small { font-size: .75rem; line-height: 1.6; }
+    .school-front-photo figcaption { font-size: 1.125rem; }
+    .school-front-photo figcaption span,
+    .school-bus-photo figcaption span { font-size: .625rem; letter-spacing: .14em; }
+    .school-footer-brand { font-size: 1.125rem; }
+    .school-footer nav { font-size: .8125rem; gap: 16px; }
+    .school-footer nav a { display: inline-flex; align-items: center; min-height: 44px; }
+    .school-footer p,
+    .school-footer-bottom { font-size: .75rem; line-height: 1.6; }
+}
+@media (max-width: 380px) {
+    .school-header { gap: 12px; }
+    .school-brand { flex: 1 1 190px; }
+    .school-brand > span { font-size: .9375rem; }
+    .school-portal { padding: 10px; }
+    .school-header nav { gap: 14px; }
+    .school-buttons { gap: 12px; }
+    .school-leadership-grid article { padding: 20px; gap: 12px; }
+    .school-leader-icon { width: 44px; height: 44px; font-size: 18px; }
+}

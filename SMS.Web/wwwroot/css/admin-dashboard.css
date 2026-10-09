@@ -1,0 +1,73 @@
+.admin-dashboard{max-width:1500px;margin:auto;padding:28px;color:#1a2530}.admin-dashboard a{text-decoration:none}.admin-heading{display:flex;justify-content:space-between;align-items:center;gap:24px;margin-bottom:28px}.admin-eyebrow{font-size:10px;font-weight:750;letter-spacing:1.8px;color:#788391}.admin-heading h1{font-size:34px;font-weight:750;letter-spacing:-1.3px;margin:7px 0 8px}.admin-heading h1 span{color:#b7922e}.admin-heading p,.admin-panel header p{color:#7a8491;font-size:13px;margin:0}.admin-date{display:flex;align-items:center;gap:12px;background:white;border:1px solid #e5e9ed;padding:15px;border-radius:10px;font-size:12px}.admin-date i{color:#ac8930}.admin-term{display:flex;gap:20px;align-items:center;background:linear-gradient(115deg,#1a2939,#2e465d);border-radius:13px;padding:25px 28px;color:white;margin-bottom:24px}.admin-term>i{font-size:32px;color:#e1c16b}.admin-term .admin-eyebrow{color:#d6ba6b}.admin-term h2{font-size:19px;margin:6px 0;font-weight:650}.admin-term p{font-size:12px;color:#adbac8;margin:0}.admin-term a{margin-left:auto;color:#eed28b;font-size:12px;white-space:nowrap}.admin-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-bottom:24px}.admin-stat{padding:22px;background:white;border:1px solid #e5e9ed;border-radius:12px;color:#1a2530;transition:transform .15s,box-shadow .15s}.admin-stat:hover{color:#1a2530;transform:translateY(-3px);box-shadow:0 8px 20px #1a25300b}.admin-stat>div{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:#727f8e;font-weight:600}.admin-stat i{width:37px;height:37px;display:grid;place-items:center;border-radius:10px;background:#eaf1fb;color:#537ba8}.admin-stat:nth-child(2) i{background:#f1edfa;color:#8a73b2}.admin-stat:nth-child(3) i{background:#fbf4e4;color:#b79138}.admin-stat:nth-child(4) i{background:#e9f5f0;color:#4f9179}.admin-stat>strong{display:block;font-size:34px;letter-spacing:-1px;margin:8px 0 12px}.admin-stat p{border-top:1px solid #f0f2f5;padding-top:12px;font-size:11px;color:#8993a0;margin:0}.admin-columns{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:22px}.admin-panel{background:white;border:1px solid #e5e9ed;border-radius:12px;min-width:0;overflow:hidden}.admin-panel header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:23px 24px 17px}.admin-panel h2{font-size:16px;font-weight:700;margin:0 0 6px}.admin-panel header p{font-size:11px}.admin-panel header>a{font-size:11px;white-space:nowrap;color:#8f742e}.admin-panel header>i{color:#acb4bd}.admin-note{font-size:10px;color:#8b95a1;padding:10px 24px 20px;margin:0}.admin-actions,.admin-attention{padding:0 24px 13px}.admin-actions>a,.admin-attention>a{display:flex;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid #f0f2f5;color:#344456}.admin-actions>a:last-child{border-bottom:0}.admin-actions i{width:36px;height:36px;display:grid;place-items:center;background:#f5f6f8;color:#7d8b9a;border-radius:9px}.admin-actions span,.admin-attention span,.admin-help{font-size:12px;font-weight:600}.admin-dashboard small{display:block;color:#8d97a3;font-size:10px;font-weight:400;margin-top:4px}.admin-actions b{margin-left:auto;color:#abb3bd}.admin-actions>a:hover span,.admin-attention>a:hover span{color:#a17c22}.admin-attention strong{margin-left:auto;background:#fdf3df;color:#ae852c;padding:5px 11px;border-radius:6px;font-size:12px}.admin-help{display:flex;align-items:center;gap:12px;padding:17px;background:#f7f9fb;border-radius:8px;margin:10px 24px 24px;color:#5d7080}.admin-empty{text-align:center;padding:38px 24px 45px;color:#8c99a6}.admin-empty>i{font-size:25px;margin-bottom:17px;color:#c1cbd5}.admin-empty h3{font-size:14px;color:#5c6c7c}.admin-empty p{font-size:12px}.admin-empty a{color:#977729;font-size:12px}.admin-footer{display:flex;justify-content:space-between;gap:12px;font-size:10px;color:#9ba4af;padding:24px 2px 6px}.admin-dashboard a:focus-visible{outline:3px solid #b7922e;outline-offset:4px;border-radius:4px}.app-content:has(.admin-dashboard)>.page-header{display:none}@media(max-width:1100px){.admin-dashboard{padding:20px 14px}.admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-columns{grid-template-columns:1fr}.admin-heading h1{font-size:29px}}@media(max-width:600px){.admin-dashboard{padding:16px 8px}.admin-heading{align-items:flex-start;flex-direction:column;gap:16px}.admin-date{padding:9px 12px}.admin-term{padding:20px;flex-wrap:wrap;gap:12px}.admin-term>i{display:none}.admin-term a{margin-left:0}.admin-stats{gap:10px}.admin-stat{padding:15px}.admin-stat>div{font-size:11px}.admin-stat>strong{font-size:28px}.admin-stat p{font-size:10px}.admin-panel header{padding:20px 18px;flex-wrap:wrap}.admin-footer{flex-direction:column}}
+
+.admin-chart{position:relative;min-width:0}.admin-chart-grades{margin:8px 24px 0}.admin-chart-data{margin:12px 24px;color:#647588;font-size:12px}.admin-chart-data summary{cursor:pointer}.admin-chart-data ul{list-style:none;padding:0;margin:12px 0}.admin-chart-data li{display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid #edf1f5}.admin-readiness{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px;padding:12px 24px 14px}.admin-readiness h3{text-align:center;font-size:12px;font-weight:600;color:#526477;margin:0 0 16px}.admin-chart-ring{height:190px;max-width:230px;margin:0 auto 20px}.admin-chart-total{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}.admin-chart-total strong{font-size:28px;letter-spacing:-1px;color:#233c51}.admin-chart-total span{font-size:11px;color:#788391}.admin-chart-caption{display:flex;align-items:center;gap:7px;font-size:11px;color:#788391;margin:10px 0}.admin-chart-caption strong{margin-left:auto;color:#344456}.admin-dot{width:8px;height:8px;flex-shrink:0;border-radius:50%;background:#36566f}.admin-dot-gold{background:#c6a34e}.admin-readiness-empty{display:grid;place-items:center;text-align:center;height:190px;color:#8c99a6;font-size:12px}@media(max-width:600px){.admin-readiness{gap:20px;padding:8px 18px}.admin-chart-ring{height:150px}.admin-chart-total strong{font-size:24px}.admin-chart-caption{font-size:10px}.admin-chart-grades{margin:8px 18px 0}}@media(max-width:380px){.admin-readiness{grid-template-columns:1fr}}
+
+.teacher-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.teacher-dashboard [id] { scroll-margin-top: 90px; }
+@media (max-width: 1100px) { .teacher-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .teacher-stats { grid-template-columns: 1fr; } }
+
+/* Mobile dashboard typography matches the shared application type scale. */
+@media (max-width: 768px) {
+    .admin-heading h1 { font-size: clamp(1.375rem, 4.8vw, 1.75rem); line-height: 1.2; letter-spacing: -.035em; }
+    .admin-heading p, .admin-panel header p { font-size: .8125rem; line-height: 1.5; }
+    .admin-eyebrow { font-size: .625rem; letter-spacing: .12em; }
+    .admin-date, .admin-term p, .admin-term a { font-size: .75rem; line-height: 1.5; }
+    .admin-term h2 { font-size: 1rem; line-height: 1.35; }
+    .admin-stat > div { font-size: .8125rem; line-height: 1.4; }
+    .admin-stat > strong { font-size: 1.75rem; line-height: 1.2; }
+    .admin-stat p, .admin-panel header > a { font-size: .75rem; line-height: 1.5; }
+    .admin-panel h2 { font-size: 1rem; line-height: 1.35; }
+    .admin-actions span, .admin-attention span, .admin-help { font-size: .8125rem; line-height: 1.5; }
+    .admin-dashboard small, .admin-note, .admin-footer,
+    .admin-chart-caption, .admin-chart-total span { font-size: .75rem; line-height: 1.5; }
+    .admin-readiness h3, .admin-chart-data { font-size: .8125rem; line-height: 1.5; }
+    .admin-chart-total strong { font-size: 1.5rem; }
+    .admin-readiness-empty, .admin-empty p, .admin-empty a { font-size: .8125rem; }
+    .admin-empty h3 { font-size: .9375rem; }
+    .admin-chart-caption { flex-wrap: wrap; }
+}
+@media (max-width: 380px) {
+    .admin-stat > strong { font-size: 1.5rem; }
+    .admin-stat > div { flex-wrap: wrap; gap: 6px; }
+    .admin-heading h1 { font-size: 1.375rem; }
+}
+
+/* Shared dashboard reports and financial overview. */
+.dashboard-summary-heading { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 16px; }
+.dashboard-summary-heading h2 { font-size: 18px; font-weight: 700; margin: 0 0 6px; }
+.dashboard-summary-heading p { color: #788391; font-size: 12px; margin: 0; line-height: 1.5; }
+.dashboard-finance-summary .admin-stat > strong { font-size: clamp(24px, 2.3vw, 32px); overflow-wrap: anywhere; }
+.dashboard-report { margin-top: 22px; }
+.dashboard-chart-section { margin-block: 24px; }
+.admin-dashboard .finance-chart ~ details { margin-top: 16px; }
+.admin-dashboard .finance-chart ~ details .table-responsive { margin-top: 12px; }
+.admin-columns .dashboard-report { margin-top: 0; }
+.dashboard-table-wrap { overflow-x: auto; padding: 0 24px 18px; }
+.dashboard-table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.5; }
+.dashboard-table th { color: #788391; font-size: 11px; font-weight: 650; background: #f7f9fb; padding: 12px; text-align: left; border-bottom: 1px solid #e5e9ed; }
+.dashboard-table td { color: #425367; padding: 14px 12px; border-bottom: 1px solid #edf1f5; }
+.dashboard-table tbody tr:hover { background: #fafbfd; }
+.dashboard-table tfoot th, .dashboard-table tfoot td { font-weight: 700; background: #f4f7f9; border-top: 2px solid #e5e9ed; }
+.dashboard-table a { color: #36566f; font-weight: 600; }
+.dashboard-table a:hover { color: #977729; }
+.dashboard-table .dashboard-number { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dashboard-nowrap { white-space: nowrap; }
+.dashboard-status { display: inline-block; border-radius: 4px; padding: 3px 7px; background: #e9f5ef; color: #387357; font-size: 11px; }
+.dashboard-status-reversal { background: #fff0ee; color: #a35252; }
+.dashboard-report-warning { color: #976b2a; }
+@media (max-width: 768px) {
+    .dashboard-summary-heading h2 { font-size: 1rem; }
+    .dashboard-summary-heading p { font-size: .75rem; }
+    .dashboard-table-wrap { padding: 0 16px 16px; }
+    .dashboard-table { min-width: 540px; font-size: .8125rem; }
+    .dashboard-table th, .dashboard-status { font-size: .75rem; }
+    .dashboard-table th, .dashboard-table td { padding: 10px; }
+    .dashboard-finance-summary .admin-stat > strong { font-size: 1.5rem; }
+}
+
+/* Default teacher summary uses the same responsive grid as the school overview. */
+.teacher-summary-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.teacher-activity-panels { margin-top: 22px; }
+@media (max-width: 1100px) { .teacher-summary-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .teacher-summary-stats { grid-template-columns: 1fr; } }

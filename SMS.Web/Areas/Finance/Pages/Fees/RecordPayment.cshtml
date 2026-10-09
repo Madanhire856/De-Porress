@@ -1,4 +1,4 @@
-﻿@page
+@page
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
 @model SMS.Web.Areas.Finance.Pages.Fees.RecordPaymentModel
@@ -44,7 +44,16 @@
 </div>
 
 <!-- ===== PAYMENT FORM ===== -->
-<form method="post" class="form-compact" id="paymentForm">
+@if (Model.Review is { } review)
+{
+    <section class="form-card payment-review"><div class="card-body"><h2>Review payment</h2><p>Check these details before recording. No payment has been saved yet.</p><div asp-validation-summary="All" class="validation-summary"></div>
+    <dl class="payment-review-details"><div><dt>Student</dt><dd>@review.Student</dd></div><div><dt>Payment date</dt><dd>@review.Request.PaymentDate.ToString("dd MMM yyyy")</dd></div><div><dt>Amount</dt><dd>@review.Request.CurrencyId @review.Request.Amount.ToString("N2")</dd></div><div><dt>Payment method</dt><dd>@review.Method</dd></div><div><dt>Exchange rate</dt><dd>@review.Request.ExchangeRate.ToString("0.####")</dd></div><div><dt>Converted amount</dt><dd>@Model.BaseCurrency @Math.Round(review.Request.Amount * review.Request.ExchangeRate, 2, MidpointRounding.AwayFromZero).ToString("N2")</dd></div><div><dt>Reference</dt><dd>@(review.Request.ReferenceNumber ?? "Not provided")</dd></div></dl></div>
+    <form method="post" asp-page-handler="Confirm" class="card-footer payment-submit-form"><input type="hidden" asp-for="ConfirmationToken" /><button type="submit" asp-page-handler="Edit" class="btn btn-secondary">Edit details</button><button type="submit" class="btn btn-primary">Confirm & record payment</button><p class="payment-submit-status" role="status" aria-live="polite"></p></form></section>
+}
+else
+{
+<form method="post" asp-page-handler="Review" class="form-compact payment-submit-form" id="paymentForm">
+    <input type="hidden" asp-for="SubmissionToken" />
     <div class="form-card">
         <div class="card-body">
 
@@ -63,7 +72,8 @@
                     <label class="form-label" for="paymentDateInput">
                         Payment Date <span class="required">*</span>
                     </label>
-                    <input type="text"
+                    <input type="date"
+                           max="@DateTime.UtcNow.AddHours(2).ToString("yyyy-MM-dd")"
                            id="paymentDateInput"
                            name="Input.PaymentDate"
                            class="form-control"
@@ -85,7 +95,7 @@
                            step="0.01"
                            min="0.01"
                            class="form-control"
-                           id="amountInput"
+                           id="amountInput" inputmode="decimal"
                            placeholder="0.00"
                            required />
                     <span asp-validation-for="Input.Amount" class="text-danger"></span>
@@ -116,7 +126,7 @@
                            step="0.0001"
                            min="0.0001"
                            class="form-control"
-                           id="rateInput"
+                           id="rateInput" inputmode="decimal"
                            readonly />
                     <small class="currency-hint" id="rateHint">
                         Select a currency and date to load the RBZ rate.
@@ -186,14 +196,16 @@
                 Cancel
             </a>
             <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-floppy-disk"></i> Record Payment
+                <i class="fa-solid fa-check"></i> Review payment
             </button>
         </div>
     </div>
 </form>
 
+}
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/payment-submit.js" asp-append-version="true"></script>
 
     <script>
         (function () {
@@ -213,30 +225,6 @@
             const BASE_CURRENCY = '@Model.BaseCurrency';
 
             if (!currencySelect) return;
-
-            // ---- jQuery UI date picker — no future dates, no keyboard entry ----
-            if (window.jQuery && jQuery.fn.datepicker) {
-                jQuery(dateInput).datepicker({
-                    dateFormat: 'yy-mm-dd',
-                    changeMonth: true,
-                    changeYear: true,
-                    showAnim: 'fadeIn',
-                    maxDate: 0,
-                    onSelect: function () { fetchRate(); },
-                    onClose: function (dateText) {
-                        // If the picker closes with no date, keep the field empty.
-                        if (!dateText) jQuery(this).val('');
-                    }
-                });
-                // Belt-and-braces: the input has `readonly` in the HTML too,
-                // but prevent the picker from ever accepting typed input.
-                jQuery(dateInput).on('keydown', function (e) {
-                    const allowed = ['Tab', 'Shift', 'Escape'];
-                    if (allowed.indexOf(e.key) === -1) {
-                        e.preventDefault();
-                    }
-                });
-            }
 
             // ---- Live conversion stat card ----
             function updatePreview() {
@@ -326,6 +314,7 @@
                 fetchRate();
             });
 
+            dateInput.addEventListener("change", function () { lastFetchKey = ""; fetchRate(); });
             amountInput.addEventListener('input', updatePreview);
             rateInput.addEventListener('input', updatePreview);
 
@@ -342,7 +331,9 @@
                 }
             });
 
-            
+            if (overrideCheckbox.checked) {
+                overrideSection.style.display = "block"; overrideFields.style.display = "block"; rateInput.readOnly = false; updatePreview();
+            } else { fetchRate(); }
         })();
     </script>
 }

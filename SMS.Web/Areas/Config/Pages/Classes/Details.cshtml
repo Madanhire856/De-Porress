@@ -1,4 +1,4 @@
-﻿@page "{id:guid}"
+@page "{id:guid}"
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
 @model SMS.Web.Areas.Config.Pages.Classes.DetailsModel
@@ -34,8 +34,6 @@
                     <span class="info-value-mono">@Model.ClassVM.ClassNumber</span>
                     <span class="meta-sep">·</span>
                     <span>@Model.GradeName</span>
-                    <span class="meta-sep">·</span>
-                    <span>@Model.TeacherName</span>
                     <span class="meta-sep">·</span>
                     <span>Created @Model.ClassVM.CreationDate.ToString("dd MMM yyyy")</span>
                 </div>
@@ -97,27 +95,6 @@
                     </div>
                 </div>
 
-                <div class="info-row">
-                    <div class="info-label">
-                        <i class="fa-solid fa-user-tie"></i> Class Teacher
-                    </div>
-                    <div class="info-value">
-                        @if (!string.IsNullOrEmpty(Model.TeacherName))
-                        {
-                            <a asp-area="Config"
-                               asp-page="/Staff/Details"
-                               asp-route-id="@Model.ClassVM.ClassTeacherId"
-                               class="reg-link">
-                                @Model.TeacherName
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                            </a>
-                        }
-                        else
-                        {
-                            <span class="sponsor-empty">No teacher assigned</span>
-                        }
-                    </div>
-                </div>
             </div>
 
             <!-- RIGHT: Metadata -->

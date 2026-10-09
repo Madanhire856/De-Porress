@@ -1,0 +1,7 @@
+@model SMS.Web.Pages.IndexModel
+<section class="dashboard-finance-summary" aria-label="School fees summary"><header class="dashboard-summary-heading"><div><h2>School fees overview</h2><p>@(Model.CurrentTerm == null ? "No current term configured" : $"{Model.CurrentTerm.Name} · {Model.CurrentTerm.AcademicYear}") · school-wide · @Model.BaseCurrency</p></div></header><div class="admin-stats">
+<div class="admin-stat"><div>Net collected · last 7 days<i class="fas fa-coins" aria-hidden="true"></i></div><strong>@Model.WeekNet.ToString("N2")</strong><p>@Model.BaseCurrency · collections less reversals</p></div>
+<div class="admin-stat"><div>Current term outstanding<i class="fas fa-file-invoice-dollar" aria-hidden="true"></i></div><strong>@(Model.CurrentTerm == null ? "—" : Model.Outstanding.ToString("N2"))</strong><p>@Model.BaseCurrency · positive ledger balances</p></div>
+<div class="admin-stat"><div>Settled accounts<i class="fas fa-check-circle" aria-hidden="true"></i></div><strong>@(Model.CurrentTerm == null ? "—" : Model.SettledLedgers.ToString("N0"))</strong><p>Of @Model.LedgerCount current-term accounts</p></div>
+<div class="admin-stat"><div>Overdue accounts<i class="fas fa-exclamation-circle" aria-hidden="true"></i></div><strong>@(Model.CurrentTerm == null ? "—" : Model.OverdueLedgers.ToString("N0"))</strong><p>Current-term ledger status</p></div>
+</div></section>

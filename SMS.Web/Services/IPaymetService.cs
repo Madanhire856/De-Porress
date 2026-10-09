@@ -35,6 +35,7 @@ namespace SMS.Web.Services
 
     public class RecordPaymentRequest
     {
+        public Guid SubmissionId { get; set; }
         public Guid LedgerId { get; set; }
 
         /// <summary>Amount paid in the payment currency (e.g. 1200.50).</summary>

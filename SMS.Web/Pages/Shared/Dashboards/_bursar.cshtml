@@ -1,0 +1,24 @@
+@model SMS.Web.Pages.IndexModel
+@using SMS.Lib
+@{
+    var termId = Model.CurrentTerm?.Id;
+    var scope = Model.CanViewAllCollections ? "All bursars" : "Your collections";
+}
+<div class="row g-3">
+    <div class="col-6 col-xl-3"><section class="house-stat h-100"><i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i><div><h2 class="house-stat-label">Net collected today</h2><strong class="house-stat-value d-block">@Model.BaseCurrency @((Model.TodayCollected - Model.TodayReversed).ToString("N2"))</strong><a asp-area="Finance" asp-page="/Fees/CashUp" asp-route-Date="@Model.SchoolToday.ToString("yyyy-MM-dd")">@scope · @Model.TodayReceipts receipts</a></div></section></div>
+    <div class="col-6 col-xl-3"><section class="house-stat h-100"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i><div><h2 class="house-stat-label">Term outstanding</h2><strong class="house-stat-value d-block">@Model.BaseCurrency @Model.Outstanding.ToString("N2")</strong><a asp-area="Finance" asp-page="/Fees/Balances" asp-route-TermId="@termId">@Model.OutstandingAccounts accounts owing</a></div></section></div>
+    <div class="col-6 col-xl-3"><section class="house-stat h-100"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><div><h2 class="house-stat-label">Settled accounts</h2><strong class="house-stat-value d-block">@Model.SettledLedgers / @Model.LedgerCount</strong><a asp-area="Finance" asp-page="/Fees/Balances" asp-route-TermId="@termId" asp-route-StatusFilter="@((int)StudentLedgerStatus.SETTLED)">View settled accounts</a></div></section></div>
+    <div class="col-6 col-xl-3"><section class="house-stat h-100"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><h2 class="house-stat-label">Overdue accounts</h2><strong class="house-stat-value d-block">@Model.OverdueLedgers</strong><a asp-area="Finance" asp-page="/Fees/Balances" asp-route-TermId="@termId" asp-route-StatusFilter="@((int)StudentLedgerStatus.OVER_DUE)">View overdue accounts</a></div></section></div>
+    <div class="col-12">@await Html.PartialAsync("~/Pages/Shared/Dashboards/_collections.cshtml", Model)</div>
+    <div class="col-12">@await Html.PartialAsync("~/Pages/Shared/Dashboards/_receipts.cshtml", Model)</div>
+    <div class="col-12" id="largest-balances">
+        <section class="table-card">
+            <div class="card-body"><div class="d-flex flex-wrap justify-content-between gap-2"><div><h2 class="h5">Largest balances</h2><p class="text-muted mb-0">Top @SMS.Web.Pages.IndexModel.LargestBalancesLimit outstanding balances · current term</p></div><a asp-area="Finance" asp-page="/Fees/Balances" asp-route-TermId="@termId">View all balances</a></div></div>
+            <div class="table-responsive"><table class="data-table table-compact"><thead><tr><th>Student</th><th class="text-end">Balance (@Model.BaseCurrency)</th><th>Action</th></tr></thead><tbody>
+                @foreach (var ledger in Model.TopBalances) { <tr><td>@ledger.Student.Name @ledger.Student.Surname</td><td class="text-end">@ledger.ClosingBalance.ToString("N2")</td><td><a asp-area="Finance" asp-page="/Fees/Ledger" asp-route-id="@ledger.Id">Open ledger</a></td></tr> }
+                @if (Model.TopBalances.Count == 0) { <tr><td colspan="3" class="empty-state">@(Model.CurrentTerm == null ? "No current term configured." : "No outstanding balances for this term.")</td></tr> }
+            </tbody></table></div>
+        </section>
+    </div>
+</div>
+

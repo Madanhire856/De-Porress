@@ -1,11 +1,11 @@
-﻿@page
+@page
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
 @model SMS.Web.Areas.Config.Pages.Classes.IndexModel
 @{
     ViewData["Title"] = "Classes";
     ViewData["PageTitle"] = "Classes";
-    ViewData["PageSubTitle"] = "Manage classes and their assigned teachers";
+    ViewData["PageSubTitle"] = "Define class names, grades and capacities";
 }
 
 @section actionbar {
@@ -49,7 +49,6 @@
                 <th>CLS ID</th>
                 <th>Name</th>
                 <th>Grade</th>
-                <th>Class Teacher</th>
                 <th>Capacity</th>
                 <th>Students</th>
                 <th>Date Created</th>
@@ -60,7 +59,6 @@
             {
                 @foreach (var c in Model.Classes)
                 {
-                    var teacherName = Model.TeacherNames.TryGetValue((Guid)c.ClassTeacherId, out var t) ? t : "—";
                     var gradeName = Model.GradeNames.TryGetValue(c.GradeId, out var g) ? g : "—";
                     var studentCount = Model.StudentCounts.TryGetValue(c.Id, out var sc) ? sc : 0;
 
@@ -76,7 +74,6 @@
                         </td>
                         <td>@c.Name</td>
                         <td>@gradeName</td>
-                        <td>@teacherName</td>
                         <td>@c.Capacity</td>
                         <td>@studentCount</td>
                         <td>@c.CreationDate.ToString("MMM dd, yyyy")</td>
@@ -86,7 +83,7 @@
             else
             {
                 <tr>
-                    <td colspan="7" class="empty-state">No classes found matching your criteria.</td>
+                    <td colspan="6" class="empty-state">No classes found matching your criteria.</td>
                 </tr>
             }
         </tbody>

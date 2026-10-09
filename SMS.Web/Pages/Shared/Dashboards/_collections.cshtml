@@ -1,0 +1,44 @@
+@model SMS.Web.Pages.IndexModel
+@using System.Text.Json
+@{
+    var currency = Model.BaseCurrency;
+    var trendLabels = Model.TrendDates.Select(day => day.ToString("dd MMM")).ToArray();
+}
+<div class="row g-3">
+    <div class="col-12 col-lg-6"><section class="form-card h-100"><div class="card-body">
+        <h2 class="h5">Collections by payment method</h2>
+        <p class="text-muted">@(Model.CanViewAllCollections ? "School-wide" : "Your collections") · @currency</p>
+        <form method="get" class="d-flex flex-wrap align-items-end gap-2 mb-3">
+            <input type="hidden" name="TrendFrom" value="@Model.TrendFrom?.ToString("yyyy-MM-dd")" />
+            <input type="hidden" name="TrendTo" value="@Model.TrendTo?.ToString("yyyy-MM-dd")" />
+            <div><label for="collectionDate" class="form-label">Date</label><input id="collectionDate" name="CollectionDate" class="form-control" type="date" value="@Model.CollectionDate?.ToString("yyyy-MM-dd")" min="@Model.TrendStart.ToString("yyyy-MM-dd")" max="@Model.SchoolToday.ToString("yyyy-MM-dd")" required /></div>
+            <button class="btn btn-secondary" type="submit">Show collections</button>
+        </form>
+        @if (Model.SelectedCollected == 0) { <p class="empty-state">No collections recorded for @Model.CollectionDate?.ToString("dd MMM yyyy").</p> }
+        else { <div class="finance-chart"><canvas id="finance-collections-chart" role="img" aria-label="Payment method breakdown for @Model.CollectionDate?.ToString("dd MMM yyyy"), total @currency @Model.SelectedCollected.ToString("N2")" data-currency="@currency" data-labels="@JsonSerializer.Serialize(Model.MethodCollections.Select(m => m.Name))" data-values="@JsonSerializer.Serialize(Model.MethodCollections.Select(m => m.Amount))"></canvas></div> }
+        <ul class="list-unstyled mb-0 mt-3" aria-label="Payment method amounts and percentages">
+            @foreach (var method in Model.MethodCollections) {
+                <li class="d-flex flex-wrap justify-content-between gap-2 mb-2"><span><span class="finance-method-dot finance-method-@method.Id" aria-hidden="true"></span>@method.Name</span><span>@currency @method.Amount.ToString("N2") · @(Model.SelectedCollected == 0 ? "0" : (method.Amount / Model.SelectedCollected * 100).ToString("0.#"))%</span></li>
+            }
+        </ul>
+        <p class="text-muted mt-3 mb-0">Reversed: @currency @Model.SelectedReversed.ToString("N2") · Net: @currency @((Model.SelectedCollected - Model.SelectedReversed).ToString("N2"))</p>
+    </div></section></div>
+    <div class="col-12 col-lg-6"><section class="form-card h-100"><div class="card-body">
+        <h2 class="h5">Collection trend · @Model.SchoolToday.ToString("MMMM yyyy")</h2>
+        <p class="text-muted">Daily collections by payment method · @currency</p>
+        <form method="get" class="d-flex flex-wrap align-items-end gap-2 mb-3">
+            <input type="hidden" name="CollectionDate" value="@Model.CollectionDate?.ToString("yyyy-MM-dd")" />
+            <div><label for="trendFrom" class="form-label">From</label><input id="trendFrom" name="TrendFrom" class="form-control" type="date" value="@Model.TrendFrom?.ToString("yyyy-MM-dd")" min="@Model.TrendStart.ToString("yyyy-MM-dd")" max="@Model.SchoolToday.ToString("yyyy-MM-dd")" required /></div>
+            <div><label for="trendTo" class="form-label">To</label><input id="trendTo" name="TrendTo" class="form-control" type="date" value="@Model.TrendTo?.ToString("yyyy-MM-dd")" min="@Model.TrendStart.ToString("yyyy-MM-dd")" max="@Model.SchoolToday.ToString("yyyy-MM-dd")" required /></div>
+            <button class="btn btn-secondary" type="submit">Show trend</button>
+        </form>
+        @if (!Model.MethodTrends.Any(method => method.Amounts.Any(amount => amount != 0))) { <p class="empty-state">No collections in this period.</p> }
+        else {
+            <div class="finance-chart"><canvas id="finance-trend-chart" role="img" aria-label="Daily collections in @currency split by payment method" data-currency="@currency" data-labels="@JsonSerializer.Serialize(trendLabels)" data-dates="@JsonSerializer.Serialize(Model.TrendDates.Select(date => date.ToString("yyyy-MM-dd")))" data-methods="@JsonSerializer.Serialize(Model.MethodTrends.Select(method => new { id = method.Id, name = method.Name, values = method.Amounts }))" data-reversed="@JsonSerializer.Serialize(Model.TrendDates.Select(date => Model.CollectionTrend.FirstOrDefault(day => day.Date == date)?.Reversed ?? 0m))"></canvas></div>
+            <p class="text-muted mt-3">Each column shows gross collections for one day. Reversals appear separately in the tooltip. Click a legend entry to show or hide a method, or click a column to select its daily breakdown.</p>
+            <details><summary>Daily amounts by payment method</summary><div class="table-responsive"><table class="table table-sm"><thead><tr><th>Date</th>@foreach (var method in Model.MethodTrends) { <th>@method.Name</th> }<th>Total (@currency)</th></tr></thead><tbody>@for (var index = 0; index < Model.TrendDates.Count; index++) { <tr><td><a href="@Url.Page("/Index", new { CollectionDate = Model.TrendDates[index].ToString("yyyy-MM-dd"), TrendFrom = Model.TrendFrom?.ToString("yyyy-MM-dd"), TrendTo = Model.TrendTo?.ToString("yyyy-MM-dd") })">@Model.TrendDates[index].ToString("dd MMM")</a></td>@foreach (var method in Model.MethodTrends) { <td>@method.Amounts[index].ToString("N2")</td> }<td>@Model.MethodTrends.Sum(method => method.Amounts[index]).ToString("N2")</td></tr> }</tbody></table></div></details>
+        }
+    </div></section></div>
+</div>
+@if (Model.MissingBaseAmounts > 0) { <p class="text-muted">@Model.MissingBaseAmounts entries this month have no base amount and are excluded from these totals.</p> }
+

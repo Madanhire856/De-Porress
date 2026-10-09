@@ -1,144 +1,344 @@
-﻿@* ============================================================
-   PUBLIC LANDING PAGE (Partial View)
-   Rendered from Pages/Index.cshtml for anonymous visitors.
-   ============================================================ *@
+<div class="school-site">
+    <a class="school-skip" href="#school-content">Skip to content</a>
 
-<!-- ===== PUBLIC NAVIGATION ===== -->
-<nav class="public-nav">
-    <a href="/" class="public-nav-brand">
-        <img src="~/images/logo.jpeg" alt="Logo" class="public-nav-logo" />
-        St Martin De Porres Primary School
-    </a>
-    <ul class="public-nav-links">
-        <li><a href="#about">About</a></li>
-        <li><a href="#academics">Academics</a></li>
-        <li><a href="#admissions">Admissions</a></li>
-        <li><a href="#projects">Projects</a></li>
-        <li><a href="#contact">Contact</a></li>
-    </ul>
-    <div class="public-nav-actions">
-        <a href="/Identity/Account/SignUp" class="btn btn-outline">
-            <i class="fa-solid fa-user-plus"></i> Sign Up
-        </a>
-        <a href="/Identity/Account/StaffLogin" class="btn btn-gold">
-            <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
-        </a>
+    <div class="school-topline">
+        <span><i class="fas fa-cross" aria-hidden="true"></i> Diocese of Gweru</span>
+        <span>PBag 8035 · Kwekwe</span>
     </div>
-</nav>
 
-<!-- ===== HERO SECTION ===== -->
-<header class="hero-section">
-    <img src="~/images/church.jpg" alt="Church" class="hero-background" />
-    <div class="hero-content">
-        <div class="hero-tagline">"If knowledge is power, then education is the source."</div>
-        <h1 class="hero-title">Rooted in faith, growing in knowledge — at Zhombe Mission.</h1>
-        <p class="hero-subtitle">
-            A Roman Catholic primary school serving the Zhombe community with quality
-            education, daily liturgical life, and a caring, rural family spirit.
-        </p>
+    <header class="school-header">
+        <a class="school-brand" href="/" aria-label="St Martin De Porres Primary School home">
+            <img src="~/Images/logo.jpeg" alt="School crest" />
+            <span>
+                St Martin De Porres
+                <small>PRIMARY SCHOOL</small>
+            </span>
+        </a>
 
-        <!-- Hero CTA buttons -->
-        <div class="hero-actions">
-            <a href="/Identity/Account/EmployeeLogin" class="btn btn-gold">
-                <i class="fa-solid fa-arrow-right-to-bracket"></i> Staff Sign In
+        <nav aria-label="Main navigation">
+            <a href="#about">Our school</a>
+            <a href="#faith">Our values</a>
+            <a href="#learning">Learning</a>
+            <a href="#contact">Contact</a>
+        </nav>
+
+        <a class="school-portal" asp-area="Identity" asp-page="/Account/StaffLogin">
+            Staff portal <i class="fas fa-arrow-right" aria-hidden="true"></i>
+        </a>
+    </header>
+
+    <main id="school-content">
+
+        <!-- ============================= HERO ============================= -->
+        <section class="school-hero" aria-labelledby="school-hero-title">
+            <div class="school-hero-copy">
+                <p class="school-eyebrow">ECD A TO GRADE 7 · ZHOMBE MISSION</p>
+
+                <h1 id="school-hero-title">
+                    A place to learn.<br />
+                    A place to <em>belong.</em>
+                </h1>
+
+                <p>
+                    A warm welcome to St Martin De Porres Primary School. A primary school
+                    welcoming children and families of all faiths, where knowledge, character
+                    and community grow together.
+                </p>
+
+                <blockquote class="school-motto">
+                    <span>OUR MOTTO</span>
+                    &ldquo;If Knowledge is Power Then Education is The Source&rdquo;
+                </blockquote>
+
+                <div class="school-buttons">
+                    <a class="school-button" href="#contact">Contact our school <span aria-hidden="true">↗</span></a>
+                    <a class="school-text-link" href="#about">Discover our school <span aria-hidden="true">→</span></a>
+                </div>
+
+                <div class="school-hero-address">
+                    <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                    <span>
+                        St Martin De Porres Primary School<br />
+                        <strong>PBag 8035 Kwekwe</strong>
+                    </span>
+                </div>
+            </div>
+
+            <figure class="school-front-photo">
+                @* Replace the placeholder div with
+                   <img class="school-photo" src="~/Images/school-front.jpg"
+                        alt="Front view of St Martin De Porres Primary School" />
+                   when the school photo is available. *@
+                <div class="school-photo-placeholder"
+                     role="img"
+                     aria-label="Placeholder for a photograph of the school front">
+                    <i class="fas fa-school" aria-hidden="true"></i>
+                    <span>Our school</span>
+                    <small>Front-view photograph coming soon</small>
+                </div>
+                <figcaption>
+                    <span>ST MARTIN DE PORRES</span>
+                    Welcome to our school
+                </figcaption>
+            </figure>
+        </section>
+
+        <!-- ========================= VALUES STRIP ========================= -->
+        <div class="school-values-strip">
+            <span><i class="fas fa-book-open" aria-hidden="true"></i>ECD A to Grade 7</span>
+            <span><i class="fas fa-cross" aria-hidden="true"></i>Faith, knowledge &amp; service</span>
+            <span><i class="fas fa-futbol" aria-hidden="true"></i>Sport &amp; teamwork</span>
+        </div>
+
+        <!-- ============================= ABOUT ============================ -->
+        <section class="school-section school-about"
+                 id="about"
+                 aria-labelledby="school-about-title">
+            <div>
+                <p class="school-eyebrow">WELCOME TO OUR SCHOOL</p>
+                <h2 id="school-about-title">
+                    An education for the mind.<br />
+                    <em>A foundation for life.</em>
+                </h2>
+            </div>
+
+            <div>
+                <p>
+                    St Martin De Porres Primary School offers learning from ECD A through to
+                    Grade 7. Our Catholic heritage inspires a community built on care, respect
+                    and service.
+                </p>
+                <p>
+                    We welcome learners from all faith backgrounds, with respect for every
+                    child and family.
+                </p>
+                <a class="school-text-link" href="#faith">
+                    Discover our heritage &amp; values <span aria-hidden="true">→</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ======================== FAITH & HERITAGE ====================== -->
+        <section class="school-faith"
+                 id="faith"
+                 aria-labelledby="school-faith-title">
+            <div class="school-faith-symbol" aria-hidden="true">
+                <i class="fas fa-cross"></i>
+                <span>CARE FOR EVERY CHILD</span>
+            </div>
+
+            <div>
+                <p class="school-eyebrow">OUR HERITAGE &amp; VALUES</p>
+                <h2 id="school-faith-title">
+                    Rooted in care.<br />
+                    <em>Growing together.</em>
+                </h2>
+                <p>
+                    Part of the Diocese of Gweru, our school belongs to St Martin De Porres
+                    Zhombe Mission Parish. Love, compassion, humility and service guide our
+                    school community.
+                </p>
+
+                <div class="school-faith-values">
+                    <span>Love &amp; compassion</span>
+                    <span>Respect &amp; dignity</span>
+                    <span>Humility &amp; service</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================== LEARNING =========================== -->
+        <section class="school-section"
+                 id="learning"
+                 aria-labelledby="school-learning-title">
+            <div class="school-section-heading">
+                <div>
+                    <p class="school-eyebrow">LEARNING &amp; CHARACTER</p>
+                    <h2 id="school-learning-title">
+                        Room to learn.<br />
+                        <em>Space to become.</em>
+                    </h2>
+                </div>
+                <p>
+                    A journey of learning, discovery and growth from early childhood
+                    development through to Grade 7.
+                </p>
+            </div>
+
+            <div class="school-learning-grid">
+                <article>
+                    <span class="school-card-number">01</span>
+                    <i class="fas fa-book-open" aria-hidden="true"></i>
+                    <h3>ECD A to Grade 7</h3>
+                    <p>
+                        Building curiosity, understanding and confidence at every stage of
+                        primary school.
+                    </p>
+                </article>
+
+                <article>
+                    <span class="school-card-number">02</span>
+                    <i class="fas fa-seedling" aria-hidden="true"></i>
+                    <h3>Character &amp; purpose</h3>
+                    <p>
+                        Honesty, kindness and responsibility give meaning to what we learn
+                        and how we treat one another.
+                    </p>
+                </article>
+
+                <article>
+                    <span class="school-card-number">03</span>
+                    <i class="fas fa-futbol" aria-hidden="true"></i>
+                    <h3>Sport &amp; teamwork</h3>
+                    <p>
+                        Various sporting activities help learners stay active, build
+                        confidence and develop teamwork.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <!-- ============================ CAMPUS ============================ -->
+        <section class="school-section school-campus"
+                 id="campus"
+                 aria-labelledby="school-campus-title">
+            <div class="school-section-heading">
+                <div>
+                    <p class="school-eyebrow">AROUND OUR SCHOOL</p>
+                    <h2 id="school-campus-title">
+                        A glimpse of<br />
+                        <em>school life.</em>
+                    </h2>
+                </div>
+                <p>Photographs of our school and school bus will be added here soon.</p>
+            </div>
+
+            <figure class="school-bus-photo">
+                @* Replace the placeholder with
+                   <img class="school-photo" src="~/Images/school-bus.jpg"
+                        alt="St Martin De Porres Primary School bus" loading="lazy" />
+                   when available. *@
+                <div class="school-photo-placeholder"
+                     role="img"
+                     aria-label="Placeholder for a photograph of the school bus">
+                    <i class="fas fa-bus" aria-hidden="true"></i>
+                    <span>Our school bus</span>
+                    <small>Bus photograph coming soon</small>
+                </div>
+
+                <figcaption>
+                    <div>
+                        <span>OUR SCHOOL BUS</span>
+                        <h3>Part of our school’s story</h3>
+                    </div>
+                    <p>Transport routes and arrangements will be confirmed with the school.</p>
+                </figcaption>
+            </figure>
+        </section>
+
+        <!-- ========================== LEADERSHIP ========================== -->
+        <section class="school-section school-leadership"
+                 id="leadership"
+                 aria-labelledby="school-leadership-title">
+            <div class="school-section-heading">
+                <div>
+                    <p class="school-eyebrow">OUR SCHOOL LEADERSHIP</p>
+                    <h2 id="school-leadership-title">
+                        Guiding our school.<br />
+                        <em>Supporting every learner.</em>
+                    </h2>
+                </div>
+            </div>
+
+            <div class="school-leadership-grid">
+                <article>
+                    <span class="school-leader-icon">
+                        <i class="fas fa-user" aria-hidden="true"></i>
+                    </span>
+                    <div>
+                        <p class="school-eyebrow">HEAD OF SCHOOL</p>
+                        <h3>Sr Plaxedes Nyamandi</h3>
+                    </div>
+                </article>
+
+                <article>
+                    <span class="school-leader-icon">
+                        <i class="fas fa-user" aria-hidden="true"></i>
+                    </span>
+                    <div>
+                        <p class="school-eyebrow">DEPUTY HEAD</p>
+                        <h3>Mr Patrick Siziba</h3>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- ============================ CONTACT =========================== -->
+        <section class="school-section school-contact"
+                 id="contact"
+                 aria-labelledby="school-contact-title">
+            <div>
+                <p class="school-eyebrow">GET IN TOUCH</p>
+                <h2 id="school-contact-title">
+                    We look forward<br />
+                    <em>to hearing from you.</em>
+                </h2>
+                <p>
+                    Find our postal address below. Telephone, email and visiting details
+                    will be published here when confirmed.
+                </p>
+            </div>
+
+            <div class="school-address-card">
+                <i class="fas fa-envelope-open-text" aria-hidden="true"></i>
+                <div>
+                    <h3>Postal address</h3>
+                    <address>
+                        St Martin De Porres Primary School<br />
+                        PBag 8035 Kwekwe
+                    </address>
+
+                    <dl class="school-contact-details">
+                        <div>
+                            <dt>Telephone</dt>
+                            <dd>To be added</dd>
+                        </div>
+                        <div>
+                            <dt>Email</dt>
+                            <dd>To be added</dd>
+                        </div>
+                        <div>
+                            <dt>Office hours</dt>
+                            <dd>To be confirmed</dd>
+                        </div>
+                    </dl>
+
+                    <p>PBag 8035 is our postal address. Visiting details will be added here.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ============================= FOOTER ============================= -->
+    <footer class="school-footer">
+        <div>
+            <a class="school-footer-brand" href="/">
+                St Martin De Porres
+                <small>PRIMARY SCHOOL</small>
             </a>
-            <a href="/Identity/Account/SignUp" class="btn btn-ghost">
-                <i class="fa-solid fa-user-plus"></i> Request Access
-            </a>
+            <p>St Martin De Porres Zhombe Mission Parish · Diocese of Gweru</p>
         </div>
 
-        <div class="hero-stats">
-            <div class="hero-stat">
-                <span class="hero-stat-number">612</span>
-                <span class="hero-stat-label">Students</span>
-            </div>
-            <div class="hero-stat">
-                <span class="hero-stat-number">32</span>
-                <span class="hero-stat-label">Teachers</span>
-            </div>
-            <div class="hero-stat">
-                <span class="hero-stat-number">18</span>
-                <span class="hero-stat-label">Classes</span>
-            </div>
-            <div class="hero-stat">
-                <span class="hero-stat-number">1962</span>
-                <span class="hero-stat-label">Founded</span>
-            </div>
-        </div>
-    </div>
-</header>
+        <nav aria-label="Footer navigation">
+            <a href="#about">Our school</a>
+            <a href="#contact">Contact</a>
+            <a asp-area="Identity" asp-page="/Account/StaffLogin">Staff portal</a>
+        </nav>
 
-<!-- ===== FEATURES SECTION ===== -->
-<section class="features-section" id="about">
-    <h2 class="section-title">A School Built on Faith and Community</h2>
-    <p class="section-subtitle">Everything a parent or donor needs to know about life at St Martin De Porres</p>
-
-    <div class="features-grid">
-        <div class="feature-card">
-            <div class="feature-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-            <h3 class="feature-title">Academic Excellence</h3>
-            <p class="feature-desc">AI-assisted timetabling and dedicated teachers across Infant, Junior and Senior classes.</p>
+        <div class="school-footer-bottom">
+            <span>© @DateTime.UtcNow.AddHours(2).Year St Martin De Porres Primary School</span>
+            <span>PBag 8035 Kwekwe</span>
         </div>
-        <div class="feature-card">
-            <div class="feature-icon"><i class="fa-solid fa-church"></i></div>
-            <h3 class="feature-title">Catholic Identity</h3>
-            <p class="feature-desc">Daily Mass Monday to Friday, guided by the Catholic Liturgical Calendar and our chaplaincy.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon"><i class="fa-solid fa-futbol"></i></div>
-            <h3 class="feature-title">Sport & Houses</h3>
-            <p class="feature-desc">Four competing houses and representative teams competing up to Catholic Games level.</p>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon"><i class="fa-solid fa-school"></i></div>
-            <h3 class="feature-title">Growing Campus</h3>
-            <p class="feature-desc">Track our live development projects — from solar power to new classrooms — below.</p>
-        </div>
-    </div>
-</section>
-
-<!-- ===== PROJECTS BANNER ===== -->
-<section class="projects-section" id="projects">
-    <div class="projects-banner">
-        <div class="projects-text">
-            <h3>See our development projects</h3>
-            <p>Follow progress on the solar installation, new classroom block, and garden expansion.</p>
-        </div>
-        <a href="#" class="btn btn-gold">
-            <i class="fa-solid fa-arrow-right"></i> View Public Dashboard
-        </a>
-    </div>
-</section>
-
-<!-- ===== CONTACT SECTION ===== -->
-<section class="contact-section" id="contact">
-    <h2 class="section-title">Visit or Enquire</h2>
-    <p class="section-subtitle">Zhombe Mission, Kwekwe District, Zimbabwe</p>
-
-    <div class="contact-grid">
-        <div class="contact-card">
-            <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
-            <h3 class="contact-title">Call Us</h3>
-            <p class="contact-detail">
-                +263 77 XXX XXXX<br />
-                Mon-Fri, 7:30 AM – 4:00 PM
-            </p>
-        </div>
-        <div class="contact-card">
-            <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
-            <h3 class="contact-title">Email</h3>
-            <p class="contact-detail">info@stmartindeporres.ac.zw</p>
-        </div>
-        <div class="contact-card">
-            <div class="contact-icon"><i class="fa-solid fa-user-plus"></i></div>
-            <h3 class="contact-title">Admissions</h3>
-            <p class="contact-detail">Enquire about enrolment for the next intake.</p>
-        </div>
-    </div>
-</section>
-
-<!-- ===== FOOTER ===== -->
-<footer class="public-footer">
-    <div>© @DateTime.Now.Year St Martin De Porres Primary School — Zhombe Mission</div>
-    <div>A Roman Catholic School in the Diocese</div>
-</footer>
+    </footer>
+</div>

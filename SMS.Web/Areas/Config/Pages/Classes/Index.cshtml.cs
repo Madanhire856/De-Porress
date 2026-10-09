@@ -22,7 +22,6 @@ namespace SMS.Web.Areas.Config.Pages.Classes
 
         public List<Data.Class> Classes { get; set; } = new();
         public PaginationInfo Pagination { get; set; } = new();
-        public Dictionary<Guid, string> TeacherNames { get; set; } = new();
         public Dictionary<Guid, string> GradeNames { get; set; } = new();
         public Dictionary<Guid, int> StudentCounts { get; set; } = new();
         public List<SelectListItem> GradeOptions { get; set; } = new();
@@ -71,16 +70,6 @@ namespace SMS.Web.Areas.Config.Pages.Classes
             Pagination = result.Pagination;
 
             _context.ApplyClassNumbers(Classes);
-
-            // --- Teacher names for the current page ---
-            var teacherIds = Classes.Select(c => c.ClassTeacherId).Distinct().ToList();
-            if (teacherIds.Any())
-            {
-                TeacherNames = _context.Staff
-                    .AsNoTracking()
-                    .Where(s => teacherIds.Contains(s.Id))
-                    .ToDictionary(s => s.Id, s => $"{s.Name} {s.Surname}");
-            }
 
             var gradeIds = Classes.Select(c => c.GradeId).Distinct().ToList();
             if (gradeIds.Any())

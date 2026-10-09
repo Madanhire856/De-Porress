@@ -2,6 +2,7 @@
 @model SMS.Web.Areas.Academics.Pages.Staff.DetailsModel
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
+@inject SMS.Web.Services.WorkspaceAccess Workspace
 @{
     ViewData["Title"] = "Staff Details";
     ViewData["PageTitle"] = "Staff Details";
@@ -9,7 +10,9 @@
 }
 
 @section actionbar {
-    @if (Model.IsTeachingStaff && CurrentUser.HasRight(AccessRights.EditSubjects))
+    @if (Model.IsTeachingStaff && Model.StaffVM.IsActive == true
+        && Workspace.Workspace == SMS.Web.Services.SchoolWorkspace.Administration
+        && Workspace.Can(AccessRights.ViewSubjects) && Workspace.Can(AccessRights.EditSubjects))
     {
         <a asp-page="./AssignSubject"
            asp-route-staffId="@Model.StaffVM.Id"

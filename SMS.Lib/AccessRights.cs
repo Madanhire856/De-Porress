@@ -10,7 +10,7 @@ namespace SMS.Lib
         // ============================================================
         //  SYSTEM
         // ============================================================
-        ViewDashboard = 1L << 0,
+        // Bit 0 is retired (formerly ViewDashboard). Do not reuse persisted bits.
         SystemSettings = 1L << 1,
         ViewAuditLogs = 1L << 2,
         CreateBackups = 1L << 3,

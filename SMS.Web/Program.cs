@@ -17,6 +17,8 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<WorkspaceAccess>();
+builder.Services.AddScoped<WorkspacePageFilter>();
 
 builder.Services.AddScoped<AuditInterceptor>();
 
@@ -64,7 +66,7 @@ client.BaseAddress = new Uri(
 
 });
 
-builder.Services.AddRazorPages()
+builder.Services.AddRazorPages(options => options.Conventions.ConfigureFilter(new Microsoft.AspNetCore.Mvc.ServiceFilterAttribute(typeof(WorkspacePageFilter))))
 .AddMicrosoftIdentityUI();
 
 var app = builder.Build();

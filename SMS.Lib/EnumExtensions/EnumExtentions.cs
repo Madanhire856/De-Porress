@@ -260,6 +260,7 @@ namespace SMS.Lib
             PaymentMethod.BANK_TRANSFER => "Bank Transfer",
             PaymentMethod.CASH => "Cash",
             PaymentMethod.OTHER => "Other",
+            PaymentMethod.SWIPE => "Swipe",
             _ => m.ToString()
         };
 

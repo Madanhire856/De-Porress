@@ -1,4 +1,4 @@
-﻿@page "{id:guid?}"
+@page "{id:guid?}"
 @model SMS.Web.Areas.Config.Pages.Classes.UpsertModel
 @{
     ViewData["PageTitle"] = Model.cls.Name != null ? "Edit Class" : "Add Class";
@@ -46,15 +46,6 @@
                     <span asp-validation-for="cls.GradeId" class="text-danger"></span>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" asp-for="cls.ClassTeacherId">
-                        Class Teacher
-                    </label>
-                    <select asp-for="cls.ClassTeacherId" asp-items="Model.Teachers" class="form-control">
-                        <option value="">— Select teacher —</option>
-                    </select>
-                    <span asp-validation-for="cls.ClassTeacherId" class="text-danger"></span>
-                </div>
             </div>
         </div>
 

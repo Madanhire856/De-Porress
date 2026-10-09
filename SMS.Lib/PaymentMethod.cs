@@ -10,5 +10,6 @@ namespace SMS.Lib
         BANK_TRANSFER = 2,
         CASH = 3,
         OTHER = 4,
+        SWIPE = 5,
     }
 }

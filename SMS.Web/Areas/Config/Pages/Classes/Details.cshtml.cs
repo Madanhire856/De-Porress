@@ -21,7 +21,6 @@ namespace SMS.Web.Areas.Config.Pages.Classes
 
         public Data.Class ClassVM { get; set; } = null!;
         public string? CreatorEmail { get; set; }
-        public string? TeacherName { get; set; }
         public string? GradeName { get; set; }
         public int StudentCount { get; set; }
 
@@ -32,7 +31,6 @@ namespace SMS.Web.Areas.Config.Pages.Classes
 
             ClassVM = _context.Classes
                 .Include(c => c.Creator)
-                .Include(c => c.ClassTeacher)
                 .Include(c => c.Grade)
                 .FirstOrDefault(c => c.Id == id);
 
@@ -42,10 +40,6 @@ namespace SMS.Web.Areas.Config.Pages.Classes
             _context.ApplyClassNumber(ClassVM);
 
             CreatorEmail = ClassVM.Creator?.Email;
-
-            TeacherName = ClassVM.ClassTeacher != null
-                ? $"{ClassVM.ClassTeacher.Name} {ClassVM.ClassTeacher.Surname}"
-                : null;
 
             GradeName = ClassVM.Grade?.Name;
             StudentCount = _context.Students

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace SMS.Web.Areas.Config.Pages.Classes.ViewModels
@@ -19,6 +19,5 @@ namespace SMS.Web.Areas.Config.Pages.Classes.ViewModels
         public int Capacity { get; set; }
 
        
-        public Guid? ClassTeacherId { get; set; }
     }
 }

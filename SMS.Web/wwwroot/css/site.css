@@ -551,6 +551,19 @@ body {
     flex-shrink: 0;
 }
 
+.table-toolbar.assignment-year-filter {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.assignment-year-filter .form-label { margin: 0; }
+.assignment-year-filter .assignment-year-input { flex: 0 0 7rem; width: 7rem; }
+@media (max-width: 576px) {
+    .assignment-year-filter .assignment-year-input { font-size: 1rem; min-height: 44px; }
+    .assignment-year-filter .btn { min-height: 44px; }
+}
+
 .filter-dropdown {
     padding: 0.5rem 2.5rem 0.5rem 0.75rem;
     border: 1px solid #D1D5DB;
@@ -3773,3 +3786,104 @@ tr.row-clickable {
     .nomination-form-footer { align-items: stretch; flex-direction: column; padding: 1rem; }
     .nomination-form-footer .btn { width: 100%; }
 }
+
+/* Shared mobile typography for management pages and account forms. */
+@media (max-width: 768px) {
+    body {
+        --sms-mobile-body: .875rem;
+        --sms-mobile-small: .75rem;
+        --sms-mobile-label: .8125rem;
+        font-size: var(--sms-mobile-body);
+        line-height: 1.5;
+    }
+    .header-text h1 { font-size: clamp(1.25rem, 4.5vw, 1.5rem); line-height: 1.25; overflow-wrap: anywhere; }
+    .header-text p, .profile-meta, .info-label, .table-footer,
+    .form-label, .form-group label, .form-check-label,
+    .filter-label, .cashup-filter label, .fees-filter label,
+    .rights-block-header, .bulk-info { font-size: var(--sms-mobile-label); line-height: 1.5; }
+    .card-header, .card-title, .form-section-title,
+    .info-card-header, .nomination-section-heading h2 { font-size: 1rem; line-height: 1.4; }
+    .profile-name { font-size: 1.25rem; line-height: 1.3; }
+    .info-value, .info-value-mono { font-size: var(--sms-mobile-body); line-height: 1.5; overflow-wrap: anywhere; }
+    .app-content .btn, .public-wrapper .btn,
+    .page-link, .search-wrapper, .nav-link,
+    .sidebar-link, .sidebar-submenu a { font-size: var(--sms-mobile-label); line-height: 1.4; }
+    .mobile-brand { font-size: .875rem; line-height: 1.35; }
+    .sidebar-section-title, .sidebar-user-role,
+    .form-text, .text-danger.field-validation-error,
+    .validation-message, .info-card-badge, .right-pill,
+    .badge, .status-badge { font-size: var(--sms-mobile-small); line-height: 1.5; }
+    .form-control, .form-select, .search-input,
+    .form-compact .form-control, .form-compact .form-select,
+    .select2-container .select2-selection--single,
+    .select2-container .select2-selection--multiple,
+    .select2-container .select2-search__field,
+    .select2-dropdown .select2-results__option {
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+    .select2-container .select2-selection--single { min-height: 40px; }
+    .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 38px; }
+    .data-table, .data-table th, .data-table td,
+    .cashup-table, .cashup-table th, .cashup-table td { font-size: var(--sms-mobile-label); line-height: 1.5; }
+    .data-table small, .cashup-table small,
+    .dash-metric-label, .dash-status-item,
+    .prefect-board-summary-label, .prefect-board-term,
+    .prefect-board-student span, .prefect-board-post,
+    .prefect-board-details, .nomination-student-copy small,
+    .nomination-form-footer > span { font-size: var(--sms-mobile-small); line-height: 1.5; }
+    .dash-metric-value, .prefect-board-summary-card strong { font-size: 1.5rem; line-height: 1.2; }
+    .prefect-board-student h3, .nomination-student-copy strong { font-size: var(--sms-mobile-body); line-height: 1.4; }
+    .nomination-section-heading p, .nomination-selected-count,
+    .flash, .flash p { font-size: var(--sms-mobile-label); line-height: 1.5; }
+    .header-actions, .table-footer { flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+    .header-text h1, .profile-name { font-size: 1.1875rem; }
+    .card-header, .card-title, .form-section-title, .info-card-header { font-size: .9375rem; }
+    .dash-metric-value { font-size: 1.375rem; }
+    .header-text p, .profile-meta, .info-label,
+    .table-footer, .right-pill, .info-card-badge { font-size: .75rem; }
+}
+
+.sidebar-access-note { color: #b5c1cb; font-size: .8125rem; line-height: 1.6; padding: 16px; }
+
+.payment-review h2 { font-size: 1.25rem; margin: 0 0 .75rem; }
+.payment-review-details { margin: 1rem 0 0; }
+.payment-review-details > div { display: grid; grid-template-columns: minmax(120px, .5fr) minmax(0, 1fr); gap: 1rem; padding: .75rem 0; border-bottom: 1px solid var(--sms-border); }
+.payment-review-details dt { font-size: .875rem; }
+.payment-review-details dd { margin: 0; overflow-wrap: anywhere; }
+.payment-submit-status { width: 100%; margin: 0; font-size: .8125rem; }
+.payment-submit-status:empty { display: none; }
+.payment-review .card-footer { flex-wrap: wrap; }
+@media (max-width: 768px) {
+    .filter-dropdown, .cashup-filter input, .cashup-filter select { font-size: 1rem; min-height: 44px; }
+    .fees-filter .filter-wrapper, .cashup-filter .filter-wrapper { flex: 1 1 150px; min-width: 0; }
+    .fees-filter .filter-dropdown, .cashup-filter .filter-dropdown { width: 100%; }
+    .fees-filter .fees-search-wrapper, .cashup-filter .search-wrapper { width: 100%; min-width: 0; }
+    .payment-review-details > div { grid-template-columns: 1fr; gap: .25rem; }
+    .payment-submit-form button, .payment-review .card-footer a { min-height: 44px; }
+}
+
+/* Chart dimensions only; dashboard spacing uses the shared layout and cards. */
+.finance-chart {
+    position: relative;
+    height: 300px;
+    min-width: 0;
+}
+.finance-chart canvas {
+    max-width: 100%;
+}
+
+.finance-method-dot {
+    display: inline-block;
+    width: .65rem;
+    height: .65rem;
+    border-radius: 50%;
+    margin-right: .5rem;
+}
+.finance-method-1 { background: #c6a34e; }
+.finance-method-2 { background: #36566f; }
+.finance-method-3 { background: #4f9179; }
+.finance-method-4 { background: #8993a0; }
+.finance-method-5 { background: #9563b5; }

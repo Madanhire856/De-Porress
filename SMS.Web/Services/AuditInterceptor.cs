@@ -46,6 +46,8 @@ namespace SMS.Web.Services
             nameof(Term),
             nameof(Grade),
             nameof(Class),
+            nameof(ClassTeacherAssignment),
+            nameof(TeacherSubject),
             nameof(Subject),
             nameof(Village),
             nameof(House),

@@ -108,7 +108,7 @@ namespace SMS.Lib
                 }
 
                 // 2. Administrator override — grants everything
-                if (_cachedRoleId == (int)UserRole.ADMIN)
+                if (((_cachedRoleId ?? 0) & (int)UserRole.ADMIN) != 0)
                     rights = ~0L;
 
                 _cachedRights = rights;

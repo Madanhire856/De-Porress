@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../../SMS.Data/SMS.Data.csproj" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/ClassTeacherAssignments/Index.cshtml.cs" Link="ClassTeacherAssignments.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/Staff/AssignSubject.cshtml.cs" Link="AssignSubject.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/SubjectAssignments/Index.cshtml.cs" Link="SubjectAssignments.cs" />
+    <Compile Include="../../SMS.Lib/StaffCategory.cs" Link="StaffCategory.cs" />
+    <Compile Include="../../SMS.Web/Services/WorkspacePageFilter.cs" Link="WorkspacePageFilter.cs" />
+    <Compile Include="../../SMS.Web/Services/WorkspaceAccess.cs" Link="WorkspaceAccess.cs" />
+    <Compile Include="../../SMS.Lib/AccessRights.cs" Link="AccessRights.cs" />
+    <Compile Include="../../SMS.Lib/UserRole.cs" Link="UserRole.cs" />
+    <Compile Include="../../SMS.Web/Services/ICurrentUserService.cs" Link="ICurrentUserService.cs" />
+  </ItemGroup>
+</Project>
+

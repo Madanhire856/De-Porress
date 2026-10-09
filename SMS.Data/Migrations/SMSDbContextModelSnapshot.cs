@@ -199,6 +199,42 @@ namespace SMS.Data.Migrations
                     b.ToTable("Class", (string)null);
                 });
 
+            modelBuilder.Entity("SMS.Data.ClassTeacherAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AcademicYear")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("AssignedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("EndedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedById");
+
+                    b.HasIndex("StaffId");
+
+                    b.HasIndex("ClassId", "AcademicYear")
+                        .IsUnique()
+                        .HasFilter("[EndedAt] IS NULL");
+
+                    b.ToTable("ClassTeacherAssignment", (string)null);
+                });
+
             modelBuilder.Entity("SMS.Data.Competition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1619,6 +1655,33 @@ namespace SMS.Data.Migrations
                     b.Navigation("Creator");
 
                     b.Navigation("Grade");
+                });
+
+            modelBuilder.Entity("SMS.Data.ClassTeacherAssignment", b =>
+                {
+                    b.HasOne("SMS.Data.User", "AssignedBy")
+                        .WithMany()
+                        .HasForeignKey("AssignedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SMS.Data.Class", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SMS.Data.Staff", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedBy");
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Staff");
                 });
 
             modelBuilder.Entity("SMS.Data.Competition", b =>

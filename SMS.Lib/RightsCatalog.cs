@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace SMS.Lib
@@ -22,15 +22,6 @@ namespace SMS.Lib
         {
             return new List<RightCategory>
             {
-                new RightCategory
-                {
-                    Title = "Dashboard",
-                    Icon = "fa-tachometer-alt",
-                    Rights = new()
-                    {
-                        new() { Right = AccessRights.ViewDashboard, DisplayName = "View Dashboard" }
-                    }
-                },
                 new RightCategory
                 {
                     Title = "System",

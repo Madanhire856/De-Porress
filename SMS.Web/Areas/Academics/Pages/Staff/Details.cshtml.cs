@@ -66,11 +66,12 @@ namespace SMS.Web.Areas.Academics.Pages.Staff
                     .Select(ts => ts.Subject.Name)
                     .ToList();
 
-                ClassesLed = _context.Classes
+                var academicYear = DateTime.UtcNow.AddHours(2).Year;
+                ClassesLed = _context.ClassTeacherAssignments
                     .AsNoTracking()
-                    .Where(c => c.ClassTeacherId == StaffVM.Id)
-                    .OrderBy(c => c.Name)
-                    .Select(c => c.Name)
+                    .Where(c => c.StaffId == StaffVM.Id && c.AcademicYear == academicYear && c.EndedAt == null)
+                    .OrderBy(c => c.Class.Name)
+                    .Select(c => c.Class.Name)
                     .ToList();
             }
 
