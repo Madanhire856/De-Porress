@@ -1,35 +1,6 @@
-<div class="school-site">
-    <a class="school-skip" href="#school-content">Skip to content</a>
-
-    <div class="school-topline">
-        <span><i class="fas fa-cross" aria-hidden="true"></i> Diocese of Gweru</span>
-        <span>PBag 8035 · Kwekwe</span>
-    </div>
-
-    <header class="school-header">
-        <a class="school-brand" href="/" aria-label="St Martin De Porres Primary School home">
-            <img src="~/Images/logo.jpeg" alt="School crest" />
-            <span>
-                St Martin De Porres
-                <small>PRIMARY SCHOOL</small>
-            </span>
-        </a>
-
-        <nav aria-label="Main navigation">
-            <a href="#about">Our school</a>
-            <a href="#faith">Our values</a>
-            <a href="#learning">Learning</a>
-            <a href="#contact">Contact</a>
-        </nav>
-
-        <a class="school-portal" asp-area="Identity" asp-page="/Account/StaffLogin">
-            Staff portal <i class="fas fa-arrow-right" aria-hidden="true"></i>
-        </a>
-    </header>
-
-    <main id="school-content">
-
-        <!-- ============================= HERO ============================= -->
+@model SMS.Web.Pages.IndexModel
+@using SMS.Web.Services
+<!-- ============================= HERO ============================= -->
         <section class="school-hero" aria-labelledby="school-hero-title">
             <div class="school-hero-copy">
                 <p class="school-eyebrow">ECD A TO GRADE 7 · ZHOMBE MISSION</p>
@@ -65,17 +36,9 @@
             </div>
 
             <figure class="school-front-photo">
-                @* Replace the placeholder div with
-                   <img class="school-photo" src="~/Images/school-front.jpg"
-                        alt="Front view of St Martin De Porres Primary School" />
-                   when the school photo is available. *@
-                <div class="school-photo-placeholder"
-                     role="img"
-                     aria-label="Placeholder for a photograph of the school front">
-                    <i class="fas fa-school" aria-hidden="true"></i>
-                    <span>Our school</span>
-                    <small>Front-view photograph coming soon</small>
-                </div>
+                <img class="school-photo" src="~/Images/front_view.png" asp-append-version="true"
+                     alt="Front view of St Martin De Porres Primary School and its gardens"
+                     width="886" height="670" fetchpriority="high" decoding="async" />
                 <figcaption>
                     <span>ST MARTIN DE PORRES</span>
                     Welcome to our school
@@ -210,21 +173,29 @@
                         <em>school life.</em>
                     </h2>
                 </div>
-                <p>Photographs of our school and school bus will be added here soon.</p>
+                <p>A look at the classrooms and green spaces where our learners grow.</p>
+            </div>
+
+            <figure class="school-campus-photo">
+                <img class="school-photo" src="~/Images/side_view.png" asp-append-version="true"
+                     alt="Side view of the classrooms and school grounds at St Martin De Porres Primary School"
+                     width="886" height="669" loading="lazy" decoding="async" />
+                <figcaption><span class="school-eyebrow">OUR CAMPUS</span><h3>Space to learn and grow</h3><p>Our classrooms and school grounds at Zhombe Mission.</p></figcaption>
+            </figure>
+        </section>
+
+        <section class="school-section school-transport" id="transport" aria-labelledby="school-transport-title">
+            <div class="school-section-heading">
+                <div>
+                    <p class="school-eyebrow">SCHOOL TRANSPORT</p>
+                    <h2 id="school-transport-title">Our <em>school bus.</em></h2>
+                </div>
             </div>
 
             <figure class="school-bus-photo">
-                @* Replace the placeholder with
-                   <img class="school-photo" src="~/Images/school-bus.jpg"
-                        alt="St Martin De Porres Primary School bus" loading="lazy" />
-                   when available. *@
-                <div class="school-photo-placeholder"
-                     role="img"
-                     aria-label="Placeholder for a photograph of the school bus">
-                    <i class="fas fa-bus" aria-hidden="true"></i>
-                    <span>Our school bus</span>
-                    <small>Bus photograph coming soon</small>
-                </div>
+                <img class="school-photo" src="~/Images/bus.jpeg" asp-append-version="true"
+                     alt="St Martin De Porres Primary School bus displaying the school crest and motto"
+                     width="822" height="1080" loading="lazy" decoding="async" />
 
                 <figcaption>
                     <div>
@@ -273,6 +244,7 @@
             </div>
         </section>
 
+      
         <!-- ============================ CONTACT =========================== -->
         <section class="school-section school-contact"
                  id="contact"
@@ -317,28 +289,3 @@
                 </div>
             </div>
         </section>
-
-    </main>
-
-    <!-- ============================= FOOTER ============================= -->
-    <footer class="school-footer">
-        <div>
-            <a class="school-footer-brand" href="/">
-                St Martin De Porres
-                <small>PRIMARY SCHOOL</small>
-            </a>
-            <p>St Martin De Porres Zhombe Mission Parish · Diocese of Gweru</p>
-        </div>
-
-        <nav aria-label="Footer navigation">
-            <a href="#about">Our school</a>
-            <a href="#contact">Contact</a>
-            <a asp-area="Identity" asp-page="/Account/StaffLogin">Staff portal</a>
-        </nav>
-
-        <div class="school-footer-bottom">
-            <span>© @DateTime.UtcNow.AddHours(2).Year St Martin De Porres Primary School</span>
-            <span>PBag 8035 Kwekwe</span>
-        </div>
-    </footer>
-</div>

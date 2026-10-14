@@ -64,7 +64,6 @@
     const trend = document.getElementById('finance-trend-chart');
     if (trend) {
         const methods = read(trend, 'methods');
-        const dates = read(trend, 'dates');
         const reversed = read(trend, 'reversed');
         const colors = ['#c6a34e', '#36566f', '#4f9179', '#8993a0', '#9563b5'];
         const format = value => `${trend.dataset.currency} ${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -76,13 +75,7 @@
             if (!items.length) return '';
             const index = items[0].dataIndex;
             const total = methods.reduce((sum, method) => sum + Number(method.values[index]), 0);
-            return [`Daily total: ${format(total)}`, `Reversed: ${format(reversed[index])}`, `Net: ${format(total - reversed[index])}`];
-        };
-        settings.onClick = (event, elements) => {
-            if (!elements.length) return;
-            const url = new URL(window.location.href);
-            url.searchParams.set('CollectionDate', dates[elements[0].index]);
-            window.location.assign(url.toString());
+            return [`Weekly total: ${format(total)}`, `Reversed: ${format(reversed[index])}`, `Net: ${format(total - reversed[index])}`];
         };
         new Chart(trend, {
             type: 'bar',

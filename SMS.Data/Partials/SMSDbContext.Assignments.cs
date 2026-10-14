@@ -8,6 +8,14 @@ public partial class SMSDbContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
+        ConfigureSdc(modelBuilder);
+        modelBuilder.Entity<PrefectNomination>(entity =>
+        {
+            entity.Property(x => x.ReviewNotes).HasMaxLength(1000);
+            entity.HasIndex(x => x.PrefectId).IsUnique().HasFilter("[PrefectId] IS NOT NULL");
+            entity.HasOne(x => x.Prefect).WithMany().HasForeignKey(x => x.PrefectId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(x => x.ReviewedByUser).WithMany().HasForeignKey(x => x.ReviewedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
         modelBuilder.Entity<ClassTeacherAssignment>(entity =>
         {
             entity.ToTable("ClassTeacherAssignment");

@@ -1,4 +1,4 @@
-﻿@page
+@page
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
 @model SMS.Web.Areas.Config.Pages.Subjects.IndexModel
@@ -26,15 +26,8 @@
     </div>
 
     <form method="get" class="table-toolbar" id="filterForm">
-        <div class="search-wrapper">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" asp-for="SearchTerm"
-                   class="search-input"
-                   placeholder="Search by name or code..."
-                   id="searchInput"
-                   autocomplete="off" />
-        </div>
-        <div class="filter-wrapper">
+        <div class="toolbar-filters">
+            <div class="filter-wrapper">
             <select asp-for="CategoryFilter" class="filter-dropdown" id="categoryFilter">
                 <option value="">All Categories</option>
                 @foreach (var c in EnumExtensions.AllSubjectCategories())
@@ -42,6 +35,15 @@
                     <option value="@((int)c)">@c.ToDisplayName()</option>
                 }
             </select>
+        </div>
+        </div>
+        <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" asp-for="SearchTerm"
+                   class="search-input"
+                   placeholder="Search by name or code..."
+                   id="searchInput"
+                   autocomplete="off" />
         </div>
         <input type="hidden" asp-for="PageSize" />
         <input type="hidden" asp-for="PageNumber" value="1" id="pageNumberHidden" />

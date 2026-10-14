@@ -508,7 +508,8 @@ body {
 
 .table-toolbar {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
+    flex-wrap: wrap;
     align-items: center;
     padding: 1rem 0.65rem;
     border-bottom: 1px solid var(--sms-border);
@@ -549,6 +550,30 @@ body {
 
 .filter-wrapper {
     flex-shrink: 0;
+}
+
+.toolbar-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.staff-notice-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.75; }
+
+.table-toolbar > .search-wrapper {
+    margin-left: auto;
+    flex: 1 1 18rem;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .table-toolbar > .toolbar-filters { width: 100%; }
+    .toolbar-filters > .filter-wrapper { flex: 1 1 9rem; min-width: 0; }
+    .toolbar-filters .filter-dropdown { width: 100%; min-height: 44px; font-size: 1rem; }
+    .table-toolbar > .search-wrapper { flex: 0 1 auto; width: 100%; max-width: none; margin-left: 0; }
+    .table-toolbar .search-input { min-height: 44px; font-size: 1rem; }
 }
 
 .table-toolbar.assignment-year-filter {

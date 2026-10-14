@@ -2,6 +2,7 @@
 @model SMS.Web.Areas.Academics.Pages.Prefects.DetailsModel
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
+@inject SMS.Web.Services.WorkspaceAccess Workspace
 @{
     ViewData["Title"] = "Prefect Details";
     ViewData["PageTitle"] = "Prefect Details";
@@ -9,7 +10,7 @@
 }
 
 @section actionbar {
-    @if (CurrentUser.HasRight(AccessRights.EditPrefects))
+    @if (SMS.Web.Services.PrefectAccess.CanManage(Workspace, AccessRights.EditPrefects))
     {
         <a asp-page="./Upsert" asp-route-id="@Model.Prefect.Id" class="btn btn-secondary">
             <i class="fa-solid fa-pen-to-square"></i> Edit

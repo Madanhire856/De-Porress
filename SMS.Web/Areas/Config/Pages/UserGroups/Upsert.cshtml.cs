@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using SMS.Data;
 using SMS.Lib;
+using SMS.Web.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -80,10 +81,11 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(Guid id)
+        public async Task<IActionResult> OnPostAsync(Guid? id)
         {
             // ---- Same guard on POST ----
-            bool isEdit = id != Guid.Empty;
+            bool isEdit = id.HasValue && id.Value != Guid.Empty;
+            if (isEdit && UserGroupVM.Id != id) return BadRequest();
             if (!isEdit && !_currentUser.HasRight(AccessRights.CreateUserGroups))
                 return Forbid();
             if (isEdit && !_currentUser.HasRight(AccessRights.EditUserGroups))
@@ -91,6 +93,9 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
 
             ModelState.Remove("UserGroupVM.Creator");
             RightsCategories = RightsCatalog.GetCategories();
+
+            SelectedRights ??= new();
+            if (SelectedRights.Any(value => !RightsSelectionPolicy.IsValid(value))) ModelState.AddModelError("", "An invalid permission was submitted.");
 
             if (!ModelState.IsValid)
             {
@@ -104,13 +109,14 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
 
             UserGroupVM.RightsId = combinedRights == 0 ? null : combinedRights;
 
-            var existing = await _context.UserGroups
-                .FirstOrDefaultAsync(g => g.Id == UserGroupVM.Id);
+            var existing = isEdit ? await _context.UserGroups.FirstOrDefaultAsync(g => g.Id == id) : null;
+            if (isEdit && existing == null) return NotFound();
 
             if (existing == null)
             {
                 // INSERT
                 UserGroupVM.CreationDate = DateTime.UtcNow;
+                UserGroupVM.Id = Guid.NewGuid();
                 UserGroupVM.CreatorId = _currentUser.UserId ?? Guid.Empty;
                 _context.UserGroups.Add(UserGroupVM);
             }
@@ -119,6 +125,7 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                 existing.Name = UserGroupVM.Name;
                 existing.Description = UserGroupVM.Description;
                 existing.RightsId = UserGroupVM.RightsId;
+                existing.CanNominatePrefects = UserGroupVM.CanNominatePrefects;
             }
 
             await _context.SaveChangesAsync();

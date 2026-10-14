@@ -1,0 +1,22 @@
+@page
+@model SMS.Web.Areas.Academics.Pages.StaffNotices.IndexModel
+@using SMS.Web.Services
+@{ ViewData["PageTitle"] = "Staff Notices"; ViewData["PageSubTitle"] = "School communications for signed-in staff"; }
+<div class="table-card mb-3"><form method="get" class="table-toolbar" data-auto-filter>
+    <div class="search-wrapper"><i class="fas fa-search" aria-hidden="true"></i><input asp-for="SearchTerm" class="search-input" aria-label="Search staff notices" placeholder="Search staff notices…" /></div>
+</form></div>
+<div class="row g-3">
+    @foreach (var notice in Model.Notices) {
+        <div class="col-12 col-lg-6"><article class="form-card h-100"><div class="card-body">
+            <p class="text-muted">@notice.CreationDate.AddHours(2).ToString("dd MMM yyyy") · Staff only</p>
+            <h2 class="h5">@notice.Title</h2><p>@SchoolNotices.Preview(notice.Body)</p>
+            <a asp-page="./Details" asp-route-id="@notice.Id" class="btn btn-outline-primary">Read notice</a>
+        </div></article></div>
+    }
+</div>
+@if (Model.Notices.Count == 0) { <p class="empty-state">No published staff notices found.</p> }
+<nav aria-label="Staff notice pages" class="d-flex justify-content-end gap-2 mt-3">
+    @if (Model.PageNumber > 1) { <a asp-route-PageNumber="@(Model.PageNumber - 1)" asp-route-SearchTerm="@Model.SearchTerm" class="btn btn-outline-secondary">Previous</a> }
+    @if (Model.HasNext) { <a asp-route-PageNumber="@(Model.PageNumber + 1)" asp-route-SearchTerm="@Model.SearchTerm" class="btn btn-outline-secondary">Next</a> }
+</nav>
+@section Scripts { <script src="~/js/assignment-filters.js" asp-append-version="true"></script> }

@@ -1,0 +1,19 @@
+@page
+@model SMS.Web.Areas.Academics.Pages.Sdc.PositionsModel
+@{ ViewData["PageTitle"] = "SDC Positions"; ViewData["PageSubTitle"] = "Define the committee's positions"; }
+@section actionbar { <a asp-page="./Positions" class="btn btn-primary">New position</a> }
+@if (TempData["SdcSaved"] is string message) { <div class="alert alert-success" role="status">@message</div> }
+<div class="table-card mb-3"><form method="get" class="table-toolbar" data-auto-filter>
+    <div class="toolbar-filters"><div class="filter-wrapper"><select asp-for="Status" class="filter-dropdown" aria-label="Position status"><option value="">All positions</option><option value="active">Active positions</option><option value="inactive">Inactive positions</option></select></div></div>
+    <div class="search-wrapper"><i class="fas fa-search" aria-hidden="true"></i><input asp-for="SearchTerm" class="search-input" placeholder="Search positions…" aria-label="Search positions" /></div>
+</form><div class="table-responsive"><table class="table"><thead><tr><th>Position</th><th>Status</th><th>Action</th></tr></thead><tbody>
+    @foreach (var position in Model.Positions) { <tr><td>@position.Name</td><td>@(position.IsActive ? "Active" : "Inactive")</td><td><a asp-route-id="@position.Id" class="btn btn-sm btn-outline-primary">Edit</a></td></tr> }
+    @if (Model.Positions.Count == 0) { <tr><td colspan="3">No SDC positions found.</td></tr> }
+</tbody></table></div></div>
+<form method="post" class="form-compact"><div class="form-card"><div class="card-body">
+    <div class="form-section-title">@(Model.IsEdit ? "Edit position" : "Create position")</div><div asp-validation-summary="All" class="text-danger"></div>
+    <div class="form-group"><label asp-for="Input.Name" class="form-label">Position name</label><input asp-for="Input.Name" class="form-control" maxlength="80" placeholder="e.g. Chairperson, Secretary or Treasurer" required /><span asp-validation-for="Input.Name" class="text-danger"></span></div>
+    <div class="form-check mt-3"><input asp-for="Input.IsActive" class="form-check-input" /><label asp-for="Input.IsActive" class="form-check-label">Active position</label></div>
+    <p class="form-text">Inactive positions remain on past membership records and cannot be selected for new appointments.</p>
+</div><div class="card-footer"><button class="btn btn-primary" type="submit">Save position</button></div></div></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/assignment-filters.js" asp-append-version="true"></script> }

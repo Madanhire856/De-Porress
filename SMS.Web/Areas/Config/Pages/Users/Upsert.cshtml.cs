@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SMS.Data;
 using SMS.Lib;
+using SMS.Web.Services;
 using SMS.Web.Areas.Config.Pages.Users.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -50,6 +51,7 @@ namespace SMS.Web.Areas.Config.Pages.Users
 
                 if (entity != null)
                 {
+                    if (RoleAssignmentPolicy.IsSystemAdministrator(entity.RoleId) && !RoleAssignmentPolicy.IsSystemAdministrator(_currentUser.RoleId)) return Forbid();
                     user = new UserVM
                     {
                         Id = entity.Id,
@@ -82,11 +84,20 @@ namespace SMS.Web.Areas.Config.Pages.Users
                 return Forbid();
             if (id != null && !_currentUser.HasRight(AccessRights.EditUsers))
                 return Forbid();
+            if (!RoleAssignmentPolicy.CanAssign(_currentUser.RoleId, user.RoleId)) return Forbid();
+            if (id.HasValue && !RoleAssignmentPolicy.IsSystemAdministrator(_currentUser.RoleId)
+                && await _context.Users.AnyAsync(x => x.Id == id && (x.RoleId & (int)UserRole.ADMIN) != 0)) return Forbid();
 
             UserGroups = await _context.UserGroups
                 .AsNoTracking()
                 .OrderBy(g => g.Name)
                 .ToListAsync();
+
+            if (!RoleAssignmentPolicy.IsDefined(user.RoleId) || (user.IsActive && user.RoleId == 0))
+                ModelState.AddModelError("user.RoleId", "Choose a valid role for an active account.");
+            if (user.GroupId == Guid.Empty) user.GroupId = null;
+            if (user.GroupId.HasValue && !UserGroups.Any(x => x.Id == user.GroupId))
+                ModelState.AddModelError("user.GroupId", "Choose an existing user group.");
 
             if (!ModelState.IsValid)
                 return Page();
@@ -141,7 +152,7 @@ namespace SMS.Web.Areas.Config.Pages.Users
                 if (entity == null)
                     return NotFound();
 
-                entity.IsActive = user.IsActive;
+            entity.IsActive = user.IsActive;
             }
 
             entity.Name = user.Name;
@@ -150,6 +161,7 @@ namespace SMS.Web.Areas.Config.Pages.Users
             entity.Mobile = user.Mobile;
             entity.RoleId = user.RoleId;
             entity.GroupId = user.GroupId;
+            if (entity.IsActive && !entity.ActivationDate.HasValue) entity.ActivationDate = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 

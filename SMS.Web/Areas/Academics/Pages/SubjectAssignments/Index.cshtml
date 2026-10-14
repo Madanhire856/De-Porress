@@ -10,11 +10,10 @@
 }
 <div class="table-card">
     <div class="table-count"><i class="fas fa-chalkboard-teacher me-2" aria-hidden="true"></i> @Model.Teachers.Count teaching staff</div>
-    <form method="get" class="table-toolbar">
+    <form method="get" class="table-toolbar" data-auto-filter>
         <div class="search-wrapper"><i class="fas fa-search" aria-hidden="true"></i>
             <input asp-for="SearchTerm" class="search-input" aria-label="Search teacher or subject" placeholder="Search teacher or subject" />
         </div>
-        <button type="submit" class="btn btn-primary">Search</button>
         @if (!string.IsNullOrWhiteSpace(Model.SearchTerm)) { <a asp-page="./Index" class="btn btn-outline-secondary">Clear</a> }
     </form>
     <div class="table-responsive">
@@ -38,3 +37,6 @@
         </table>
     </div>
 </div>
+@section Scripts {
+    <script src="~/js/assignment-filters.js" asp-append-version="true"></script>
+}

@@ -10,18 +10,20 @@
 
 <form method="post" class="form-compact">
     <input type="hidden" asp-for="Input.Id" />
+    <input type="hidden" asp-for="NominationId" />
+    @if (Model.NominationId.HasValue) { <div class="alert alert-info">Review the nomination and enter the appointment dates. Saving approves the nomination and creates the appointment together.</div> }
 
     <div class="form-card">
         <div class="card-body">
 
-            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+            <div asp-validation-summary="All" class="validation-summary"></div>
 
             <!-- ===================== STUDENT ===================== -->
             <div class="form-section-title">
                 <i class="fa-solid fa-user-graduate"></i> Student
             </div>
 
-            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+            <div class="form-grid-2-spaced">
                 <div class="form-group full-width">
                     <label class="form-label" asp-for="Input.StudentId">
                         Student <span class="required">*</span>
@@ -40,7 +42,7 @@
                 <i class="fa-solid fa-award"></i> Appointment
             </div>
 
-            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+            <div class="form-grid-2-spaced">
 
                 <div class="form-group">
                     <label class="form-label" asp-for="Input.PostTitleId">
@@ -72,8 +74,8 @@
                     </label>
                     <input asp-for="Input.StartDate"
                            asp-format="{0:yyyy-MM-dd}"
-                           type="text"
-                           class="form-control datepicker"
+                           type="date"
+                           class="form-control"
                            placeholder="yyyy-mm-dd"
                            autocomplete="off" />
                     <span asp-validation-for="Input.StartDate" class="text-danger"></span>
@@ -85,12 +87,15 @@
                     </label>
                     <input asp-for="Input.EndDate"
                            asp-format="{0:yyyy-MM-dd}"
-                           type="text"
-                           class="form-control datepicker"
+                           type="date"
+                           class="form-control"
                            placeholder="yyyy-mm-dd"
                            autocomplete="off" />
                     <span asp-validation-for="Input.EndDate" class="text-danger"></span>
                 </div>
+                @if (!Model.NominationId.HasValue) {
+                    <div class="form-group"><label asp-for="Input.NominatorId" class="form-label">Nominator (optional)</label><select asp-for="Input.NominatorId" asp-items="Model.NominatorOptions" class="form-control"><option value="">No nominator recorded</option></select><span asp-validation-for="Input.NominatorId" class="text-danger"></span></div>
+                }
             </div>
         </div>
 
@@ -106,20 +111,4 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
-    <script>
-        $(function () {
-            $('.datepicker').datepicker({
-                dateFormat: 'yy-mm-dd',   // must match the rendered value format
-                changeMonth: true,
-                changeYear: true,
-                showAnim: 'fadeIn',
-                yearRange: 'c-5:c+5'
-            });
-
-            // Date fields must be chosen from the picker, not typed
-            $('.datepicker').on('keydown', function (e) {
-                e.preventDefault();
-            });
-        });
-    </script>
 }

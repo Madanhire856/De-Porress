@@ -9,5 +9,7 @@ namespace SMS.Lib
         PORTAL=1,
         SMS=2,
         WHATSAPP=3,
+        WEBSITE=4,
+        STAFF_NOTICE=5,
     }
 }

@@ -1,0 +1,11 @@
+@page "{id:guid}"
+@model SMS.Web.Pages.Notices.DetailsModel
+@{ Layout = "_PublicLayout"; ViewData["Title"] = Model.Notice.Title; }
+    <section class="school-section school-notice-detail">
+        <a class="school-text-link" asp-page="./Index">← All school notices</a>
+        <article>
+            <p class="school-eyebrow">SCHOOL NOTICE</p><h1>@Model.Notice.Title</h1>
+            <time datetime="@Model.Notice.CreationDate.ToString("yyyy-MM-dd")">@Model.Notice.CreationDate.AddHours(2).ToString("dd MMM yyyy")</time>
+            <div class="school-notice-body">@Model.Notice.Body</div>
+        </article>
+    </section>

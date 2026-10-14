@@ -61,6 +61,9 @@
                         </h4>
 
                         <div class="rights-list" id="@catId">
+                            @if (category.Title == "Prefects") {
+                                <label class="right-checkbox"><input asp-for="UserGroupVM.CanNominatePrefects" /><span>Nominate Prefects</span></label>
+                            }
                             @foreach (var right in category.Rights)
                             {
                                 var value = (long)right.Right;
@@ -95,7 +98,7 @@
             const countEl = document.getElementById('rightsCount');
 
             function updateCount() {
-                const count = document.querySelectorAll('input[name="SelectedRights"]:checked').length;
+                const count = document.querySelectorAll('.rights-list input[type="checkbox"]:checked').length;
                 countEl.textContent = count + ' selected';
             }
 
@@ -103,7 +106,7 @@
             document.querySelectorAll('.select-all-checkbox').forEach(master => {
                 const cat = document.getElementById(master.getAttribute('data-target'));
                 if (!cat) return;
-                const boxes = cat.querySelectorAll('input[name="SelectedRights"]');
+                const boxes = cat.querySelectorAll('input[type="checkbox"]');
 
                 master.checked = Array.from(boxes).every(b => b.checked);
 
@@ -118,7 +121,7 @@
                 }));
             });
 
-            document.querySelectorAll('input[name="SelectedRights"]').forEach(b =>
+            document.querySelectorAll('.rights-list input[type="checkbox"]').forEach(b =>
                 b.addEventListener('change', updateCount));
             updateCount();
         })();

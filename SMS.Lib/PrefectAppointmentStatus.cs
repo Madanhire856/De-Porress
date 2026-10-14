@@ -11,5 +11,6 @@ namespace SMS.Lib
         VETTING_IN_PROGRESS = 2,
         COMPLETED = 3,
         DEMOTED = 4,
+        REJECTED = 5,
     }
 }

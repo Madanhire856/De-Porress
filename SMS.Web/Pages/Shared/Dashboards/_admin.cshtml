@@ -11,7 +11,6 @@
 @if (Model.CanOpen("Config", "/Classes/Index")) { <a class="admin-stat" asp-area="Config" asp-page="/Classes/Index"><div>Classes<i class="fas fa-school" aria-hidden="true"></i></div><strong>@Model.Classes.ToString("N0")</strong><p>View class organisation →</p></a> }
 @if (Model.CanOpen("Config", "/Users/Index")) { <a class="admin-stat" asp-area="Config" asp-page="/Users/Index"><div>Active accounts<i class="fas fa-user-shield" aria-hidden="true"></i></div><strong>@Model.ActiveUsers.ToString("N0")</strong><p>Manage system access →</p></a> }
 </section>
-@await Html.PartialAsync("~/Pages/Shared/Dashboards/_feesSummary.cshtml", Model)
 <div class="admin-columns">
 @if (Model.Can(AccessRights.ViewLearners) && Model.Can(AccessRights.ViewGrades)) { <section class="admin-panel"><header><div><h2>Enrolment by grade</h2><p>Active students across the school</p></div>@if (Model.CanOpen("Config", "/Grades/Index")) { <a asp-area="Config" asp-page="/Grades/Index">View grades →</a> }</header>
 @if (Model.Students == 0) { <div class="admin-empty"><i class="fas fa-chart-bar" aria-hidden="true"></i><h3>Your school’s story starts here</h3><p>Enrol students to see the breakdown.</p>@if (Model.Can(AccessRights.CreateLearners)) { <a asp-area="Academics" asp-page="/Students/Upsert">Enrol a student →</a> }</div> }
@@ -21,12 +20,6 @@ else {
 <p class="admin-note">@Model.Students.ToString("N0") active students · @Model.UnassignedStudents.ToString("N0") awaiting class placement</p>
 }
 </section> }
-<section class="admin-panel"><header><div><h2>Quick actions</h2><p>Everyday tasks, one click away</p></div><i class="fas fa-bolt" aria-hidden="true"></i></header><div class="admin-actions">
-@if (Model.Can(AccessRights.CreateLearners)) { <a asp-area="Academics" asp-page="/Students/Upsert"><i class="fas fa-user-plus" aria-hidden="true"></i><span>Enrol a student<small>Create a student record</small></span><b>›</b></a> }
-@if (Model.Can(AccessRights.CreateStaff)) { <a asp-area="Academics" asp-page="/Staff/Upsert"><i class="fas fa-chalkboard-teacher" aria-hidden="true"></i><span>Add staff<small>Grow your school team</small></span><b>›</b></a> }
-@if (Model.CanOpen("Config", "/Users/Index")) { <a asp-area="Config" asp-page="/Users/Index"><i class="fas fa-user-shield" aria-hidden="true"></i><span>Manage access<small>Users and account status</small></span><b>›</b></a> }
-@if (Model.CanOpen("Finance", "/Fees/Index")) { <a asp-area="Finance" asp-page="/Fees/Index"><i class="fas fa-wallet" aria-hidden="true"></i><span>Open finance<small>Fees, payments and balances</small></span><b>›</b></a> }
-</div></section>
 @if (Model.Can(AccessRights.ViewLearners) && Model.Can(AccessRights.ViewClasses)) { <section class="admin-panel"><header><div><h2>School readiness</h2><p>Student placements and class teacher coverage</p></div><i class="fas fa-chart-pie" aria-hidden="true"></i></header>
 <div class="admin-readiness">
 <div><h3>Student placement</h3>
@@ -42,11 +35,6 @@ else {
 <p class="admin-chart-caption"><span class="admin-dot"></span>Teacher assigned <strong>@(Model.Classes - Model.ClassesWithoutTeachers)</strong></p><p class="admin-chart-caption"><span class="admin-dot admin-dot-gold"></span>Needs a teacher <strong>@Model.ClassesWithoutTeachers</strong></p>
 </div>
 </div><p class="admin-note">Based on current active students and configured classes.</p></section> }
-<section class="admin-panel"><header><div><h2>Needs attention</h2><p>Keep your school records complete</p></div><i class="far fa-flag" aria-hidden="true"></i></header><div class="admin-attention">
-@if (Model.CanOpen("Academics", "/Students/Index")) { <a asp-area="Academics" asp-page="/Students/Index"><span>Students without a class<small>Review student placements</small></span><strong>@Model.UnassignedStudents</strong></a> }
-@if (Model.CanOpen("Config", "/Classes/Index")) { <a asp-area="Config" asp-page="/Classes/Index"><span>Classes without a teacher<small>Review teaching assignments</small></span><strong>@Model.ClassesWithoutTeachers</strong></a> }
-@if (Model.CanOpen("Config", "/Users/Index")) { <a asp-area="Config" asp-page="/Users/Index" asp-route-StatusFilter="Inactive"><span>Inactive accounts<small>Review account access</small></span><strong>@Model.InactiveUsers</strong></a> }
-</div><div class="admin-help"><i class="fas fa-shield-alt" aria-hidden="true"></i><span>Administration workspace<small>Manage school records and access from one place.</small></span></div></section>
 </div>
 <div class="dashboard-chart-section">
     @await Html.PartialAsync("~/Pages/Shared/Dashboards/_collections.cshtml", Model)

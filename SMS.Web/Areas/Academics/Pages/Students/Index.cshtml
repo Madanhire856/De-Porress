@@ -1,4 +1,4 @@
-﻿@page
+@page
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
 @model SMS.Web.Areas.Academics.Pages.Students.IndexModel
@@ -47,7 +47,32 @@
 
     <!-- ===== FILTER TOOLBAR ===== -->
     <form method="get" class="table-toolbar" id="filterForm">
-
+        <div class="toolbar-filters">
+            <div class="filter-wrapper">
+            <select asp-for="ClassFilter"
+                    asp-items="Model.ClassOptions"
+                    class="filter-dropdown"
+                    id="classFilter">
+                <option value="">All Classes</option>
+            </select>
+        </div>
+            <div class="filter-wrapper">
+            <select asp-for="GenderFilter"
+                    asp-items="Model.GenderOptions"
+                    class="filter-dropdown"
+                    id="genderFilter">
+                <option value="">All Genders</option>
+            </select>
+        </div>
+            <div class="filter-wrapper">
+            <select asp-for="EnrolmentFilter"
+                    asp-items="Model.EnrolmentStatusOptions"
+                    class="filter-dropdown"
+                    id="enrolmentFilter">
+                <option value="">All Statuses</option>
+            </select>
+        </div>
+        </div>
         <div class="search-wrapper">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text"
@@ -57,34 +82,6 @@
                    autocomplete="off"
                    id="searchInput" />
         </div>
-
-        <div class="filter-wrapper">
-            <select asp-for="ClassFilter"
-                    asp-items="Model.ClassOptions"
-                    class="filter-dropdown"
-                    id="classFilter">
-                <option value="">All Classes</option>
-            </select>
-        </div>
-
-        <div class="filter-wrapper">
-            <select asp-for="GenderFilter"
-                    asp-items="Model.GenderOptions"
-                    class="filter-dropdown"
-                    id="genderFilter">
-                <option value="">All Genders</option>
-            </select>
-        </div>
-
-        <div class="filter-wrapper">
-            <select asp-for="EnrolmentFilter"
-                    asp-items="Model.EnrolmentStatusOptions"
-                    class="filter-dropdown"
-                    id="enrolmentFilter">
-                <option value="">All Statuses</option>
-            </select>
-        </div>
-
         <input type="hidden" asp-for="PageSize" />
         <input type="hidden" asp-for="PageNumber" value="1" id="pageNumberHidden" />
         <input type="hidden" asp-for="VillageFilter" />

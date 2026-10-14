@@ -49,7 +49,9 @@ public partial class IndexModel(SMSDbContext context, ICurrentUserService curren
     public List<DailyCollection> CollectionTrend { get; private set; } = [];
     [BindProperty(SupportsGet = true)] public DateTime? TrendFrom { get; set; }
     [BindProperty(SupportsGet = true)] public DateTime? TrendTo { get; set; }
-    public List<DateTime> TrendDates { get; private set; } = [];
+    public List<WeeklyCollectionPeriods.Period> TrendWeeks { get; private set; } = [];
+    public decimal[] TrendReversals => TrendWeeks.Select(week => CollectionTrend
+        .Where(day => day.Date >= week.Start && day.Date <= week.End).Sum(day => day.Reversed)).ToArray();
     public List<MethodTrend> MethodTrends { get; private set; } = [];
     public record MethodTrend(int Id, string Name, decimal[] Amounts);
     [BindProperty(SupportsGet = true)] public DateTime? CollectionDate { get; set; }
@@ -68,15 +70,23 @@ public partial class IndexModel(SMSDbContext context, ICurrentUserService curren
     public int ClassesWithoutTeachers { get; private set; }
     public Term? CurrentTerm { get; private set; }
     public List<GradeSummary> Grades { get; private set; } = [];
+    public List<Announcement> PublicNotices { get; private set; } = [];
+    [BindProperty(SupportsGet = true)] public bool Website { get; set; }
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
-        if (User.Identity?.IsAuthenticated != true) return;
+        if (Website || User.Identity?.IsAuthenticated != true)
+        {
+            PublicNotices = await SchoolNotices.Published(context).OrderByDescending(x => x.CreationDate)
+                .ThenByDescending(x => x.Id).Take(3).ToListAsync(cancellationToken);
+            return;
+        }
         IsAdmin = access.Workspace == SchoolWorkspace.Administration;
         IsBursar = access.Workspace == SchoolWorkspace.Bursar;
 
         if (IsTeacher)
         {
-            TeacherGrantedRights = Enum.GetValues<AccessRights>().Count(right => right != AccessRights.None && currentUser.HasRight(right));
+            TeacherGrantedRights = Enum.GetValues<AccessRights>().Count(right => right != AccessRights.None && currentUser.HasRight(right))
+                + (currentUser.CanNominatePrefects ? 1 : 0);
             if (currentUser.GroupId.HasValue)
                 TeacherAccessGroup = await context.UserGroups.AsNoTracking()
                     .Where(group => group.Id == currentUser.GroupId.Value)
@@ -186,8 +196,7 @@ public partial class IndexModel(SMSDbContext context, ICurrentUserService curren
         TrendTo = TrendTo?.Date ?? SchoolToday;
         if (TrendFrom < TrendStart || TrendFrom > SchoolToday) TrendFrom = TrendStart;
         if (TrendTo < TrendFrom || TrendTo > SchoolToday) TrendTo = SchoolToday;
-        TrendDates = Enumerable.Range(0, (TrendTo.Value - TrendFrom.Value).Days + 1)
-            .Select(offset => TrendFrom.Value.AddDays(offset)).ToList();
+        TrendWeeks = WeeklyCollectionPeriods.Create(TrendFrom.Value, TrendTo.Value);
         var trendEnd = TrendTo.Value.AddDays(1);
         var methodDaily = await trend.Where(p => !p.IsReversal && p.PaymentDate >= TrendFrom.Value && p.PaymentDate < trendEnd)
             .GroupBy(p => new { Date = p.PaymentDate.Date, p.PaymentMethodId })
@@ -198,7 +207,8 @@ public partial class IndexModel(SMSDbContext context, ICurrentUserService curren
             .Union(methodDaily.Select(row => row.Id)).OrderBy(id => id);
         MethodTrends = methodIds.Select(id => new MethodTrend(id,
             Enum.IsDefined(typeof(PaymentMethod), id) ? ((PaymentMethod)id).ToDisplayName() : $"Other method ({id})",
-            TrendDates.Select(date => methodDaily.Where(row => row.Id == id && row.Date == date).Sum(row => row.Amount)).ToArray())).ToList();
+            TrendWeeks.Select(week => methodDaily.Where(row => row.Id == id && row.Date >= week.Start && row.Date <= week.End)
+                .Sum(row => row.Amount)).ToArray())).ToList();
         DailyCollections = CollectionTrend;
         SelectedReversed = DailyCollections.FirstOrDefault(d => d.Date == selectedDate)?.Reversed ?? 0m;
         WeekNet = await recent.SumAsync(p => (decimal?)(p.BaseAmount ?? (p.CurrencyId == BaseCurrency ? p.Amount ?? 0m : 0m)), cancellationToken) ?? 0m;

@@ -844,8 +844,21 @@ namespace SMS.Data.Migrations
                     b.Property<int?>("PostTitleId")
                         .HasColumnType("int");
 
+                    b.Property<Guid?>("PrefectId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Reason")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReviewNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ReviewedByUserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
@@ -854,6 +867,12 @@ namespace SMS.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PrefectId")
+                        .IsUnique()
+                        .HasFilter("[PrefectId] IS NOT NULL");
+
+                    b.HasIndex("ReviewedByUserId");
 
                     b.HasIndex(new[] { "NominatedByUserId" }, "IX_PrefectNomination_NominatedByUserId");
 
@@ -986,6 +1005,117 @@ namespace SMS.Data.Migrations
                     b.HasKey("Year");
 
                     b.ToTable("ReceiptSequence", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid>("PositionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TermId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.HasIndex("PositionId");
+
+                    b.HasIndex("TermId");
+
+                    b.ToTable("SdcMember", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcPosition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("SdcPosition", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcTerm", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("SdcTerm", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SdcTerm_Dates", "[EndDate] >= [StartDate]");
+                        });
                 });
 
             modelBuilder.Entity("SMS.Data.Sponsorship", b =>
@@ -1520,6 +1650,9 @@ namespace SMS.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("CanNominatePrefects")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime");
 
@@ -1922,6 +2055,16 @@ namespace SMS.Data.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_PrefectNomination_User");
 
+                    b.HasOne("SMS.Data.Prefect", "Prefect")
+                        .WithMany()
+                        .HasForeignKey("PrefectId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SMS.Data.User", "ReviewedByUser")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SMS.Data.Student", "Student")
                         .WithMany("PrefectNominations")
                         .HasForeignKey("StudentId")
@@ -1929,6 +2072,10 @@ namespace SMS.Data.Migrations
                         .HasConstraintName("FK_PrefectNomination_Student");
 
                     b.Navigation("NominatedByUser");
+
+                    b.Navigation("Prefect");
+
+                    b.Navigation("ReviewedByUser");
 
                     b.Navigation("Student");
                 });
@@ -1986,6 +2133,49 @@ namespace SMS.Data.Migrations
                     b.Navigation("Creator");
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcMember", b =>
+                {
+                    b.HasOne("SMS.Data.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SMS.Data.SdcPosition", "Position")
+                        .WithMany("Members")
+                        .HasForeignKey("PositionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SMS.Data.SdcTerm", "Term")
+                        .WithMany("Members")
+                        .HasForeignKey("TermId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Position");
+
+                    b.Navigation("Term");
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcPosition", b =>
+                {
+                    b.HasOne("SMS.Data.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcTerm", b =>
+                {
+                    b.HasOne("SMS.Data.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SMS.Data.Sponsorship", b =>
@@ -2266,6 +2456,16 @@ namespace SMS.Data.Migrations
                     b.Navigation("ProjectMilestones");
 
                     b.Navigation("ProjectRisks");
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcPosition", b =>
+                {
+                    b.Navigation("Members");
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcTerm", b =>
+                {
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("SMS.Data.Sponsorship", b =>

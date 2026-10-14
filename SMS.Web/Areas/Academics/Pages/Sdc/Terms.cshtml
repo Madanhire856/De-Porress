@@ -1,0 +1,24 @@
+@page
+@model SMS.Web.Areas.Academics.Pages.Sdc.TermsModel
+@{ ViewData["PageTitle"] = "SDC Committee Terms"; ViewData["PageSubTitle"] = "Define the committee's appointment periods"; }
+@section actionbar { <a asp-page="./Terms" class="btn btn-primary">New committee term</a> }
+@if (TempData["SdcSaved"] is string message) { <div class="alert alert-success" role="status">@message</div> }
+<div class="table-card mb-3">
+    <form method="get" class="table-toolbar" data-auto-filter><div class="toolbar-filters"><div class="filter-wrapper"><select asp-for="Status" class="filter-dropdown" aria-label="Term status"><option value="">All terms</option><option value="active">Active terms</option><option value="archived">Archived terms</option></select></div></div><div class="search-wrapper"><i class="fas fa-search" aria-hidden="true"></i><input asp-for="SearchTerm" class="search-input" placeholder="Search committee terms…" aria-label="Search committee terms" /></div></form>
+    <div class="table-responsive"><table class="table"><thead><tr><th>Term</th><th>Start date</th><th>End date</th><th>Members</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        @foreach (var term in Model.Terms) { <tr><td>@term.Name</td><td>@term.StartDate.ToString("dd MMM yyyy")</td><td>@term.EndDate.ToString("dd MMM yyyy")</td><td>@term.Members.Count</td><td>@(term.IsActive ? "Active" : "Archived")</td><td><a asp-route-id="@term.Id" class="btn btn-sm btn-outline-primary">Edit</a> <a asp-page="./Index" asp-route-TermId="@term.Id" class="btn btn-sm btn-outline-secondary">Members</a></td></tr> }
+        @if (Model.Terms.Count == 0) { <tr><td colspan="6">No committee terms found.</td></tr> }
+    </tbody></table></div>
+</div>
+<form method="post" class="form-compact"><div class="form-card"><div class="card-body">
+    <div class="form-section-title">@(Model.IsEdit ? "Edit committee term" : "Create committee term")</div>
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="form-grid-2">
+        <div class="form-group"><label asp-for="Input.Name" class="form-label">Term name</label><input asp-for="Input.Name" class="form-control" maxlength="100" required /><span asp-validation-for="Input.Name" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.StartDate" class="form-label">Start date</label><input asp-for="Input.StartDate" type="date" class="form-control" required /><span asp-validation-for="Input.StartDate" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.EndDate" class="form-label">End date</label><input asp-for="Input.EndDate" type="date" class="form-control" required /><span asp-validation-for="Input.EndDate" class="text-danger"></span></div>
+    </div>
+    <div class="form-check mt-3"><input asp-for="Input.IsActive" class="form-check-input" /><label asp-for="Input.IsActive" class="form-check-label">Active term</label></div>
+    <p class="form-text">Clear Active term to archive it. Existing membership records are retained.</p>
+</div><div class="card-footer"><button class="btn btn-primary" type="submit">Save committee term</button></div></div></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/assignment-filters.js" asp-append-version="true"></script> }

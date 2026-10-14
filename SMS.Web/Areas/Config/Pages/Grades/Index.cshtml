@@ -1,4 +1,4 @@
-﻿@page
+@page
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
 @model SMS.Web.Areas.Config.Pages.Grades.IndexModel
@@ -26,15 +26,8 @@
     </div>
 
     <form method="get" class="table-toolbar" id="filterForm">
-        <div class="search-wrapper">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" asp-for="SearchTerm"
-                   class="search-input"
-                   placeholder="Search by grade name..."
-                   id="searchInput"
-                   autocomplete="off" />
-        </div>
-        <div class="filter-wrapper">
+        <div class="toolbar-filters">
+            <div class="filter-wrapper">
             <select asp-for="GradeLevelFilter" class="filter-dropdown" id="levelFilter">
                 <option value="">All Levels</option>
                 @foreach (var lvl in EnumExtensions.AllGradeLevels())
@@ -42,6 +35,15 @@
                     <option value="@((int)lvl)">@lvl.ToDisplayName()</option>
                 }
             </select>
+        </div>
+        </div>
+        <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" asp-for="SearchTerm"
+                   class="search-input"
+                   placeholder="Search by grade name..."
+                   id="searchInput"
+                   autocomplete="off" />
         </div>
         <input type="hidden" asp-for="PageSize" />
         <input type="hidden" asp-for="PageNumber" value="1" id="pageNumberHidden" />

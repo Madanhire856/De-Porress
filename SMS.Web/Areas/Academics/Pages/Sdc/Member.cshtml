@@ -1,0 +1,17 @@
+@page "{id:guid?}"
+@model SMS.Web.Areas.Academics.Pages.Sdc.MemberModel
+@{ ViewData["PageTitle"] = Model.IsEdit ? "Edit SDC Member" : "Add SDC Member"; ViewData["PageSubTitle"] = "Record membership for a committee term"; }
+<form method="post" class="form-compact"><div class="form-card"><div class="card-body">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    @if (Model.Terms.Count == 0 || Model.Positions.Count == 0) { <div class="alert alert-info">Define an active <a asp-page="./Terms">committee term</a> and <a asp-page="./Positions">position</a> before adding a member.</div> }
+    <div class="form-grid-2">
+        <div class="form-group"><label asp-for="Input.Name" class="form-label">Full name</label><input asp-for="Input.Name" class="form-control" maxlength="100" required /><span asp-validation-for="Input.Name" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.TermId" class="form-label">Committee term</label><select asp-for="Input.TermId" asp-items="Model.Terms" class="form-control" required><option value="">Select term</option></select><span asp-validation-for="Input.TermId" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.PositionId" class="form-label">Position</label><select asp-for="Input.PositionId" asp-items="Model.Positions" class="form-control" required><option value="">Select position</option></select><span asp-validation-for="Input.PositionId" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.Phone" class="form-label">Telephone (optional)</label><input asp-for="Input.Phone" type="tel" class="form-control" maxlength="20" /><span asp-validation-for="Input.Phone" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.Email" class="form-label">Email (optional)</label><input asp-for="Input.Email" type="email" class="form-control" maxlength="100" /><span asp-validation-for="Input.Email" class="text-danger"></span></div>
+    </div>
+    <div class="form-check mt-3"><input asp-for="Input.IsActive" class="form-check-input" /><label asp-for="Input.IsActive" class="form-check-label">Active membership</label></div>
+    <p class="form-text">Past memberships remain available. For a new committee term, create a new membership record.</p>
+</div><div class="card-footer"><button type="submit" class="btn btn-primary">Save member</button></div></div></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

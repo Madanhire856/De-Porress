@@ -1,4 +1,4 @@
-﻿@page
+@page
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
 @model SMS.Web.Areas.Config.Pages.Terms.IndexModel
@@ -26,12 +26,14 @@
     </div>
 
     <form method="get" class="table-toolbar" id="filterForm">
-        <div class="filter-wrapper">
+        <div class="toolbar-filters">
+            <div class="filter-wrapper">
             <input type="number" asp-for="YearFilter"
                    class="filter-dropdown"
                    placeholder="Filter by year..."
                    style="width:180px;"
                    id="yearFilter" />
+        </div>
         </div>
         <input type="hidden" asp-for="PageSize" />
         <input type="hidden" asp-for="PageNumber" value="1" id="pageNumberHidden" />

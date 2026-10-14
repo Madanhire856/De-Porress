@@ -1,6 +1,7 @@
 @page
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
+@inject SMS.Web.Services.WorkspaceAccess Workspace
 @model SMS.Web.Areas.Academics.Pages.Prefects.BoardModel
 @{
     ViewData["Title"] = "Prefects Board";
@@ -12,7 +13,7 @@
     <a asp-page="./Index" class="btn btn-outline-secondary">
         <i class="fa-solid fa-list"></i> List View
     </a>
-    @if (CurrentUser.HasRight(AccessRights.CreatePrefects))
+    @if (SMS.Web.Services.PrefectAccess.CanManage(Workspace, AccessRights.CreatePrefects))
     {
         <a asp-page="./Upsert" class="btn btn-primary">
             <i class="fa-solid fa-plus"></i> Appoint Prefect

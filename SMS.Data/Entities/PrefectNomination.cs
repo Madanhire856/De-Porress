@@ -18,6 +18,12 @@ public partial class PrefectNomination
     public Guid NominatedByUserId { get; set; }
 
     public DateTime CreationDate { get; set; }
+    public Guid? PrefectId { get; set; }
+    public Guid? ReviewedByUserId { get; set; }
+    public DateTime? ReviewedAt { get; set; }
+    public string? ReviewNotes { get; set; }
+    public virtual Prefect? Prefect { get; set; }
+    public virtual User? ReviewedByUser { get; set; }
 
     public virtual User NominatedByUser { get; set; } = null!;
 

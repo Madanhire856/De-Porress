@@ -1,0 +1,13 @@
+@page
+@model SMS.Web.Areas.Academics.Pages.Prefects.NominateModel
+@{ ViewData["PageTitle"] = "Nominate a Prefect"; ViewData["PageSubTitle"] = "Submit a student nomination for school leadership review"; }
+<form method="post" class="form-compact"><div class="form-card"><div class="card-body">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    @if (Model.Students.Count == 0) { <div class="alert alert-info">No eligible students are available. Teacher nominations require a linked staff account and current class assignment.</div> }
+    <div class="form-grid-2">
+        <div class="form-group"><label asp-for="Input.StudentId" class="form-label">Student</label><select asp-for="Input.StudentId" asp-items="Model.Students" class="form-control" required><option value="">Select student</option></select><span asp-validation-for="Input.StudentId" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.PostTitleId" class="form-label">Suggested post</label><select asp-for="Input.PostTitleId" asp-items="Model.Posts" class="form-control" required><option value="">Select post</option></select><span asp-validation-for="Input.PostTitleId" class="text-danger"></span></div>
+    </div>
+    <div class="form-group"><label asp-for="Input.Reason" class="form-label">Nomination reason</label><textarea asp-for="Input.Reason" class="form-control" rows="5" maxlength="2000" required></textarea><span asp-validation-for="Input.Reason" class="text-danger"></span></div>
+</div><div class="card-footer"><button type="submit" class="btn btn-primary">Submit nomination</button></div></div></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

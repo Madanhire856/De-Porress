@@ -15,12 +15,9 @@ assert.equal(config.options.scales.y.stacked,true);
 assert.equal(config.options.interaction.mode,'index');
 assert.equal(config.data.datasets[2].backgroundColor,'#9563b5');
 assert.equal(config.data.datasets[0].data[1],0);
-// Full daily total must include methods hidden through the legend.
+// Full weekly total must include methods hidden through the legend.
 const footer=Array.from(config.options.plugins.tooltip.callbacks.footer([{dataIndex:0}]));
-assert.deepEqual(footer,['Daily total: USD 1,050.00','Reversed: USD 100.00','Net: USD 950.00']);
-config.options.onClick(null,[{index:1}]);
-const url=new URL(destination);assert.equal(url.searchParams.get('CollectionDate'),'2026-10-08');
-assert.equal(url.searchParams.get('TrendFrom'),'2026-10-01');
-config.options.onClick(null,[]);assert.equal(new URL(destination).searchParams.get('CollectionDate'),'2026-10-08');
+assert.deepEqual(footer,['Weekly total: USD 1,050.00','Reversed: USD 100.00','Net: USD 950.00']);
+assert.equal(config.options.onClick,undefined, 'Weekly totals must not select an arbitrary day');
 assert.equal(config.options.animation,false);
-console.log('PASS: stacked methods, zero days, full daily totals, reversals, click date preservation and reduced motion.');
+console.log('PASS: stacked methods, zero weeks, full weekly totals, reversals and reduced motion.');

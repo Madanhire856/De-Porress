@@ -1,5 +1,6 @@
 ﻿using SMS.Lib;
 using System;
+using SMS.Web.Services;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -71,10 +72,11 @@ namespace SMS.Web.Areas.Academics.Pages.Prefects.ViewModels
 
         public string StatusName =>
             Enum.IsDefined(typeof(PrefectStatus), StatusId)
-                ? ((PrefectStatus)StatusId).ToDisplayName()
+                ? PrefectLifecycle.Label((PrefectStatus)StatusId, StartDate, EndDate ?? StartDate, DateTime.UtcNow.AddHours(2).Date)
                 : "—";
 
-        public string StatusCssClass => (PrefectStatus)StatusId switch
+        public string StatusCssClass => PrefectLifecycle.EffectiveStatus((PrefectStatus)StatusId,
+            EndDate ?? StartDate, DateTime.UtcNow.AddHours(2).Date) switch
         {
             PrefectStatus.ACTIVE => "status-active",
             PrefectStatus.INACTIVE => "status-inactive",

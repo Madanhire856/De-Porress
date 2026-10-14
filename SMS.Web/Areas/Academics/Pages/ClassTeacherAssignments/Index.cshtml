@@ -9,10 +9,11 @@
     <div class="alert alert-success" role="status">@message</div>
 }
 <div class="table-card mb-3">
-    <form method="get" class="table-toolbar assignment-year-filter">
+    <form method="get" class="table-toolbar assignment-year-filter" data-auto-filter>
+        <div class="toolbar-filters">
         <label for="yearFilter" class="form-label">Academic year</label>
         <input id="yearFilter" name="Year" value="@Model.Year" type="number" min="2000" max="2100" class="form-control assignment-year-input" required />
-        <button class="btn btn-primary" type="submit">View assignments</button>
+        </div>
     </form>
     <div class="table-responsive">
         <table class="table">
@@ -54,7 +55,6 @@
             </div>
             <div class="card-footer">
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save" aria-hidden="true"></i> Save assignment</button>
-                <a asp-page="./Index" asp-route-Year="@Model.Year" class="btn btn-outline-secondary">Cancel</a>
             </div>
         </div>
     </form>
@@ -76,4 +76,7 @@
         </table>
     </div>
 </div>
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/assignment-filters.js" asp-append-version="true"></script>
+}

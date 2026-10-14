@@ -17,6 +17,8 @@ namespace SMS.Lib
         private int? _cachedRoleId;
         private Guid? _cachedGroupId;
         private bool _hasLookedUpUser;
+        private bool _cachedIsActive;
+        private bool? _cachedCanNominatePrefects;
 
         // Rights cache
         private long? _cachedRights;
@@ -63,8 +65,9 @@ namespace SMS.Lib
             if (localUser != null)
             {
                 _cachedUserId = localUser.Id;
-                _cachedRoleId = localUser.RoleId;
-                _cachedGroupId = localUser.GroupId;
+                _cachedIsActive = localUser.IsActive;
+                _cachedRoleId = localUser.IsActive ? localUser.RoleId : 0;
+                _cachedGroupId = localUser.IsActive ? localUser.GroupId : null;
                 _hasLookedUpUser = true;
             }
         }
@@ -118,13 +121,29 @@ namespace SMS.Lib
 
         public bool HasRight(AccessRights right)
         {
+            EnsureUserLoaded();
+            if (!IsAuthenticated || !_cachedIsActive) return false;
             if (right == AccessRights.None) return true;
             return (Rights & (long)right) == (long)right;
         }
 
+        public bool CanNominatePrefects
+        {
+            get
+            {
+                EnsureUserLoaded();
+                if (!IsAuthenticated || !_cachedIsActive) return false;
+                if (((_cachedRoleId ?? 0) & (int)UserRole.ADMIN) != 0) return true;
+                if (_cachedCanNominatePrefects.HasValue) return _cachedCanNominatePrefects.Value;
+                _cachedCanNominatePrefects = _cachedGroupId.HasValue && _context.UserGroups.AsNoTracking()
+                    .Any(g => g.Id == _cachedGroupId && g.CanNominatePrefects);
+                return _cachedCanNominatePrefects.Value;
+            }
+        }
+
         public async Task<Guid> GetUserIdAsync()
         {
-            if (_cachedUserId.HasValue)
+            if (_cachedUserId.HasValue && _cachedIsActive)
                 return _cachedUserId.Value;
 
             var userId = await EnsureUserExistsAsync();
@@ -144,8 +163,7 @@ namespace SMS.Lib
             if (!IsAuthenticated)
                 return null;
 
-            if (_cachedUserId.HasValue)
-                return _cachedUserId.Value;
+            if (_cachedUserId.HasValue) return _cachedIsActive ? _cachedUserId.Value : null;
 
             var email = Email;
             if (string.IsNullOrEmpty(email))
@@ -156,10 +174,12 @@ namespace SMS.Lib
 
             if (localUser != null)
             {
+                if (!localUser.IsActive) return null;
                 localUser.LastLoginDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
                 _cachedUserId = localUser.Id;
+                _cachedIsActive = true;
                 _cachedRoleId = localUser.RoleId;
                 _cachedGroupId = localUser.GroupId;
                 _hasLookedUpUser = true;
@@ -168,7 +188,7 @@ namespace SMS.Lib
 
             // --- New user: provision ---
             bool isFirstUser = !await _context.Users.AnyAsync();
-            var role = isFirstUser ? UserRole.ADMIN : UserRole.STAFF;
+            var role = isFirstUser ? UserRole.ADMIN : (UserRole)0;
 
             var loginId = email.Contains('@')
                 ? email.Substring(0, email.IndexOf('@'))
@@ -189,8 +209,8 @@ namespace SMS.Lib
                 Name = Name ?? email,
                 Mobile = null,
                 PasswordHash = null,
-                IsActive = true,
-                ActivationDate = DateTime.UtcNow,
+                IsActive = isFirstUser,
+                ActivationDate = isFirstUser ? DateTime.UtcNow : null,
                 CreationDate = DateTime.UtcNow,
                 CreatorId = null,
                 RoleId = (int)role,
@@ -208,11 +228,12 @@ namespace SMS.Lib
             await _context.SaveChangesAsync();
 
             _cachedUserId = newUser.Id;
+            _cachedIsActive = newUser.IsActive;
             _cachedRoleId = newUser.RoleId;
             _cachedGroupId = newUser.GroupId;
             _hasLookedUpUser = true;
 
-            return newUser.Id;
+            return newUser.IsActive ? newUser.Id : null;
         }
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SMS.Data;
 using SMS.Lib;
+using SMS.Web.Services;
 using SMS.Web.Pages.GeneratedNumbers;
 using SMS.Web.Pages.Shared.Pagination;
 using System;
@@ -65,13 +66,11 @@ namespace SMS.Web.Areas.Academics.Pages.Prefects
             public DateTime EndDate { get; set; }
         }
 
-        public void OnGet()
+        public IActionResult OnGet()
         {
             if (!_currentUser.HasRight(AccessRights.ViewPrefects))
             {
-                // page can still render but list stays empty
-                LoadFilterOptions();
-                return;
+                return Forbid();
             }
 
             var query = _context.Prefects
@@ -95,14 +94,20 @@ namespace SMS.Web.Areas.Academics.Pages.Prefects
             if (PostTitleFilter.HasValue)
                 query = query.Where(p => p.PostTitleId == PostTitleFilter.Value);
 
-            if (StatusFilter.HasValue)
-                query = query.Where(p => p.StatusId == StatusFilter.Value);
+            var today = DateTime.UtcNow.AddHours(2).Date;
+            if (StatusFilter == (int)PrefectStatus.ACTIVE)
+                query = query.Where(p => p.StatusId == (int)PrefectStatus.ACTIVE && p.StartDate <= today && p.EndDate >= today);
+            else if (StatusFilter == (int)PrefectStatus.COMPLETED)
+                query = query.Where(p => p.StatusId == (int)PrefectStatus.COMPLETED || (p.StatusId == (int)PrefectStatus.ACTIVE && p.EndDate < today));
+            else if (StatusFilter.HasValue) query = query.Where(p => p.StatusId == StatusFilter.Value);
 
             query = query
                 .OrderBy(p => p.Student.Surname)
-                .ThenBy(p => p.Student.Name);
+                .ThenBy(p => p.Student.Name).ThenBy(p => p.Id);
 
             // ---- Paginate ----
+            PageSize = Math.Clamp(PageSize, 10, 100);
+            PageNumber = Math.Clamp(PageNumber, 1, Math.Max(1, (int)Math.Ceiling(query.Count() / (double)PageSize)));
             var result = query.Paginate(PageNumber, PageSize, "prefects");
             Pagination = result.Pagination;
 
@@ -114,7 +119,7 @@ namespace SMS.Web.Areas.Academics.Pages.Prefects
 
             Prefects = pageItems.Select(p =>
             {
-                var status = (PrefectStatus)p.StatusId;
+                var status = PrefectLifecycle.EffectiveStatus((PrefectStatus)p.StatusId, p.EndDate, today);
                 var postTitle = (PrefectPostTitle)p.PostTitleId;
 
                 return new PrefectRow
@@ -126,7 +131,7 @@ namespace SMS.Web.Areas.Academics.Pages.Prefects
                     Surname = p.Student.Surname,
                     ClassName = p.Student.Class?.Name ?? "—",
                     PostTitleName = postTitle.ToDisplayName(),
-                    StatusName = status.ToDisplayName(),
+                    StatusName = PrefectLifecycle.Label((PrefectStatus)p.StatusId, p.StartDate, p.EndDate, today),
                     StatusCssClass = status switch
                     {
                         PrefectStatus.ACTIVE => "status-active",
@@ -141,6 +146,7 @@ namespace SMS.Web.Areas.Academics.Pages.Prefects
             }).ToList();
 
             LoadFilterOptions();
+            return Page();
         }
 
         private void LoadFilterOptions()

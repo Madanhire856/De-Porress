@@ -26,6 +26,13 @@
     </div>
 
     <form method="get" class="table-toolbar" id="filterForm">
+        <div class="toolbar-filters">
+            <div class="filter-wrapper">
+            <select asp-for="GradeFilter" asp-items="Model.GradeOptions" class="filter-dropdown" id="gradeFilter">
+                <option value="">All Grades</option>
+            </select>
+        </div>
+        </div>
         <div class="search-wrapper">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" asp-for="SearchTerm"
@@ -33,11 +40,6 @@
                    placeholder="Search by class name..."
                    id="searchInput"
                    autocomplete="off" />
-        </div>
-        <div class="filter-wrapper">
-            <select asp-for="GradeFilter" asp-items="Model.GradeOptions" class="filter-dropdown" id="gradeFilter">
-                <option value="">All Grades</option>
-            </select>
         </div>
         <input type="hidden" asp-for="PageSize" />
         <input type="hidden" asp-for="PageNumber" value="1" id="pageNumberHidden" />

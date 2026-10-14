@@ -150,7 +150,7 @@ namespace SMS.Lib
         // ============================================================
         //  PREFECTS
         // ============================================================
-        NominatePrefects = 1L << 59,
+        // NominatePrefects is stored separately on UserGroup to avoid sharing bit 59 with cash-up.
         ViewPrefects = 1L << 60,
         CreatePrefects = 1L << 61,
         EditPrefects = 1L << 62,

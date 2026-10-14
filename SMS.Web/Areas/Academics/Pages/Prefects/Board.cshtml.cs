@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SMS.Data;
 using SMS.Lib;
+using SMS.Web.Services;
 using SMS.Web.Pages.GeneratedNumbers;
 
 namespace SMS.Web.Areas.Academics.Pages.Prefects;
@@ -20,13 +22,13 @@ public class BoardModel : PageModel
     }
 
     public List<PrefectBoardCard> AllPrefects { get; private set; } = [];
-    public int ActiveCount => AllPrefects.Count(p => p.Status == PrefectStatus.ACTIVE);
+    public int ActiveCount => AllPrefects.Count(p => p.Status == PrefectStatus.ACTIVE && p.StartDate.Date <= DateTime.UtcNow.AddHours(2).Date);
     public int CompletedCount => AllPrefects.Count(p => p.Status == PrefectStatus.COMPLETED);
 
-    public async Task OnGetAsync()
+    public async Task<IActionResult> OnGetAsync()
     {
         if (!_currentUser.HasRight(AccessRights.ViewPrefects))
-            return;
+            return Forbid();
 
         var prefects = await _context.Prefects
             .AsNoTracking()
@@ -49,13 +51,14 @@ public class BoardModel : PageModel
                 ? ((PrefectPostTitle)p.PostTitleId).ToDisplayName()
                 : "Unknown position",
             Status = Enum.IsDefined(typeof(PrefectStatus), p.StatusId)
-                ? (PrefectStatus)p.StatusId
+                ? PrefectLifecycle.EffectiveStatus((PrefectStatus)p.StatusId, p.EndDate, DateTime.UtcNow.AddHours(2).Date)
                 : PrefectStatus.INACTIVE,
             StartDate = p.StartDate,
             EndDate = p.EndDate
         }).ToList();
 
         AllPrefects = cards;
+        return Page();
     }
 
     public sealed class PrefectBoardCard
@@ -75,7 +78,7 @@ public class BoardModel : PageModel
             _ => "status-inactive"
         };
         public string? StudentPhotoUrl { get; init; }
-        public string StatusName => Status.ToDisplayName();
+        public string StatusName => PrefectLifecycle.Label(Status, StartDate, EndDate, DateTime.UtcNow.AddHours(2).Date);
         public DateTime StartDate { get; init; }
         public DateTime EndDate { get; init; }
 

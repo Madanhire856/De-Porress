@@ -1,4 +1,4 @@
-﻿@page
+@page
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
 @model SMS.Web.Areas.Config.Pages.UserGroups.IndexModel
@@ -27,16 +27,18 @@
     </div>
 
     <form method="get" class="table-toolbar">
-        <div class="search-wrapper">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" asp-for="SearchTerm" class="search-input" placeholder="Search user groups..." />
-        </div>
-        <div class="filter-wrapper">
+        <div class="toolbar-filters">
+            <div class="filter-wrapper">
             <select asp-for="StatusFilter" class="filter-dropdown">
                 <option value="All">All Statuses</option>
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
             </select>
+        </div>
+        </div>
+        <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" asp-for="SearchTerm" class="search-input" placeholder="Search user groups..." />
         </div>
         <input type="hidden" asp-for="PageSize" />
     </form>

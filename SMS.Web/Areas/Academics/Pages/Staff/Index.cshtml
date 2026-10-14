@@ -1,4 +1,4 @@
-﻿@page
+@page
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
 @model SMS.Web.Areas.Academics.Pages.Staff.IndexModel
@@ -26,6 +26,20 @@
     </div>
 
     <form method="get" class="table-toolbar" id="filterForm">
+        <div class="toolbar-filters">
+            <div class="filter-wrapper">
+            <select asp-for="StatusFilter" class="filter-dropdown" id="statusFilter">
+                <option value="All">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+        </div>
+            <div class="filter-wrapper">
+            <select asp-for="CategoryFilter" asp-items="Model.CategoryOptions" class="filter-dropdown" id="categoryFilter">
+                <option value="">All Categories</option>
+            </select>
+        </div>
+        </div>
         <div class="search-wrapper">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" asp-for="SearchTerm"
@@ -33,18 +47,6 @@
                    placeholder="Search by name, EC, or ID number..."
                    id="searchInput"
                    autocomplete="off" />
-        </div>
-        <div class="filter-wrapper">
-            <select asp-for="StatusFilter" class="filter-dropdown" id="statusFilter">
-                <option value="All">All Statuses</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-            </select>
-        </div>
-        <div class="filter-wrapper">
-            <select asp-for="CategoryFilter" asp-items="Model.CategoryOptions" class="filter-dropdown" id="categoryFilter">
-                <option value="">All Categories</option>
-            </select>
         </div>
         <input type="hidden" asp-for="PageSize" />
         <input type="hidden" asp-for="PageNumber" value="1" id="pageNumberHidden" />

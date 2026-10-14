@@ -5,7 +5,10 @@ namespace SMS.Web.Services;
 public enum SchoolWorkspace { Unassigned, Administration, Bursar, Teacher }
 
 public record WorkspaceFeature(string Title, string Area, string Page, string Group,
-    string Icon, AccessRights Right, params SchoolWorkspace[] Workspaces);
+    string Icon, AccessRights Right, params SchoolWorkspace[] Workspaces)
+{
+    public bool RequiresNominationPermission { get; init; }
+}
 
 // One catalogue for navigation, dashboard links, and page relevance.
 public class WorkspaceAccess(ICurrentUserService user)
@@ -31,12 +34,18 @@ public class WorkspaceAccess(ICurrentUserService user)
 
     public static IReadOnlyList<WorkspaceFeature> Features { get; } =
     [
+        new("Members", "Academics", "/Sdc/Index", "SDC", "fa-users", AccessRights.None, SchoolWorkspace.Administration),
+        new("Positions", "Academics", "/Sdc/Positions", "SDC", "fa-user-tie", AccessRights.None, SchoolWorkspace.Administration),
+        new("Committee terms", "Academics", "/Sdc/Terms", "SDC", "fa-calendar-alt", AccessRights.None, SchoolWorkspace.Administration),
+        new("School notices", "Academics", "/Notices/Index", "Administration", "fa-bullhorn", AccessRights.None, SchoolWorkspace.Administration),
+        new("Staff notices", "Academics", "/StaffNotices/Index", "Notices", "fa-bullhorn", AccessRights.None, SchoolWorkspace.Administration, SchoolWorkspace.Teacher, SchoolWorkspace.Bursar),
         new("Students", "Academics", "/Students/Index", "Academics", "fa-user-graduate", AccessRights.ViewLearners, SchoolWorkspace.Administration, SchoolWorkspace.Teacher),
         new("Staff", "Academics", "/Staff/Index", "Academics", "fa-chalkboard-teacher", AccessRights.ViewStaff, SchoolWorkspace.Administration, SchoolWorkspace.Teacher),
         new("Class teacher assignments", "Academics", "/ClassTeacherAssignments/Index", "Academics", "fa-chalkboard-teacher", AccessRights.ViewClasses, SchoolWorkspace.Administration, SchoolWorkspace.Teacher),
         new("Subject assignments", "Academics", "/SubjectAssignments/Index", "Academics", "fa-book", AccessRights.ViewSubjects, SchoolWorkspace.Administration, SchoolWorkspace.Teacher),
         new("Prefects", "Academics", "/Prefects/Index", "Academics", "fa-user-tie", AccessRights.ViewPrefects, SchoolWorkspace.Administration, SchoolWorkspace.Teacher),
-        new("Nominate prefects", "Academics", "/Prefects/Nominate", "Academics", "fa-user-check", AccessRights.NominatePrefects, SchoolWorkspace.Administration, SchoolWorkspace.Teacher),
+        new("Nominate prefects", "Academics", "/Prefects/Nominate", "Academics", "fa-user-check", AccessRights.None, SchoolWorkspace.Administration, SchoolWorkspace.Teacher) { RequiresNominationPermission = true },
+        new("Prefect nominations", "Academics", "/Prefects/Nominations", "Academics", "fa-user-check", AccessRights.ViewPrefects, SchoolWorkspace.Administration, SchoolWorkspace.Teacher),
         new("Classes", "Config", "/Classes/Index", "Academics", "fa-school", AccessRights.ViewClasses, SchoolWorkspace.Administration, SchoolWorkspace.Teacher),
         new("Subjects", "Config", "/Subjects/Index", "Academics", "fa-book", AccessRights.ViewSubjects, SchoolWorkspace.Administration, SchoolWorkspace.Teacher),
         new("Grades", "Config", "/Grades/Index", "School setup", "fa-layer-group", AccessRights.ViewGrades, SchoolWorkspace.Administration, SchoolWorkspace.Teacher),
@@ -58,14 +67,16 @@ public class WorkspaceAccess(ICurrentUserService user)
     ];
 
     public bool Can(AccessRights right) => user.IsAuthenticated && Workspace != SchoolWorkspace.Unassigned && user.HasRight(right);
+    public bool CanNominatePrefects => Can(AccessRights.None) && user.CanNominatePrefects && Workspace is SchoolWorkspace.Administration or SchoolWorkspace.Teacher;
+    private bool CanUseFeature(WorkspaceFeature feature) => feature.RequiresNominationPermission ? CanNominatePrefects : Can(feature.Right);
     public bool Applicable(WorkspaceFeature feature) => feature.Workspaces.Contains(Workspace);
-    public IEnumerable<WorkspaceFeature> Navigation => Features.Where(f => Applicable(f) && Can(f.Right));
+    public IEnumerable<WorkspaceFeature> Navigation => Features.Where(f => Applicable(f) && CanUseFeature(f));
 
     public bool CanOpen(string area, string page)
     {
         var feature = Features.FirstOrDefault(f => f.Area.Equals(area, StringComparison.OrdinalIgnoreCase)
             && f.Page.Equals(page, StringComparison.OrdinalIgnoreCase));
-        return feature != null && Applicable(feature) && Can(feature.Right);
+        return feature != null && Applicable(feature) && CanUseFeature(feature);
     }
 
     public bool IsRelevantPage(string area, string page)

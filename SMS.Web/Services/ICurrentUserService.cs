@@ -21,6 +21,7 @@ namespace SMS.Lib
 
         // --- Aggregated Rights ---
         long Rights { get; }
+        bool CanNominatePrefects { get; }
         bool HasRight(AccessRights right);
     }
 }

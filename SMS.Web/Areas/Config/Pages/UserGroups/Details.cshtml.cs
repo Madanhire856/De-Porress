@@ -57,7 +57,7 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                 {
                     Title = cat.Title,
                     Icon = cat.Icon,
-                    Total = cat.Rights.Count
+                    Total = cat.Rights.Count + (cat.Title == "Prefects" ? 1 : 0)
                 };
 
                 foreach (var right in cat.Rights)
@@ -68,6 +68,11 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                         group.Granted.Add(right.DisplayName);
                         TotalRightsGranted++;
                     }
+                }
+                if (cat.Title == "Prefects")
+                {
+                    TotalPossibleRights++;
+                    if (UserGroup.CanNominatePrefects) { group.Granted.Add("Nominate Prefects"); TotalRightsGranted++; }
                 }
 
                 RightsByCategory.Add(group);
