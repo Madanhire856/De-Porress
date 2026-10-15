@@ -44,7 +44,7 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Activity_CreatorId");
 
                     b.ToTable("Activity", (string)null);
                 });
@@ -79,7 +79,7 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Announcement_CreatorId");
 
                     b.ToTable("Announcement", (string)null);
                 });
@@ -120,12 +120,10 @@ namespace SMS.Data.Migrations
                         .HasColumnType("nvarchar(80)");
 
                     b.Property<string>("AfterValue")
-                        .IsRequired()
-                        .HasColumnType("json");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("BeforeValue")
-                        .IsRequired()
-                        .HasColumnType("json");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("EntityId")
                         .HasColumnType("uniqueidentifier");
@@ -135,15 +133,32 @@ namespace SMS.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("datetime");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Username")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex(new[] { "EntityType", "EntityId" }, "IX_AuditLog_EntityType_EntityId");
+
+                    b.HasIndex(new[] { "TimeStamp" }, "IX_AuditLog_TimeStamp");
+
+                    b.HasIndex(new[] { "UserId" }, "IX_AuditLog_UserId");
+
+                    b.HasIndex(new[] { "UserId", "TimeStamp" }, "IX_AuditLog_UserId_TimeStamp");
 
                     b.ToTable("AuditLog", (string)null);
                 });
@@ -156,7 +171,7 @@ namespace SMS.Data.Migrations
                     b.Property<int>("Capacity")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("ClassTeacherId")
+                    b.Property<Guid?>("ClassTeacherId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreationDate")
@@ -175,13 +190,49 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ClassTeacherId");
+                    b.HasIndex(new[] { "ClassTeacherId" }, "IX_Class_ClassTeacherId");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Class_CreatorId");
 
-                    b.HasIndex("GradeId");
+                    b.HasIndex(new[] { "GradeId" }, "IX_Class_GradeId");
 
                     b.ToTable("Class", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.ClassTeacherAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AcademicYear")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("AssignedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("EndedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedById");
+
+                    b.HasIndex("StaffId");
+
+                    b.HasIndex("ClassId", "AcademicYear")
+                        .IsUnique()
+                        .HasFilter("[EndedAt] IS NULL");
+
+                    b.ToTable("ClassTeacherAssignment", (string)null);
                 });
 
             modelBuilder.Entity("SMS.Data.Competition", b =>
@@ -198,10 +249,16 @@ namespace SMS.Data.Migrations
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("LevelId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("SportId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("TermId")
                         .HasColumnType("uniqueidentifier");
@@ -213,9 +270,11 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Competition_CreatorId");
 
-                    b.HasIndex("TermId");
+                    b.HasIndex(new[] { "SportId" }, "IX_Competition_SportId");
+
+                    b.HasIndex(new[] { "TermId" }, "IX_Competition_TermId");
 
                     b.ToTable("Competition", (string)null);
                 });
@@ -232,6 +291,12 @@ namespace SMS.Data.Migrations
                     b.Property<Guid?>("CreatorId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<decimal?>("ExchangeRateToBase")
+                        .HasColumnType("decimal(18, 6)");
+
+                    b.Property<bool>("IsBase")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(15)
@@ -244,9 +309,53 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Code");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Currency_CreatorId");
+
+                    b.HasIndex(new[] { "IsBase" }, "UX_Currency_IsBase")
+                        .IsUnique()
+                        .HasFilter("([IsBase]=(1))");
 
                     b.ToTable("Currency", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.DailyExchangeRate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ActualRateDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateTime>("FetchedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(18, 6)");
+
+                    b.Property<string>("RateType")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("RequestedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "CurrencyCode", "RequestedDate", "RateType" }, "UX_DailyExchangeRate_CurrencyCode_RequestedDate_RateType")
+                        .IsUnique()
+                        .HasFilter("([RateType] IS NOT NULL)");
+
+                    b.ToTable("DailyExchangeRate", (string)null);
                 });
 
             modelBuilder.Entity("SMS.Data.FeesStructure", b =>
@@ -254,8 +363,8 @@ namespace SMS.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Amount")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTime?>("CreationDate")
                         .HasColumnType("datetime");
@@ -278,9 +387,9 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_FeesStructure_CreatorId");
 
-                    b.HasIndex("CurrencyId");
+                    b.HasIndex(new[] { "CurrencyId" }, "IX_FeesStructure_CurrencyId");
 
                     b.ToTable("FeesStructure", (string)null);
                 });
@@ -296,7 +405,7 @@ namespace SMS.Data.Migrations
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("GradeLevel")
+                    b.Property<int>("GradeLevelId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -306,7 +415,7 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Grade_CreatorId");
 
                     b.ToTable("Grade", (string)null);
                 });
@@ -355,7 +464,7 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Guardian_CreatorId");
 
                     b.ToTable("Guardian", (string)null);
                 });
@@ -376,9 +485,6 @@ namespace SMS.Data.Migrations
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("MasterId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(15)
@@ -386,11 +492,40 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
-
-                    b.HasIndex("MasterId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_House_CreatorId");
 
                     b.ToTable("House", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.HouseTeacher", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("HouseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "CreatorId" }, "IX_HouseTeacher_CreatorId");
+
+                    b.HasIndex(new[] { "HouseId" }, "IX_HouseTeacher_HouseId");
+
+                    b.HasIndex(new[] { "StaffId" }, "IX_HouseTeacher_StaffId");
+
+                    b.ToTable("HouseTeacher", (string)null);
                 });
 
             modelBuilder.Entity("SMS.Data.LiturgicalDay", b =>
@@ -448,9 +583,6 @@ namespace SMS.Data.Migrations
                     b.Property<DateOnly>("LiturgicalDate")
                         .HasColumnType("date");
 
-                    b.Property<int>("TypeId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Venue")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -458,7 +590,7 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_MassEvent_CreatorId");
 
                     b.ToTable("MassEvent", (string)null);
                 });
@@ -488,11 +620,11 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MassId");
+                    b.HasIndex(new[] { "MassId" }, "IX_MassRoster_MassId");
 
-                    b.HasIndex("StaffId");
+                    b.HasIndex(new[] { "StaffId" }, "IX_MassRoster_StaffId");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex(new[] { "StudentId" }, "IX_MassRoster_StudentId");
 
                     b.ToTable("MassRoster", (string)null);
                 });
@@ -502,42 +634,160 @@ namespace SMS.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int?>("Amount")
-                        .HasColumnType("int");
+                    b.Property<decimal?>("Amount")
+                        .HasColumnType("decimal(18, 2)");
 
-                    b.Property<DateTime?>("CreationDate")
-                        .HasColumnType("datetime");
+                    b.Property<decimal?>("BaseAmount")
+                        .HasColumnType("decimal(18, 2)");
 
-                    b.Property<Guid?>("CreatorId")
+                    b.Property<string>("CorrectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreationDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())", "DF_Payment_CreationDate");
+
+                    b.Property<Guid>("CreatorId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CurrencyId")
                         .HasMaxLength(5)
                         .HasColumnType("nvarchar(5)");
 
+                    b.Property<decimal?>("ExchangeRate")
+                        .HasColumnType("decimal(18, 6)");
+
+                    b.Property<bool>("IsReversal")
+                        .HasColumnType("bit");
+
                     b.Property<Guid?>("LedgerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("PaymentMethodId")
-                        .HasMaxLength(10)
-                        .HasColumnType("nchar(10)")
-                        .IsFixedLength();
+                    b.Property<DateTime>("PaymentDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "DF_Payment_PaymentDate");
+
+                    b.Property<int>("PaymentMethodId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ProofOfPaymentUrl")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("RateSource")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("ReceiptNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReceiptYear")
+                        .HasColumnType("int");
+
                     b.Property<string>("ReferenceNumber")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ReversalReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("ReversedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ReversedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid?>("ReversesPaymentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CurrencyId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Payment_CreatorId");
 
-                    b.HasIndex("LedgerId");
+                    b.HasIndex(new[] { "CurrencyId" }, "IX_Payment_CurrencyId");
+
+                    b.HasIndex(new[] { "LedgerId" }, "IX_Payment_LedgerId");
+
+                    b.HasIndex(new[] { "ReversedById" }, "IX_Payment_ReversedById");
+
+                    b.HasIndex(new[] { "ReversesPaymentId" }, "IX_Payment_ReversesPaymentId");
 
                     b.ToTable("Payment", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.PaymentCorrection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("CorrectedAmount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("CorrectedBaseAmount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<Guid>("CorrectedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CorrectedByName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CorrectedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime>("CorrectedPaymentDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("CorrectedPaymentMethodId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CorrectedReferenceNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("PreviousAmount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("PreviousBaseAmount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<DateTime>("PreviousPaymentDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("PreviousPaymentMethodId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PreviousReferenceNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "CorrectedById" }, "IX_PaymentCorrection_CorrectedById");
+
+                    b.HasIndex(new[] { "CorrectedOn" }, "IX_PaymentCorrection_CorrectedOn");
+
+                    b.HasIndex(new[] { "PaymentId" }, "IX_PaymentCorrection_PaymentId");
+
+                    b.ToTable("PaymentCorrection", (string)null);
                 });
 
             modelBuilder.Entity("SMS.Data.Prefect", b =>
@@ -571,11 +821,64 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Prefect_CreatorId");
 
-                    b.HasIndex("NominatorId");
+                    b.HasIndex(new[] { "NominatorId" }, "IX_Prefect_NominatorId");
+
+                    b.HasIndex(new[] { "StudentId" }, "IX_Prefect_StudentId");
 
                     b.ToTable("Prefect", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.PrefectNomination", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid>("NominatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("PostTitleId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("PrefectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReviewNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ReviewedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PrefectId")
+                        .IsUnique()
+                        .HasFilter("[PrefectId] IS NOT NULL");
+
+                    b.HasIndex("ReviewedByUserId");
+
+                    b.HasIndex(new[] { "NominatedByUserId" }, "IX_PrefectNomination_NominatedByUserId");
+
+                    b.HasIndex(new[] { "StudentId" }, "IX_PrefectNomination_StudentId");
+
+                    b.ToTable("PrefectNomination", (string)null);
                 });
 
             modelBuilder.Entity("SMS.Data.Project", b =>
@@ -614,7 +917,7 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Project_CreatorId");
 
                     b.ToTable("Project", (string)null);
                 });
@@ -651,9 +954,9 @@ namespace SMS.Data.Migrations
                     b.HasKey("Id")
                         .HasName("PK_ProjectMileStone");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_ProjectMilestone_CreatorId");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex(new[] { "ProjectId" }, "IX_ProjectMilestone_ProjectId");
 
                     b.ToTable("ProjectMilestone", (string)null);
                 });
@@ -681,11 +984,138 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_ProjectRisk_CreatorId");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex(new[] { "ProjectId" }, "IX_ProjectRisk_ProjectId");
 
                     b.ToTable("ProjectRisk", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.ReceiptSequence", b =>
+                {
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LastIssuedOn")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("LastNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("Year");
+
+                    b.ToTable("ReceiptSequence", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid>("PositionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TermId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.HasIndex("PositionId");
+
+                    b.HasIndex("TermId");
+
+                    b.ToTable("SdcMember", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcPosition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("SdcPosition", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcTerm", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("SdcTerm", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SdcTerm_Dates", "[EndDate] >= [StartDate]");
+                        });
                 });
 
             modelBuilder.Entity("SMS.Data.Sponsorship", b =>
@@ -721,7 +1151,7 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Sponsorship_CreatorId");
 
                     b.ToTable("Sponsorship", (string)null);
                 });
@@ -731,11 +1161,11 @@ namespace SMS.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int?>("AmountDisbursed")
-                        .HasColumnType("int");
+                    b.Property<decimal?>("AmountDisbursed")
+                        .HasColumnType("decimal(18, 2)");
 
-                    b.Property<int?>("AmountUtilised")
-                        .HasColumnType("int");
+                    b.Property<decimal?>("AmountUtilised")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime");
@@ -757,13 +1187,67 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_SponsorshipAcquittal_CreatorId");
 
-                    b.HasIndex("CurrencyId");
+                    b.HasIndex(new[] { "CurrencyId" }, "IX_SponsorshipAcquittal_CurrencyId");
 
-                    b.HasIndex("SponsorshipId");
+                    b.HasIndex(new[] { "SponsorshipId" }, "IX_SponsorshipAcquittal_SponsorshipId");
 
                     b.ToTable("SponsorshipAcquittal", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.Sport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Sport_CreatorId");
+
+                    b.ToTable("Sport", (string)null);
+                });
+
+            modelBuilder.Entity("SMS.Data.SportTeacher", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SportId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "CreatorId" }, "IX_SportTeacher_CreatorId");
+
+                    b.HasIndex(new[] { "SportId" }, "IX_SportTeacher_SportId");
+
+                    b.HasIndex(new[] { "StaffId" }, "IX_SportTeacher_StaffId");
+
+                    b.ToTable("SportTeacher", (string)null);
                 });
 
             modelBuilder.Entity("SMS.Data.Staff", b =>
@@ -774,18 +1258,17 @@ namespace SMS.Data.Migrations
                     b.Property<int>("Age")
                         .HasColumnType("int");
 
-                    b.Property<int>("Category")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("DateJoined")
                         .HasColumnType("datetime");
 
                     b.Property<string>("EcNumber")
-                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<int>("Gender")
+                    b.Property<int>("GenderId")
                         .HasColumnType("int");
 
                     b.Property<string>("IdNumber")
@@ -796,7 +1279,7 @@ namespace SMS.Data.Migrations
                     b.Property<bool?>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<int>("MaritalStatus")
+                    b.Property<int>("MaritalStatusId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -804,7 +1287,7 @@ namespace SMS.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("Qualification")
+                    b.Property<int>("QualificationId")
                         .HasColumnType("int");
 
                     b.Property<string>("Surname")
@@ -812,12 +1295,12 @@ namespace SMS.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex(new[] { "UserId" }, "IX_Staff_UserId");
 
                     b.ToTable("Staff");
                 });
@@ -889,11 +1372,11 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ClassId");
+                    b.HasIndex(new[] { "ClassId" }, "IX_Student_ClassId");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Student_CreatorId");
 
-                    b.HasIndex("VillageId");
+                    b.HasIndex(new[] { "VillageId" }, "IX_Student_VillageId");
 
                     b.ToTable("Student", (string)null);
                 });
@@ -915,9 +1398,9 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GuardianId");
+                    b.HasIndex(new[] { "GuardianId" }, "IX_StudentGuardian_GuardianId");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex(new[] { "StudentId" }, "IX_StudentGuardian_StudentId");
 
                     b.ToTable("StudentGuardian", (string)null);
                 });
@@ -927,8 +1410,8 @@ namespace SMS.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("ClosingBalance")
-                        .HasColumnType("int");
+                    b.Property<decimal>("ClosingBalance")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTime?>("CreationDate")
                         .HasColumnType("datetime");
@@ -940,8 +1423,8 @@ namespace SMS.Data.Migrations
                         .HasMaxLength(5)
                         .HasColumnType("nvarchar(5)");
 
-                    b.Property<int>("OpeningBalance")
-                        .HasColumnType("int");
+                    b.Property<decimal>("OpeningBalance")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
@@ -954,13 +1437,13 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_StudentLedger_CreatorId");
 
-                    b.HasIndex("CurrencyId");
+                    b.HasIndex(new[] { "CurrencyId" }, "IX_StudentLedger_CurrencyId");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex(new[] { "StudentId" }, "IX_StudentLedger_StudentId");
 
-                    b.HasIndex("TermId");
+                    b.HasIndex(new[] { "TermId" }, "IX_StudentLedger_TermId");
 
                     b.ToTable("StudentLedger", (string)null);
                 });
@@ -991,7 +1474,7 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Subject_CreatorId");
 
                     b.ToTable("Subject", (string)null);
                 });
@@ -1043,9 +1526,9 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StaffId");
+                    b.HasIndex(new[] { "StaffId" }, "IX_TeacherSubject_StaffId");
 
-                    b.HasIndex("SubjectId");
+                    b.HasIndex(new[] { "SubjectId" }, "IX_TeacherSubject_SubjectId");
 
                     b.ToTable("TeacherSubject", (string)null);
                 });
@@ -1067,15 +1550,20 @@ namespace SMS.Data.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime");
 
-                    b.Property<int>("TermNumber")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Term_CreatorId");
 
                     b.ToTable("Term", (string)null);
                 });
@@ -1107,8 +1595,8 @@ namespace SMS.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("GroupId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("GroupId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -1131,6 +1619,10 @@ namespace SMS.Data.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("nvarchar(15)");
 
+                    b.Property<string>("Name")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("PasswordHash")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
@@ -1143,10 +1635,12 @@ namespace SMS.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<bool>("TwoFactorAuthEnabled")
+                    b.Property<bool?>("TwoFactorAuthEnabled")
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
+
+                    b.HasIndex(new[] { "GroupId" }, "IX_User_GroupId");
 
                     b.ToTable("User", (string)null);
                 });
@@ -1155,6 +1649,9 @@ namespace SMS.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("CanNominatePrefects")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime");
@@ -1170,9 +1667,12 @@ namespace SMS.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<long?>("RightsId")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_UserGroup_CreatorId");
 
                     b.ToTable("UserGroup", (string)null);
                 });
@@ -1227,7 +1727,7 @@ namespace SMS.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex(new[] { "CreatorId" }, "IX_Village_CreatorId");
 
                     b.ToTable("Village", (string)null);
                 });
@@ -1259,7 +1759,6 @@ namespace SMS.Data.Migrations
                     b.HasOne("SMS.Data.User", "User")
                         .WithMany("AuditLogs")
                         .HasForeignKey("UserId")
-                        .IsRequired()
                         .HasConstraintName("FK_AuditLog_User");
 
                     b.Navigation("User");
@@ -1270,7 +1769,6 @@ namespace SMS.Data.Migrations
                     b.HasOne("SMS.Data.Staff", "ClassTeacher")
                         .WithMany("Classes")
                         .HasForeignKey("ClassTeacherId")
-                        .IsRequired()
                         .HasConstraintName("FK_Class_Staff");
 
                     b.HasOne("SMS.Data.User", "Creator")
@@ -1292,6 +1790,33 @@ namespace SMS.Data.Migrations
                     b.Navigation("Grade");
                 });
 
+            modelBuilder.Entity("SMS.Data.ClassTeacherAssignment", b =>
+                {
+                    b.HasOne("SMS.Data.User", "AssignedBy")
+                        .WithMany()
+                        .HasForeignKey("AssignedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SMS.Data.Class", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SMS.Data.Staff", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedBy");
+
+                    b.Navigation("Class");
+
+                    b.Navigation("Staff");
+                });
+
             modelBuilder.Entity("SMS.Data.Competition", b =>
                 {
                     b.HasOne("SMS.Data.User", "Creator")
@@ -1300,6 +1825,12 @@ namespace SMS.Data.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Competition_User");
 
+                    b.HasOne("SMS.Data.Sport", "Sport")
+                        .WithMany("Competitions")
+                        .HasForeignKey("SportId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Competition_Competition");
+
                     b.HasOne("SMS.Data.Term", "Term")
                         .WithMany("Competitions")
                         .HasForeignKey("TermId")
@@ -1307,6 +1838,8 @@ namespace SMS.Data.Migrations
                         .HasConstraintName("FK_Competition_Term");
 
                     b.Navigation("Creator");
+
+                    b.Navigation("Sport");
 
                     b.Navigation("Term");
                 });
@@ -1367,15 +1900,33 @@ namespace SMS.Data.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_House_User");
 
-                    b.HasOne("SMS.Data.Staff", "Master")
-                        .WithMany("Houses")
-                        .HasForeignKey("MasterId")
+                    b.Navigation("Creator");
+                });
+
+            modelBuilder.Entity("SMS.Data.HouseTeacher", b =>
+                {
+                    b.HasOne("SMS.Data.User", "Creator")
+                        .WithMany("HouseTeachers")
+                        .HasForeignKey("CreatorId")
+                        .HasConstraintName("FK_HouseTeacher_User");
+
+                    b.HasOne("SMS.Data.House", "House")
+                        .WithMany("HouseTeachers")
+                        .HasForeignKey("HouseId")
                         .IsRequired()
-                        .HasConstraintName("FK_House_Staff");
+                        .HasConstraintName("FK_HouseTeacher_House");
+
+                    b.HasOne("SMS.Data.Staff", "Staff")
+                        .WithMany("HouseTeachers")
+                        .HasForeignKey("StaffId")
+                        .IsRequired()
+                        .HasConstraintName("FK_HouseTeacher_Staff");
 
                     b.Navigation("Creator");
 
-                    b.Navigation("Master");
+                    b.Navigation("House");
+
+                    b.Navigation("Staff");
                 });
 
             modelBuilder.Entity("SMS.Data.MassEvent", b =>
@@ -1415,27 +1966,60 @@ namespace SMS.Data.Migrations
 
             modelBuilder.Entity("SMS.Data.Payment", b =>
                 {
+                    b.HasOne("SMS.Data.User", "Creator")
+                        .WithMany("PaymentCreators")
+                        .HasForeignKey("CreatorId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Payment_User");
+
                     b.HasOne("SMS.Data.Currency", "Currency")
                         .WithMany("Payments")
                         .HasForeignKey("CurrencyId")
                         .HasConstraintName("FK_Payment_Currency");
-
-                    b.HasOne("SMS.Data.User", "IdNavigation")
-                        .WithOne("Payment")
-                        .HasForeignKey("SMS.Data.Payment", "Id")
-                        .IsRequired()
-                        .HasConstraintName("FK_Payment_User");
 
                     b.HasOne("SMS.Data.StudentLedger", "Ledger")
                         .WithMany("Payments")
                         .HasForeignKey("LedgerId")
                         .HasConstraintName("FK_Payment_StudentLedger");
 
+                    b.HasOne("SMS.Data.User", "ReversedBy")
+                        .WithMany("PaymentReversedBies")
+                        .HasForeignKey("ReversedById")
+                        .HasConstraintName("FK_Payment_User1");
+
+                    b.HasOne("SMS.Data.Payment", "ReversesPayment")
+                        .WithMany("InverseReversesPayment")
+                        .HasForeignKey("ReversesPaymentId")
+                        .HasConstraintName("FK_Payment_Payment");
+
+                    b.Navigation("Creator");
+
                     b.Navigation("Currency");
 
-                    b.Navigation("IdNavigation");
-
                     b.Navigation("Ledger");
+
+                    b.Navigation("ReversedBy");
+
+                    b.Navigation("ReversesPayment");
+                });
+
+            modelBuilder.Entity("SMS.Data.PaymentCorrection", b =>
+                {
+                    b.HasOne("SMS.Data.User", "CorrectedBy")
+                        .WithMany("PaymentCorrections")
+                        .HasForeignKey("CorrectedById")
+                        .IsRequired()
+                        .HasConstraintName("FK_PaymentCorrection_User");
+
+                    b.HasOne("SMS.Data.Payment", "Payment")
+                        .WithMany("PaymentCorrections")
+                        .HasForeignKey("PaymentId")
+                        .IsRequired()
+                        .HasConstraintName("FK_PaymentCorrection_Payment");
+
+                    b.Navigation("CorrectedBy");
+
+                    b.Navigation("Payment");
                 });
 
             modelBuilder.Entity("SMS.Data.Prefect", b =>
@@ -1450,9 +2034,50 @@ namespace SMS.Data.Migrations
                         .HasForeignKey("NominatorId")
                         .HasConstraintName("FK_Prefect_Staff");
 
+                    b.HasOne("SMS.Data.Student", "Student")
+                        .WithMany("Prefects")
+                        .HasForeignKey("StudentId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Prefect_Student");
+
                     b.Navigation("Creator");
 
                     b.Navigation("Nominator");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("SMS.Data.PrefectNomination", b =>
+                {
+                    b.HasOne("SMS.Data.User", "NominatedByUser")
+                        .WithMany("PrefectNominations")
+                        .HasForeignKey("NominatedByUserId")
+                        .IsRequired()
+                        .HasConstraintName("FK_PrefectNomination_User");
+
+                    b.HasOne("SMS.Data.Prefect", "Prefect")
+                        .WithMany()
+                        .HasForeignKey("PrefectId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SMS.Data.User", "ReviewedByUser")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SMS.Data.Student", "Student")
+                        .WithMany("PrefectNominations")
+                        .HasForeignKey("StudentId")
+                        .IsRequired()
+                        .HasConstraintName("FK_PrefectNomination_Student");
+
+                    b.Navigation("NominatedByUser");
+
+                    b.Navigation("Prefect");
+
+                    b.Navigation("ReviewedByUser");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("SMS.Data.Project", b =>
@@ -1510,6 +2135,49 @@ namespace SMS.Data.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("SMS.Data.SdcMember", b =>
+                {
+                    b.HasOne("SMS.Data.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SMS.Data.SdcPosition", "Position")
+                        .WithMany("Members")
+                        .HasForeignKey("PositionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SMS.Data.SdcTerm", "Term")
+                        .WithMany("Members")
+                        .HasForeignKey("TermId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Position");
+
+                    b.Navigation("Term");
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcPosition", b =>
+                {
+                    b.HasOne("SMS.Data.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcTerm", b =>
+                {
+                    b.HasOne("SMS.Data.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SMS.Data.Sponsorship", b =>
                 {
                     b.HasOne("SMS.Data.User", "Creator")
@@ -1546,12 +2214,48 @@ namespace SMS.Data.Migrations
                     b.Navigation("Sponsorship");
                 });
 
+            modelBuilder.Entity("SMS.Data.Sport", b =>
+                {
+                    b.HasOne("SMS.Data.User", "Creator")
+                        .WithMany("Sports")
+                        .HasForeignKey("CreatorId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Sport_User");
+
+                    b.Navigation("Creator");
+                });
+
+            modelBuilder.Entity("SMS.Data.SportTeacher", b =>
+                {
+                    b.HasOne("SMS.Data.User", "Creator")
+                        .WithMany("SportTeachers")
+                        .HasForeignKey("CreatorId")
+                        .HasConstraintName("FK_SportTeacher_User");
+
+                    b.HasOne("SMS.Data.Sport", "Sport")
+                        .WithMany("SportTeachers")
+                        .HasForeignKey("SportId")
+                        .IsRequired()
+                        .HasConstraintName("FK_SportTeacher_Sport");
+
+                    b.HasOne("SMS.Data.Staff", "Staff")
+                        .WithMany("SportTeachers")
+                        .HasForeignKey("StaffId")
+                        .IsRequired()
+                        .HasConstraintName("FK_SportTeacher_Staff");
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("Sport");
+
+                    b.Navigation("Staff");
+                });
+
             modelBuilder.Entity("SMS.Data.Staff", b =>
                 {
                     b.HasOne("SMS.Data.User", "User")
                         .WithMany("Staff")
                         .HasForeignKey("UserId")
-                        .IsRequired()
                         .HasConstraintName("FK_Staff_User");
 
                     b.Navigation("User");
@@ -1672,6 +2376,16 @@ namespace SMS.Data.Migrations
                     b.Navigation("Creator");
                 });
 
+            modelBuilder.Entity("SMS.Data.User", b =>
+                {
+                    b.HasOne("SMS.Data.UserGroup", "Group")
+                        .WithMany("Users")
+                        .HasForeignKey("GroupId")
+                        .HasConstraintName("FK_User_UserGroup");
+
+                    b.Navigation("Group");
+                });
+
             modelBuilder.Entity("SMS.Data.UserGroup", b =>
                 {
                     b.HasOne("SMS.Data.User", "Creator")
@@ -1720,9 +2434,21 @@ namespace SMS.Data.Migrations
                     b.Navigation("StudentGuardians");
                 });
 
+            modelBuilder.Entity("SMS.Data.House", b =>
+                {
+                    b.Navigation("HouseTeachers");
+                });
+
             modelBuilder.Entity("SMS.Data.MassEvent", b =>
                 {
                     b.Navigation("MassRosters");
+                });
+
+            modelBuilder.Entity("SMS.Data.Payment", b =>
+                {
+                    b.Navigation("InverseReversesPayment");
+
+                    b.Navigation("PaymentCorrections");
                 });
 
             modelBuilder.Entity("SMS.Data.Project", b =>
@@ -1732,16 +2458,33 @@ namespace SMS.Data.Migrations
                     b.Navigation("ProjectRisks");
                 });
 
+            modelBuilder.Entity("SMS.Data.SdcPosition", b =>
+                {
+                    b.Navigation("Members");
+                });
+
+            modelBuilder.Entity("SMS.Data.SdcTerm", b =>
+                {
+                    b.Navigation("Members");
+                });
+
             modelBuilder.Entity("SMS.Data.Sponsorship", b =>
                 {
                     b.Navigation("SponsorshipAcquittals");
+                });
+
+            modelBuilder.Entity("SMS.Data.Sport", b =>
+                {
+                    b.Navigation("Competitions");
+
+                    b.Navigation("SportTeachers");
                 });
 
             modelBuilder.Entity("SMS.Data.Staff", b =>
                 {
                     b.Navigation("Classes");
 
-                    b.Navigation("Houses");
+                    b.Navigation("HouseTeachers");
 
                     b.Navigation("MassRosters");
 
@@ -1749,12 +2492,18 @@ namespace SMS.Data.Migrations
 
                     b.Navigation("Projects");
 
+                    b.Navigation("SportTeachers");
+
                     b.Navigation("TeacherSubjects");
                 });
 
             modelBuilder.Entity("SMS.Data.Student", b =>
                 {
                     b.Navigation("MassRosters");
+
+                    b.Navigation("PrefectNominations");
+
+                    b.Navigation("Prefects");
 
                     b.Navigation("StudentGuardians");
 
@@ -1798,11 +2547,19 @@ namespace SMS.Data.Migrations
 
                     b.Navigation("Guardians");
 
+                    b.Navigation("HouseTeachers");
+
                     b.Navigation("Houses");
 
                     b.Navigation("MassEvents");
 
-                    b.Navigation("Payment");
+                    b.Navigation("PaymentCorrections");
+
+                    b.Navigation("PaymentCreators");
+
+                    b.Navigation("PaymentReversedBies");
+
+                    b.Navigation("PrefectNominations");
 
                     b.Navigation("Prefects");
 
@@ -1815,6 +2572,10 @@ namespace SMS.Data.Migrations
                     b.Navigation("SponsorshipAcquittals");
 
                     b.Navigation("Sponsorships");
+
+                    b.Navigation("SportTeachers");
+
+                    b.Navigation("Sports");
 
                     b.Navigation("Staff");
 
@@ -1829,6 +2590,11 @@ namespace SMS.Data.Migrations
                     b.Navigation("UserGroups");
 
                     b.Navigation("Villages");
+                });
+
+            modelBuilder.Entity("SMS.Data.UserGroup", b =>
+                {
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("SMS.Data.Village", b =>

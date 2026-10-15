@@ -25,11 +25,9 @@ public partial class User
 
     public int RoleId { get; set; }
 
-    public int? GroupId { get; set; }
-
     public bool IsEmailConfirmed { get; set; }
 
-    public bool TwoFactorAuthEnabled { get; set; }
+    public bool? TwoFactorAuthEnabled { get; set; }
 
     public string? SecurityStamp { get; set; }
 
@@ -40,6 +38,10 @@ public partial class User
     public DateTime? LockoutExpiryDate { get; set; }
 
     public DateTime? LastLoginDate { get; set; }
+
+    public string? Name { get; set; }
+
+    public Guid? GroupId { get; set; }
 
     public virtual ICollection<Activity> Activities { get; set; } = new List<Activity>();
 
@@ -57,13 +59,23 @@ public partial class User
 
     public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
 
+    public virtual UserGroup? Group { get; set; }
+
     public virtual ICollection<Guardian> Guardians { get; set; } = new List<Guardian>();
+
+    public virtual ICollection<HouseTeacher> HouseTeachers { get; set; } = new List<HouseTeacher>();
 
     public virtual ICollection<House> Houses { get; set; } = new List<House>();
 
     public virtual ICollection<MassEvent> MassEvents { get; set; } = new List<MassEvent>();
 
-    public virtual Payment? Payment { get; set; }
+    public virtual ICollection<PaymentCorrection> PaymentCorrections { get; set; } = new List<PaymentCorrection>();
+
+    public virtual ICollection<Payment> PaymentCreators { get; set; } = new List<Payment>();
+
+    public virtual ICollection<Payment> PaymentReversedBies { get; set; } = new List<Payment>();
+
+    public virtual ICollection<PrefectNomination> PrefectNominations { get; set; } = new List<PrefectNomination>();
 
     public virtual ICollection<Prefect> Prefects { get; set; } = new List<Prefect>();
 
@@ -76,6 +88,10 @@ public partial class User
     public virtual ICollection<SponsorshipAcquittal> SponsorshipAcquittals { get; set; } = new List<SponsorshipAcquittal>();
 
     public virtual ICollection<Sponsorship> Sponsorships { get; set; } = new List<Sponsorship>();
+
+    public virtual ICollection<SportTeacher> SportTeachers { get; set; } = new List<SportTeacher>();
+
+    public virtual ICollection<Sport> Sports { get; set; } = new List<Sport>();
 
     public virtual ICollection<Staff> Staff { get; set; } = new List<Staff>();
 

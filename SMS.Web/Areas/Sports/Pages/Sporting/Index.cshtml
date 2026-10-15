@@ -1,0 +1,228 @@
+﻿@page
+@using SMS.Lib
+@model SMS.Web.Areas.Sports.Pages.Sporting.IndexModel
+@inject ICurrentUserService CurrentUser
+@{
+    ViewData["Title"] = "Sports";
+    ViewData["PageTitle"] = "Sports & Coaches";
+    ViewData["PageSubTitle"] = "Manage sports, coaches, and competitions";
+
+    var canEditSports = CurrentUser.HasRight(AccessRights.EditSports);
+    var canAssignCoaches = CurrentUser.HasRight(AccessRights.AssignSportsCoaches);
+    var showActions = canEditSports || canAssignCoaches;
+}
+
+@if (!Model.Sports.Any())
+{
+    <div class="form-card">
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="fa-solid fa-futbol fa-2x mb-3 d-block"
+                   style="color: var(--sms-navy); opacity: 0.35;"></i>
+                <div style="font-weight: 600; color: var(--sms-text-main); margin-bottom: 0.4rem;">
+                    No sports defined yet
+                </div>
+                <div style="font-size: 0.85rem; margin-bottom: 1rem;">
+                    Add sports under <strong>Configuration → Sporting → Sport Types</strong> first.
+                </div>
+                <a asp-area="Config" asp-page="/SportTypes/Index" class="btn btn-primary">
+                    <i class="fa-solid fa-plus"></i> Configure Sport Types
+                </a>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- ===== HEADER STATS ===== -->
+    <div class="house-stats">
+        <div class="house-stat">
+            <i class="fa-solid fa-futbol"></i>
+            <div>
+                <div class="house-stat-value">@Model.TotalSports</div>
+                <div class="house-stat-label">
+                    @(Model.TotalSports == 1 ? "Sport" : "Sports")
+                </div>
+            </div>
+        </div>
+        <div class="house-stat">
+            <i class="fa-solid fa-user-check"></i>
+            <div>
+                <div class="house-stat-value">@Model.TotalCoaches</div>
+                <div class="house-stat-label">Assigned Coaches</div>
+            </div>
+        </div>
+        <div class="house-stat">
+            <i class="fa-solid fa-trophy"></i>
+            <div>
+                <div class="house-stat-value">@Model.TotalCompetitions</div>
+                <div class="house-stat-label">
+                    @(Model.TotalCompetitions == 1 ? "Competition" : "Competitions")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOOLBAR ===== -->
+    <div class="house-toolbar">
+        <div class="assignment-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="sportSearch"
+                   placeholder="Search sports or coaches..."
+                   autocomplete="off" />
+        </div>
+        <label class="assignment-toggle">
+            <input type="checkbox" id="onlyIncomplete" />
+            <span>Only sports missing a head coach</span>
+        </label>
+    </div>
+
+    <!-- ===== CARDS ===== -->
+    <div class="house-grid" id="sportGrid">
+        @foreach (var s in Model.Sports)
+        {
+            var blob = (s.Name + " " + string.Join(" ", s.Coaches.Select(c => c.FullName)))
+                        .ToLower();
+
+            <div class="house-card @(s.HeadCoach == null ? "house-card-incomplete" : "")"
+                 data-search="@blob"
+                 data-has-master="@(s.HeadCoach != null ? "1" : "0")">
+
+                <div class="house-card-header">
+                    <div class="house-card-title">
+                        <span class="house-dot"></span>
+                        <span class="house-name">@s.Name</span>
+                    </div>
+
+                    @if (showActions)
+                    {
+                        <div class="sport-actions">
+                            @if (canEditSports)
+                            {
+                                <a asp-area="Sports"
+                                   asp-page="/Sporting/AddCompetition"
+                                   asp-route-sportId="@s.Id"
+                                   class="btn btn-primary btn-sm"
+                                   title="Add a competition for this sport">
+                                    <i class="fa-solid fa-plus"></i> Competition
+                                </a>
+                            }
+                            @if (canAssignCoaches)
+                            {
+                                <a asp-area="Sports"
+                                   asp-page="/Sporting/Assign"
+                                   asp-route-sportId="@s.Id"
+                                   class="btn btn-secondary btn-sm"
+                                   title="Manage coaches for this sport">
+                                    <i class="fa-solid fa-user-pen"></i> Coaches
+                                </a>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="house-card-body">
+                    @if (!s.Coaches.Any())
+                    {
+                        <div class="house-empty">
+                            <i class="fa-solid fa-user-slash"></i>
+                            No coaches assigned yet
+                        </div>
+                    }
+                    else
+                    {
+                        @if (s.HeadCoach != null)
+                        {
+                            <div class="house-teacher house-teacher-master">
+                                <div class="house-teacher-avatar">
+                                    <i class="fa-solid fa-whistle"></i>
+                                </div>
+                                <div class="house-teacher-info">
+                                    <div class="house-teacher-name">@s.HeadCoach.FullName</div>
+                                    <div class="house-teacher-meta">@s.HeadCoach.CategoryName</div>
+                                </div>
+                                <span class="role-pill role-pill-master">Head Coach</span>
+                            </div>
+                        }
+
+                        @foreach (var c in s.Assistants)
+                        {
+                            <div class="house-teacher">
+                                <div class="house-teacher-avatar">
+                                    <i class="fa-solid fa-user"></i>
+                                </div>
+                                <div class="house-teacher-info">
+                                    <div class="house-teacher-name">@c.FullName</div>
+                                    <div class="house-teacher-meta">@c.CategoryName</div>
+                                </div>
+                                <span class="role-pill">@c.RoleName</span>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <div class="house-card-footer">
+                    <span class="house-count">
+                        <i class="fa-solid fa-users"></i>
+                        @s.CoachCount @(s.CoachCount == 1 ? "coach" : "coaches")
+                    </span>
+
+                    <span class="house-count">
+                        <i class="fa-solid fa-trophy"></i>
+                        @s.CompetitionCount @(s.CompetitionCount == 1 ? "competition" : "competitions")
+                    </span>
+
+                    @if (s.HeadCoach == null)
+                    {
+                        <span class="house-warning">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            No head coach
+                        </span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="empty-state" id="sportNoResults" style="display: none;">
+        <i class="fa-solid fa-magnifying-glass me-2"></i>
+        No sports match your search.
+    </div>
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            const search = document.getElementById('sportSearch');
+            const toggle = document.getElementById('onlyIncomplete');
+            const grid = document.getElementById('sportGrid');
+            const noResults = document.getElementById('sportNoResults');
+
+            if (!grid || !search || !toggle) return;
+
+            const cards = Array.from(grid.querySelectorAll('.house-card'));
+
+            function apply() {
+                const q = (search.value || '').trim().toLowerCase();
+                const onlyIncomplete = toggle.checked;
+                let visible = 0;
+
+                cards.forEach(card => {
+                    const matchesSearch = !q || (card.dataset.search || '').includes(q);
+                    const matchesMaster = !onlyIncomplete || card.dataset.hasMaster === '0';
+                    const show = matchesSearch && matchesMaster;
+
+                    card.style.display = show ? '' : 'none';
+                    if (show) visible++;
+                });
+
+                if (noResults) {
+                    noResults.style.display = (cards.length > 0 && visible === 0) ? '' : 'none';
+                }
+            }
+
+            search.addEventListener('input', apply);
+            toggle.addEventListener('change', apply);
+        })();
+    </script>
+}

@@ -1,0 +1,159 @@
+﻿@page "{id:guid}"
+@model SMS.Web.Areas.Config.Pages.Houses.DetailsModel
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@{
+    ViewData["Title"] = "House Details";
+    ViewData["PageTitle"] = "House Details";
+    ViewData["PageSubTitle"] = $"Viewing details for {Model.HouseVM.Name}";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.EditHouses))
+    {
+        <a asp-page="./Upsert" asp-route-id="@Model.HouseVM.Id" class="btn btn-secondary">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+        </a>
+    }
+    <a asp-page="./Index" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Back to List
+    </a>
+}
+
+<div class="details-compact">
+    <div class="details-single">
+
+        <!-- ===== PROFILE HEADER ===== -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-house"></i>
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name">@Model.HouseVM.Name</h2>
+                <div class="profile-meta">
+                    <span class="info-value-mono">@Model.HouseVM.HouseNumber</span>
+                    <span class="meta-sep">·</span>
+                    <span>@Model.HouseVM.Color</span>
+                    <span class="meta-sep">·</span>
+                    <span>Created @Model.HouseVM.CreationDate.ToString("dd MMM yyyy")</span>
+                </div>
+                <div class="profile-badges">
+                    <span class="status-badge status-count">
+                        <i class="fa-solid fa-palette"></i> @Model.HouseVM.Color
+                    </span>
+                    @if (Model.AssignedTeachers.Any())
+                    {
+                        <span class="status-badge status-count">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                            @Model.AssignedTeachers.Count @(Model.AssignedTeachers.Count == 1 ? "teacher" : "teachers")
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TWO-COLUMN BODY ===== -->
+        <div class="info-grid">
+
+            <!-- LEFT: House Information -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>House Information</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-hashtag"></i> HSE ID
+                    </div>
+                    <div class="info-value info-value-mono">@Model.HouseVM.HouseNumber</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-house"></i> Name
+                    </div>
+                    <div class="info-value">@Model.HouseVM.Name</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-palette"></i> Color
+                    </div>
+                    <div class="info-value">@Model.HouseVM.Color</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar"></i> Creation Date
+                    </div>
+                    <div class="info-value">@Model.HouseVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Assigned Teachers -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span>Assigned Teachers</span>
+                    <span class="info-card-badge">@Model.AssignedTeachers.Count</span>
+                </div>
+
+                @if (Model.AssignedTeachers.Any())
+                {
+                    @foreach (var t in Model.AssignedTeachers)
+                    {
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="fa-solid fa-user"></i> @t.RoleName
+                            </div>
+                            <div class="info-value">
+                                <a asp-area="Academics"
+                                   asp-page="/Staff/Details"
+                                   asp-route-id="@t.StaffId"
+                                   class="reg-link">
+                                    @t.FullName
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fa-solid fa-ban"></i> Teachers
+                        </div>
+                        <div class="info-value">
+                            <span class="sponsor-empty">No teachers assigned to this house</span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+        </div>
+
+        <!-- ===== CARD FOOTER ===== -->
+        <div class="info-card-footer">
+            <div>
+                <span>Created By:</span>
+                <strong>
+                    @if (!string.IsNullOrEmpty(Model.CreatorEmail))
+                    {
+                        @Model.CreatorEmail
+                    }
+                    else
+                    {
+                        <text>System Generated</text>
+                    }
+                </strong>
+            </div>
+            <div>
+                <span>Created On:</span>
+                <strong>@Model.HouseVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</strong>
+            </div>
+        </div>
+
+    </div>
+</div>

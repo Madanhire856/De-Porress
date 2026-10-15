@@ -1,0 +1,37 @@
+@page
+@model SMS.Web.Areas.Academics.Pages.Prefects.NominationsModel
+@using SMS.Lib
+@{ ViewData["PageTitle"] = "Prefect Nominations"; ViewData["PageSubTitle"] = "Track student nominations and appointment decisions"; }
+@inject SMS.Web.Services.WorkspaceAccess Workspace
+@section actionbar { @if (SMS.Web.Services.PrefectAccess.CanNominate(Workspace)) { <a asp-page="./Nominate" class="btn btn-primary">Nominate student</a> } }
+@if (TempData["Success"] is string message) { <div class="alert alert-success" role="status">@message</div> }
+<div class="table-card mb-3"><form method="get" class="table-toolbar" data-auto-filter>
+    <div class="toolbar-filters"><div class="filter-wrapper"><select asp-for="Status" class="filter-dropdown" aria-label="Nomination status"><option value="">All statuses</option><option value="0">Pending</option><option value="2">Under review</option><option value="1">Appointed</option><option value="5">Rejected</option></select></div></div>
+    <div class="search-wrapper"><i class="fas fa-search" aria-hidden="true"></i><input asp-for="SearchTerm" class="search-input" placeholder="Search nominated students…" aria-label="Search nominated students" /></div>
+</form></div>
+@foreach (var nomination in Model.Nominations) {
+    <article class="form-card mb-3"><div class="card-body">
+        <h2 class="h5">@nomination.Student.Name @nomination.Student.Surname · @(nomination.Student.Class?.Name ?? "No class")</h2>
+        <p>@(nomination.PostTitleId.HasValue && Enum.IsDefined(typeof(PrefectPostTitle), nomination.PostTitleId.Value) ? ((PrefectPostTitle)nomination.PostTitleId.Value).ToDisplayName() : "Post to be decided") · @SMS.Web.Areas.Academics.Pages.Prefects.NominationsModel.StatusName(nomination.StatusId)</p>
+        <p class="text-muted">Nominated by @(nomination.NominatedByUser.Name ?? "Staff") · @nomination.CreationDate.AddHours(2).ToString("dd MMM yyyy")</p>
+        <p class="staff-notice-body">@nomination.Reason</p>
+        @if (!string.IsNullOrWhiteSpace(nomination.ReviewNotes)) { <p class="staff-notice-body"><strong>Review:</strong> @nomination.ReviewNotes</p> }
+        @if (nomination.PrefectId.HasValue) { <a asp-page="./Details" asp-route-id="@nomination.PrefectId" class="btn btn-outline-primary">Appointment</a> }
+        @if (nomination.StatusId is 0 or 2) {
+            @if (Model.CanAppoint) { <a asp-page="./Upsert" asp-route-nominationId="@nomination.Id" class="btn btn-primary">Review and appoint</a> }
+            @if (Model.CanReview) {
+                <form method="post" asp-page-handler="Review" asp-route-id="@nomination.Id" class="mt-3">
+                    <label for="notes-@nomination.Id" class="form-label">Review notes (required for rejection)</label><textarea id="notes-@nomination.Id" name="notes" class="form-control mb-2" rows="2" maxlength="1000"></textarea>
+                    <button type="submit" name="decision" value="vetting" class="btn btn-secondary">Mark under review</button>
+                    <button type="submit" name="decision" value="reject" class="btn btn-outline-secondary">Reject nomination</button>
+                </form>
+            }
+        }
+    </div></article>
+}
+@if (Model.Nominations.Count == 0) { <p class="empty-state">No nominations found.</p> }
+<nav aria-label="Nomination pages" class="d-flex justify-content-end gap-2">
+    @if (Model.PageNumber > 1) { <a asp-route-PageNumber="@(Model.PageNumber - 1)" asp-route-Status="@Model.Status" asp-route-SearchTerm="@Model.SearchTerm" class="btn btn-outline-secondary">Previous</a> }
+    @if (Model.HasNext) { <a asp-route-PageNumber="@(Model.PageNumber + 1)" asp-route-Status="@Model.Status" asp-route-SearchTerm="@Model.SearchTerm" class="btn btn-outline-secondary">Next</a> }
+</nav>
+@section Scripts { <script src="~/js/assignment-filters.js" asp-append-version="true"></script> }

@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: De Porres staff authentication (no public signup). Hosting and RDS are separate.
+Parameters:
+  DomainPrefix:
+    Type: String
+    AllowedPattern: '[a-z0-9-]+'
+    Description: Unique Cognito managed-login domain prefix
+  CallbackUrl:
+    Type: String
+    Default: https://localhost:7246/signin-oidc
+  LogoutUrl:
+    Type: String
+    Default: https://localhost:7246/
+Resources:
+  StaffPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: de-porres-staff
+      UsernameAttributes: [email]
+      UsernameConfiguration:
+        CaseSensitive: false
+      AutoVerifiedAttributes: [email]
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      UserAttributeUpdateSettings:
+        AttributesRequireVerificationBeforeUpdate: [email]
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 12
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+      Schema:
+        - Name: email
+          Required: true
+          Mutable: true
+        - Name: name
+          Required: false
+          Mutable: true
+  StaffClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: de-porres-web
+      UserPoolId: !Ref StaffPool
+      GenerateSecret: true
+      SupportedIdentityProviders: [COGNITO]
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows: [code]
+      AllowedOAuthScopes: [openid, email, profile]
+      CallbackURLs: [!Ref CallbackUrl]
+      LogoutURLs: [!Ref LogoutUrl]
+      PreventUserExistenceErrors: ENABLED
+      EnableTokenRevocation: true
+      ReadAttributes: [email, email_verified, name]
+      WriteAttributes: [name]
+  StaffDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Ref DomainPrefix
+      UserPoolId: !Ref StaffPool
+Outputs:
+  UserPoolId:
+    Value: !Ref StaffPool
+  ClientId:
+    Value: !Ref StaffClient
+  Authority:
+    Value: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${StaffPool}
+  Domain:
+    Value: !Sub https://${DomainPrefix}.auth.${AWS::Region}.amazoncognito.com

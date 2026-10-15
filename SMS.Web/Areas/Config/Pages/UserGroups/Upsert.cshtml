@@ -1,0 +1,129 @@
+﻿@page "{id:guid?}"
+@model SMS.Web.Areas.Config.Pages.UserGroups.UpsertModel
+@{
+    bool isEditMode = Model.IsEditMode;
+    ViewData["Title"] = isEditMode ? "Edit User Group" : "Add User Group";
+    ViewData["PageTitle"] = isEditMode ? "Edit User Group" : "Add User Group";
+    ViewData["PageSubTitle"] = isEditMode
+        ? "Update system role and permissions"
+        : "Create a new system role and permissions";
+}
+
+<form method="post">
+    <div class="form-card">
+        <div class="card-body">
+
+            <!-- ===== VALIDATION SUMMARY ===== -->
+            <div asp-validation-summary="All" class="validation-summary"></div>
+
+            <!-- ===== GROUP DETAILS ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-users"></i> Group Details
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 2rem;">
+                <input type="hidden" asp-for="UserGroupVM.Id" />
+                <input type="hidden" asp-for="UserGroupVM.RightsId" />
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="UserGroupVM.Name">
+                        Group Name <span class="required">*</span>
+                    </label>
+                    <input asp-for="UserGroupVM.Name" class="form-control" placeholder="e.g. Class Teacher" />
+                    <span asp-validation-for="UserGroupVM.Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="UserGroupVM.Description">Description</label>
+                    <input asp-for="UserGroupVM.Description" class="form-control" placeholder="Brief description of this role" />
+                    <span asp-validation-for="UserGroupVM.Description" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- ===== RIGHTS SELECTION (CATEGORIZED) ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-key"></i> Access Rights
+                <span class="rights-counter" id="rightsCount">0 selected</span>
+            </div>
+
+            <div class="rights-grid">
+                @foreach (var category in Model.RightsCategories)
+                {
+                    var catId = "cat-" + category.Title.Replace(" ", "-").Replace("&", "").Replace("/", "").ToLower();
+                    <div class="rights-category">
+                        <h4 class="rights-category-title">
+                            <i class="fa-solid @category.Icon"></i>
+                            @category.Title
+                            <label class="select-all-label">
+                                <input type="checkbox" class="select-all-checkbox" data-target="@catId" />
+                                Select All
+                            </label>
+                        </h4>
+
+                        <div class="rights-list" id="@catId">
+                            @if (category.Title == "Prefects") {
+                                <label class="right-checkbox"><input asp-for="UserGroupVM.CanNominatePrefects" /><span>Nominate Prefects</span></label>
+                            }
+                            @foreach (var right in category.Rights)
+                            {
+                                var value = (long)right.Right;
+                                var isChecked = Model.SelectedRights.Contains(value);
+
+                                <label class="right-checkbox">
+                                    <input type="checkbox"
+                                           name="SelectedRights"
+                                           value="@value"
+                                    @(isChecked ? "checked" : "") />
+                                    <span>@right.DisplayName</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> @(isEditMode ? "Save Changes" : "Save User Group")
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const countEl = document.getElementById('rightsCount');
+
+            function updateCount() {
+                const count = document.querySelectorAll('.rights-list input[type="checkbox"]:checked').length;
+                countEl.textContent = count + ' selected';
+            }
+
+            // Wire up "Select All" for each category
+            document.querySelectorAll('.select-all-checkbox').forEach(master => {
+                const cat = document.getElementById(master.getAttribute('data-target'));
+                if (!cat) return;
+                const boxes = cat.querySelectorAll('input[type="checkbox"]');
+
+                master.checked = Array.from(boxes).every(b => b.checked);
+
+                master.addEventListener('change', () => {
+                    boxes.forEach(b => b.checked = master.checked);
+                    updateCount();
+                });
+
+                boxes.forEach(b => b.addEventListener('change', () => {
+                    master.checked = Array.from(boxes).every(x => x.checked);
+                    updateCount();
+                }));
+            });
+
+            document.querySelectorAll('.rights-list input[type="checkbox"]').forEach(b =>
+                b.addEventListener('change', updateCount));
+            updateCount();
+        })();
+    </script>
+}

@@ -1,0 +1,248 @@
+﻿@page "{id:guid?}"
+@model SMS.Web.Areas.Academics.Pages.Students.UpsertModel
+@using SMS.Lib
+@{
+    var isEdit = Model.IsEdit;
+    ViewData["Title"] = isEdit ? "Edit Student" : "New Student";
+    ViewData["PageTitle"] = isEdit ? "Edit Student" : "New Student";
+    ViewData["PageSubTitle"] = isEdit
+        ? "Update the student's record"
+        : "Enrol a new student";
+}
+
+<form method="post" class="form-compact">
+    <input type="hidden" asp-for="Student.Id" />
+
+    <div class="form-card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <!-- IDENTITY -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-user"></i> Identity
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Student.Name">
+                        First Name <span class="required">*</span>
+                    </label>
+                    <input asp-for="Student.Name" class="form-control" autofocus />
+                    <span asp-validation-for="Student.Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Student.Surname">
+                        Surname <span class="required">*</span>
+                    </label>
+                    <input asp-for="Student.Surname" class="form-control" />
+                    <span asp-validation-for="Student.Surname" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Student.GenderId">
+                        Gender <span class="required">*</span>
+                    </label>
+                    <select asp-for="Student.GenderId"
+                            asp-items="Model.GenderOptions"
+                            class="form-control">
+                    </select>
+                    <span asp-validation-for="Student.GenderId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Student.Dob">Date of Birth</label>
+                    <input asp-for="Student.Dob"
+                           type="text"
+                           class="form-control datepicker"
+                           placeholder="yyyy-mm-dd"
+                           autocomplete="off" />
+                    <span asp-validation-for="Student.Dob" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Student.BirthEntryNumber">Birth Entry Number</label>
+                    <input asp-for="Student.BirthEntryNumber" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Student.PhotoUrl">Photo URL</label>
+                    <input asp-for="Student.PhotoUrl" class="form-control" />
+                </div>
+
+            </div>
+
+            <!-- ENROLMENT -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-school"></i> Enrolment
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Student.CategoryId">
+                        Student Category <span class="required">*</span>
+                    </label>
+                    <select asp-for="Student.CategoryId"
+                            asp-items="Model.CategoryOptions"
+                            class="form-control">
+                    </select>
+                    <span asp-validation-for="Student.CategoryId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Student.EnrolmentStatusId">
+                        Enrolment Status <span class="required">*</span>
+                    </label>
+                    <select asp-for="Student.EnrolmentStatusId"
+                            asp-items="Model.EnrolmentStatusOptions"
+                            class="form-control">
+                    </select>
+                    <span asp-validation-for="Student.EnrolmentStatusId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Student.ClassId">Class</label>
+                    <select asp-for="Student.ClassId"
+                            asp-items="Model.ClassOptions"
+                            class="form-control">
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Student.EnrolmentDate">Enrolment Date</label>
+                    <input asp-for="Student.EnrolmentDate"
+                           type="text"
+                           class="form-control datepicker"
+                           placeholder="yyyy-mm-dd"
+                           autocomplete="off" />
+                </div>
+
+            </div>
+
+            <!-- FAITH -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-cross"></i> Faith
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group full-width">
+                    <label class="assignment-toggle" style="padding-left:0;">
+                        <input asp-for="Student.IsCatholic" id="isCatholicCheck" />
+                        <span>Student is Catholic</span>
+                    </label>
+                </div>
+
+                <div class="form-group" id="baptismGroup">
+                    <label class="form-label" asp-for="Student.BaptismStatusId">Baptism Status</label>
+                    <select asp-for="Student.BaptismStatusId"
+                            asp-items="Model.BaptismStatusOptions"
+                            class="form-control">
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- LOCATION -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-location-dot"></i> Location
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="Student.VillageId">Village</label>
+                    <select asp-for="Student.VillageId"
+                            asp-items="Model.VillageOptions"
+                            class="form-control">
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- HEALTH -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-notes-medical"></i> Health &amp; Special Needs
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1rem;">
+
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="Student.AllergieNotesJson">
+                        Allergies 
+                    </label>
+                    <textarea asp-for="Student.AllergieNotesJson"
+                              class="form-control"
+                              rows="3"></textarea>
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="Student.DisabilityNotesJson">
+                        Disabilities 
+                    </label>
+                    <textarea asp-for="Student.DisabilityNotesJson"
+                              class="form-control"
+                              rows="3"></textarea>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i>
+                @(isEdit ? "Save Changes" : "Enrol Student")
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(function () {
+
+            // Date of Birth — cannot be in the future
+            $('#Student_Dob').datepicker({
+                dateFormat: 'yy-mm-dd',
+                changeMonth: true,
+                changeYear: true,
+                showAnim: 'fadeIn',
+                yearRange: 'c-40:c',
+                maxDate: 0
+            });
+
+            // Enrolment Date — cannot be in the future
+            $('#Student_EnrolmentDate').datepicker({
+                dateFormat: 'yy-mm-dd',
+                changeMonth: true,
+                changeYear: true,
+                showAnim: 'fadeIn',
+                maxDate: 0
+            });
+
+            $('.datepicker').on('keydown', function (e) {
+                e.preventDefault();
+            });
+
+            // FAITH — show/hide baptism status
+            var catholicCheck = document.getElementById('isCatholicCheck');
+            var baptismGroup = document.getElementById('baptismGroup');
+
+            function toggleBaptism() {
+                if (!catholicCheck || !baptismGroup) return;
+                baptismGroup.style.display = catholicCheck.checked ? '' : 'none';
+            }
+
+            if (catholicCheck) {
+                catholicCheck.addEventListener('change', toggleBaptism);
+                toggleBaptism();
+            }
+
+        });
+    </script>
+}

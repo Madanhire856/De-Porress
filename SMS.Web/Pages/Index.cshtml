@@ -1,4 +1,55 @@
-﻿@page
-@model IndexModel
+@page
+@model SMS.Web.Pages.IndexModel
 @{
+    ViewData["Title"] = Model.IsAdmin ? "Admin Dashboard" : Model.IsBursar ? "Bursar Dashboard" : Model.IsTeacher ? "Teacher Dashboard" : "Home";
+    if (Model.IsBursar)
+    {
+        ViewData["PageTitle"] = "Bursar Dashboard";
+        ViewData["PageSubTitle"] = $"Welcome, {Model.DisplayName}. School finances at a glance.";
+    }
+
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+
+    string dashboardPartial;
+    bool usePublicLayout;
+
+    if (!isAuthenticated || Model.Website)
+    {
+        dashboardPartial = "_landing";
+        usePublicLayout = true;
+    }
+    else
+    {
+        dashboardPartial = Model.IsAdmin ? "_admin" : Model.IsBursar ? "_bursar" : Model.IsTeacher ? "_teacher" : "_noaccess";
+        usePublicLayout = false;
+    }
+
+    ViewData["UseFullWidthLayout"] = usePublicLayout;
+    if (usePublicLayout)
+    {
+        Layout = "_PublicLayout";
+        ViewData["Title"] = "St Martin De Porres Primary School | ECD A to Grade 7";
+        ViewData["Description"] = "Welcome to St Martin De Porres Primary School, a school welcoming families of all faiths in the Diocese of Gweru. ECD A to Grade 7, learning, sport and school information. PBag 8035 Kwekwe.";
+    }
+}
+
+@await Html.PartialAsync($"~/Pages/Shared/Dashboards/{dashboardPartial}.cshtml")
+
+@section Styles {
+    @if (!usePublicLayout && isAuthenticated && !Model.IsBursar)
+    {
+        <link rel="stylesheet" href="~/css/admin-dashboard.css" asp-append-version="true" />
+    }
+}
+
+@section Scripts {
+    @if (Model.IsAdmin || Model.IsBursar)
+    {
+        <script src="~/lib/Chart.js/chart.umd.min.js" asp-append-version="true"></script>
+        <script src="~/js/finance-dashboard.js" asp-append-version="true"></script>
+    }
+    @if (Model.IsAdmin)
+    {
+        <script src="~/js/admin-dashboard.js" asp-append-version="true"></script>
+    }
 }

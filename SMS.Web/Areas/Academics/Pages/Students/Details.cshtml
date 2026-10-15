@@ -1,0 +1,238 @@
+﻿@page "{id:guid}"
+@model SMS.Web.Areas.Academics.Pages.Students.DetailsModel
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@{
+    ViewData["Title"] = "Student Details";
+    ViewData["PageTitle"] = "Student Details";
+    ViewData["PageSubTitle"] = $"Viewing {Model.Student.FullName}";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.EditLearners))
+    {
+        <a asp-page="./Upsert" asp-route-id="@Model.Student.Id" class="btn btn-secondary">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+        </a>
+    }
+    <a asp-page="./Index" class="btn btn-ghost">
+        <i class="fa-solid fa-arrow-left"></i> Back to List
+    </a>
+}
+
+<div class="details-compact">
+    <div class="details-single">
+
+        <!-- ===== PROFILE HEADER ===== -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                @if (!string.IsNullOrEmpty(Model.Student.PhotoUrl))
+                {
+                    <img src="@Model.Student.PhotoUrl"
+                         alt="@Model.Student.FullName"
+                         style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+                }
+                else
+                {
+                    <span>@Model.Student.Initials</span>
+                }
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name">@Model.Student.FullName</h2>
+                <div class="profile-meta">
+                    <span>@Model.Student.ClassName</span>
+                    <span class="meta-sep">·</span>
+                    <span>@Model.Student.GenderName</span>
+                    
+                </div>
+               
+            </div>
+        </div>
+
+        <!-- ===== TWO-COLUMN BODY ===== -->
+        <div class="info-grid">
+
+            <!-- LEFT: Personal Information -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-user"></i>
+                    <span>Personal Information</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user"></i> Name
+                    </div>
+                    <div class="info-value">@Model.Student.Name</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-user"></i> Surname
+                    </div>
+                    <div class="info-value">@Model.Student.Surname</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-venus-mars"></i> Gender
+                    </div>
+                    <div class="info-value">@Model.Student.GenderName</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-cake-candles"></i> Date of Birth
+                    </div>
+                    <div class="info-value">
+                        @if (Model.Student.Dob.HasValue)
+                        {
+                            @Model.Student.Dob.Value.ToString("dd MMM yyyy")
+                            <span class="info-value-mono" style="margin-left:0.4rem;">
+                                (@Model.Student.Age yrs)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="sponsor-empty">—</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-id-card"></i> Birth Entry #
+                    </div>
+                    <div class="info-value info-value-mono">
+                        @if (!string.IsNullOrWhiteSpace(Model.Student.BirthEntryNumber))
+                        {
+                            @Model.Student.BirthEntryNumber
+                        }
+                        else
+                        {
+                            <span class="sponsor-empty">—</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-tag"></i> Category
+                    </div>
+                    <div class="info-value">@Model.Student.CategoryName</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-cross"></i> Catholic
+                    </div>
+                    <div class="info-value">
+                        @(Model.Student.IsCatholic ? "Yes" : "No")
+                    </div>
+                </div>
+
+                @if (Model.Student.BaptismStatusId.HasValue)
+                {
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fa-solid fa-droplet"></i> Baptism Status
+                        </div>
+                        <div class="info-value">
+                            <span class="status-badge @(Model.Student.BaptismStatusId == (int)BaptismStatus.BAPTISED ? "status-active" : "status-overdue")">
+                                @Model.Student.BaptismStatusName
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- RIGHT: Enrolment & Location -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-school"></i>
+                    <span>Enrolment &amp; Location</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-book"></i> Class
+                    </div>
+                    <div class="info-value">@Model.Student.ClassName</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-circle-check"></i> Enrolment Status
+                    </div>
+                    <div class="info-value">
+                        <span class="status-badge status-active">@Model.Student.EnrolmentStatusName</span>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar-check"></i> Enrolment Date
+                    </div>
+                    <div class="info-value">
+                        @(Model.Student.EnrolmentDate?.ToString("dd MMM yyyy") ?? "—")
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-location-dot"></i> Village
+                    </div>
+                    <div class="info-value">@Model.Student.VillageName</div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Student.VillageHeadman))
+                {
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fa-solid fa-user-tie"></i> Headman
+                        </div>
+                        <div class="info-value">@Model.Student.VillageHeadman</div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Student.VillageChief))
+                {
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fa-solid fa-crown"></i> Chief
+                        </div>
+                        <div class="info-value">@Model.Student.VillageChief</div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Student.PhotoUrl))
+                {
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fa-solid fa-image"></i> Photo
+                        </div>
+                        <div class="info-value">
+                            <a href="@Model.Student.PhotoUrl" target="_blank" class="reg-link">
+                                View <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+
+        </div>
+
+        <!-- ===== CARD FOOTER ===== -->
+        <div class="info-card-footer">
+            <div>
+                <span>Created By:</span>
+                <strong>@(string.IsNullOrEmpty(Model.CreatorEmail) ? "System Generated" : Model.CreatorEmail)</strong>
+            </div>
+            <div>
+                <span>Created On:</span>
+                <strong>@(Model.Student.CreationDate?.ToString("dd MMM yyyy, HH:mm") ?? "—")</strong>
+            </div>
+        </div>
+
+    </div>
+</div>

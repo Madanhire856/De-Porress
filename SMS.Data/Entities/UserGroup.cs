@@ -15,5 +15,10 @@ public partial class UserGroup
 
     public Guid CreatorId { get; set; }
 
+    public long? RightsId { get; set; }
+    public bool CanNominatePrefects { get; set; }
+
     public virtual User Creator { get; set; } = null!;
+
+    public virtual ICollection<User> Users { get; set; } = new List<User>();
 }

@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Private SQL Server Express test database in an existing VPC. Check account eligibility and price before deployment.
+Parameters:
+  VpcId: {Type: 'AWS::EC2::VPC::Id'}
+  PrivateSubnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Private subnets in at least two Availability Zones
+  InstanceClass: {Type: String, Default: db.t3.micro}
+  MasterUsername: {Type: String, Default: smsadmin, AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'}
+Resources:
+  MasterCredentials:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: De Porres RDS migration credentials; restrict access and use a separate runtime SQL user.
+      GenerateSecretString:
+        SecretStringTemplate: !Sub '{"username":"${MasterUsername}"}'
+        GenerateStringKey: password
+        PasswordLength: 32
+        ExcludePunctuation: true
+        RequireEachIncludedType: true
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Private database; application stack adds app-only ingress
+      VpcId: !Ref VpcId
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: De Porres private database subnets
+      SubnetIds: !Ref PrivateSubnets
+  Database:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      Engine: sqlserver-ex
+      LicenseModel: license-included
+      DBInstanceClass: !Ref InstanceClass
+      AllocatedStorage: '20'
+      StorageType: gp3
+      StorageEncrypted: true
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${MasterCredentials}:SecretString:password}}'
+      Port: '1433'
+      PubliclyAccessible: false
+      MultiAZ: false
+      BackupRetentionPeriod: 7
+      AutoMinorVersionUpgrade: true
+      DeletionProtection: true
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      VPCSecurityGroups: [!Ref DatabaseSecurityGroup]
+Outputs:
+  Endpoint: {Value: !GetAtt Database.Endpoint.Address}
+  Port: {Value: !GetAtt Database.Endpoint.Port}
+  SecurityGroupId: {Value: !Ref DatabaseSecurityGroup}
+  MasterCredentialsSecretArn: {Value: !Ref MasterCredentials}

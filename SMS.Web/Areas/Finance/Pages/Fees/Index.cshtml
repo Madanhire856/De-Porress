@@ -1,0 +1,222 @@
+﻿@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Finance.Pages.Fees.IndexModel
+@{
+    ViewData["Title"] = "Fees";
+    ViewData["PageTitle"] = "Fees";
+    ViewData["PageSubTitle"] = "Overview of collections and student balances";
+    var canRecord = CurrentUser.HasRight(AccessRights.RecordPayments);
+    var canEdit = CurrentUser.HasRight(AccessRights.GenerateInvoices);
+}
+
+@section actionbar {
+    @if (canRecord)
+    {
+        <a asp-page="./Balances" class="btn btn-secondary">
+            <i class="fa-solid fa-users"></i> Student Balances
+        </a>
+    }
+    @if (canEdit)
+    {
+        <a asp-page="./Upsert" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> New Fee
+        </a>
+    }
+}
+
+<!-- ===== TOP STATS — 4 SEPARATE CARDS ===== -->
+<div class="house-stats house-stats-4" style="margin-bottom: 1rem;">
+
+    <div class="house-stat">
+        <i class="fa-solid fa-user-graduate"></i>
+        <div>
+            <div class="house-stat-value">@Model.ActiveStudentCount</div>
+            <div class="house-stat-label">Active Students</div>
+        </div>
+    </div>
+
+    <div class="house-stat">
+        <i class="fa-solid fa-file-invoice-dollar"></i>
+        <div>
+            <div class="house-stat-value">@Model.TotalChargedThisTerm.ToString("N2")</div>
+            <div class="house-stat-label">Charged This Term</div>
+        </div>
+    </div>
+
+    <div class="house-stat">
+        <i class="fa-solid fa-hand-holding-dollar"></i>
+        <div>
+            <div class="house-stat-value">@Model.TotalCollectedThisTerm.ToString("N2")</div>
+            <div class="house-stat-label">Collected</div>
+        </div>
+    </div>
+
+    <div class="house-stat @(Model.TotalOutstanding > 0m ? "house-stat-warning" : "")">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>
+            <div class="house-stat-value">@Model.TotalOutstanding.ToString("N2")</div>
+            <div class="house-stat-label">Outstanding</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== COLLECTIONS PROGRESS PANEL ===== -->
+<div class="dash-hero" style="margin-bottom: 1rem;">
+
+    <div class="dash-hero-header">
+        <div>
+            <div class="dash-hero-title">Collections Progress</div>
+            <div class="dash-hero-sub">@Model.CurrentTermName</div>
+        </div>
+        @if (canRecord)
+        {
+            <a asp-page="./Balances" class="btn btn-secondary btn-sm">
+                View Balances <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        }
+    </div>
+
+    <div class="dash-progress">
+        <div class="dash-progress-header">
+            <span>@Model.CollectedPercentage% collected</span>
+            <span class="dash-progress-pct">
+                @Model.TotalCollectedThisTerm.ToString("N2") / @Model.TotalChargedThisTerm.ToString("N2")
+            </span>
+        </div>
+        <div class="dash-progress-bar">
+            <div class="dash-progress-fill" style="width: @Model.CollectedPercentage%"></div>
+        </div>
+    </div>
+
+    <div class="dash-status-legend">
+        <span class="dash-status-item">
+            <span class="dash-dot dash-dot-green"></span>
+            Settled <strong>@Model.SettledCount</strong>
+        </span>
+        <span class="dash-status-item">
+            <span class="dash-dot dash-dot-amber"></span>
+            Partially Settled <strong>@Model.PartiallySettledCount</strong>
+        </span>
+        <span class="dash-status-item">
+            <span class="dash-dot dash-dot-red"></span>
+            Overdue <strong>@Model.OverdueCount</strong>
+        </span>
+        <span class="dash-status-item" style="margin-left: auto;">
+            Total: <strong>@Model.ActiveLedgerCount</strong>
+            @(Model.ActiveLedgerCount == 1 ? "ledger" : "ledgers")
+        </span>
+    </div>
+
+</div>
+
+<!-- ===== FEE STRUCTURE — PRIMARY WORKFLOW ===== -->
+@if (Model.FeeStructures.Any())
+{
+    <div class="info-card" style="margin-bottom: 1rem;">
+        <div class="info-card-header">
+            <i class="fa-solid fa-layer-group"></i>
+            <span>Fee Structure</span>
+            <a asp-page="./Upsert" class="info-card-badge" style="text-decoration: none;">
+                Manage
+            </a>
+        </div>
+
+        <div class="dash-fee-strip">
+            @foreach (var f in Model.FeeStructures)
+            {
+                <div class="dash-fee-chip">
+                    <span class="dash-fee-grade">@f.GradeName</span>
+                    <span class="dash-fee-amount">
+                        @f.TotalAmount.ToString("N2")
+                        <small>@f.CurrencyCode</small>
+                    </span>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- ===== ACTIVITY GRID ===== -->
+<div class="info-grid">
+
+    <!-- RECENT PAYMENTS -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <i class="fa-solid fa-money-bill-transfer"></i>
+            <span>Recent Payments</span>
+            <a asp-page="./Balances" class="info-card-badge" style="text-decoration: none;">
+                View all
+            </a>
+        </div>
+
+        @if (Model.RecentPayments.Any())
+        {
+            @foreach (var p in Model.RecentPayments)
+            {
+                <div class="info-row">
+                    <div class="info-label" style="min-width: 0; flex: 1;">
+                        <i class="fa-solid fa-user"></i>
+                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            @p.StudentName
+                        </span>
+                    </div>
+                    <div class="info-value" style="text-align: right;">
+                        <strong>@p.Amount.ToString("N2")</strong>
+                        <span class="info-value-mono" style="margin-left: 0.5rem; font-size: 0.7rem;">
+                            @p.Method · @p.Date.ToString("dd MMM")
+                        </span>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">No payments recorded yet.</div>
+        }
+    </div>
+
+    <!-- TOP DEBTORS -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <i class="fa-solid fa-fire"></i>
+            <span>Top Outstanding</span>
+            @if (Model.OverdueCount > 0)
+            {
+                <a asp-page="./Balances" asp-route-StatusFilter="2"
+                   class="info-card-badge" style="text-decoration: none;">
+                    View overdue
+                </a>
+            }
+        </div>
+
+        @if (Model.TopDebtors.Any())
+        {
+            @foreach (var d in Model.TopDebtors)
+            {
+                <div class="info-row">
+                    <div class="info-label" style="min-width: 0; flex: 1;">
+                        <i class="fa-solid fa-user"></i>
+                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            @d.StudentName
+                        </span>
+                        <span class="info-value-mono" style="font-size: 0.7rem;">@d.GradeName</span>
+                    </div>
+                    <div class="info-value" style="text-align: right;">
+                        <a asp-page="./Ledger" asp-route-id="@d.LedgerId"
+                           class="reg-link" style="color: #B91C1C;">
+                            @d.Balance.ToString("N2")
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">No outstanding balances. 🎉</div>
+        }
+    </div>
+
+</div>

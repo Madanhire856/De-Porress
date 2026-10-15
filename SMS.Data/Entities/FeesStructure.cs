@@ -13,7 +13,7 @@ public partial class FeesStructure
 
     public int LevyTypeId { get; set; }
 
-    public int Amount { get; set; }
+    public decimal Amount { get; set; }
 
     public string? CurrencyId { get; set; }
 

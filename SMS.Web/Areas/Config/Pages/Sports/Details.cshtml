@@ -1,0 +1,147 @@
+﻿@page "{id:guid}"
+@model SMS.Web.Areas.Config.Pages.Sports.DetailsModel
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@{
+    ViewData["Title"] = "Sport Details";
+    ViewData["PageTitle"] = "Sport Details";
+    ViewData["PageSubTitle"] = $"Viewing details for {Model.SportVM.Name}";
+}
+
+@section actionbar {
+    @if (CurrentUser.HasRight(AccessRights.EditSports))
+    {
+        <a asp-page="./Upsert" asp-route-id="@Model.SportVM.Id" class="btn btn-secondary">
+            <i class="fa-solid fa-pen-to-square"></i> Edit
+        </a>
+    }
+    <a asp-page="./Index" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Back to List
+    </a>
+}
+
+<div class="details-compact">
+    <div class="details-single">
+
+        <!-- ===== PROFILE HEADER ===== -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-futbol"></i>
+            </div>
+            <div class="profile-info">
+                <h2 class="profile-name">@Model.SportVM.Name</h2>
+                <div class="profile-meta">
+                    <span class="info-value-mono">@Model.SportVM.SportNumber</span>
+                    <span class="meta-sep">·</span>
+                    <span>Created @Model.SportVM.CreationDate.ToString("dd MMM yyyy")</span>
+                </div>
+                <div class="profile-badges">
+                    @if (Model.AssignedCoaches.Any())
+                    {
+                        <span class="status-badge status-count">
+                            <i class="fa-solid fa-user-tie"></i>
+                            @Model.AssignedCoaches.Count @(Model.AssignedCoaches.Count == 1 ? "coach" : "coaches")
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TWO-COLUMN BODY ===== -->
+        <div class="info-grid">
+
+            <!-- LEFT: Sport Information -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Sport Information</span>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-hashtag"></i> SPT ID
+                    </div>
+                    <div class="info-value info-value-mono">@Model.SportVM.SportNumber</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-futbol"></i> Name
+                    </div>
+                    <div class="info-value">@Model.SportVM.Name</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fa-solid fa-calendar"></i> Creation Date
+                    </div>
+                    <div class="info-value">@Model.SportVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Assigned Coaches -->
+            <div class="info-column">
+                <div class="info-column-header">
+                    <i class="fa-solid fa-user-tie"></i>
+                    <span>Assigned Coaches</span>
+                    <span class="info-card-badge">@Model.AssignedCoaches.Count</span>
+                </div>
+
+                @if (Model.AssignedCoaches.Any())
+                {
+                    @foreach (var c in Model.AssignedCoaches)
+                    {
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="fa-solid fa-user"></i> @c.RoleName
+                            </div>
+                            <div class="info-value">
+                                <a asp-area="Academics"
+                                   asp-page="/Staff/Details"
+                                   asp-route-id="@c.StaffId"
+                                   class="reg-link">
+                                    @c.FullName
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="fa-solid fa-ban"></i> Coaches
+                        </div>
+                        <div class="info-value">
+                            <span class="sponsor-empty">No coaches assigned to this sport</span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+        </div>
+
+        <!-- ===== CARD FOOTER ===== -->
+        <div class="info-card-footer">
+            <div>
+                <span>Created By:</span>
+                <strong>
+                    @if (!string.IsNullOrEmpty(Model.CreatorEmail))
+                    {
+                        @Model.CreatorEmail
+                    }
+                    else
+                    {
+                        <text>System Generated</text>
+                    }
+                </strong>
+            </div>
+            <div>
+                <span>Created On:</span>
+                <strong>@Model.SportVM.CreationDate.ToString("dd MMM yyyy, HH:mm")</strong>
+            </div>
+        </div>
+
+    </div>
+</div>

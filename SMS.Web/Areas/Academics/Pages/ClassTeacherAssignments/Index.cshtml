@@ -1,0 +1,82 @@
+@page
+@model SMS.Web.Areas.Academics.Pages.ClassTeacherAssignments.IndexModel
+@{
+    ViewData["PageTitle"] = "Class Teacher Assignments";
+    ViewData["PageSubTitle"] = "Manage teaching responsibilities by academic year";
+}
+@if (TempData["AssignmentSaved"] is string message)
+{
+    <div class="alert alert-success" role="status">@message</div>
+}
+<div class="table-card mb-3">
+    <form method="get" class="table-toolbar assignment-year-filter" data-auto-filter>
+        <div class="toolbar-filters">
+        <label for="yearFilter" class="form-label">Academic year</label>
+        <input id="yearFilter" name="Year" value="@Model.Year" type="number" min="2000" max="2100" class="form-control assignment-year-input" required />
+        </div>
+    </form>
+    <div class="table-responsive">
+        <table class="table">
+            <thead><tr><th>Class</th><th>Grade</th><th>Class teacher</th>@if (Model.CanManage && Model.Year == Model.CurrentYear) { <th>Action</th> }</tr></thead>
+            <tbody>
+            @foreach (var row in Model.Rows)
+            {
+                <tr><td>@row.Name</td><td>@row.Grade</td><td>@(row.Teacher ?? "Unassigned")</td>
+                @if (Model.CanManage && Model.Year == Model.CurrentYear)
+                {
+                    <td><a asp-page="./Index" asp-route-Year="@Model.Year" asp-route-classId="@row.Id" class="btn btn-sm btn-outline-primary">@(row.Teacher == null ? "Assign teacher" : "Change teacher")</a></td>
+                }
+                </tr>
+            }
+            @if (Model.Rows.Count == 0) { <tr><td colspan="4">No class assignments to display for this year.</td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>
+@if (Model.CanManage && Model.Year == Model.CurrentYear && Model.Input.ClassId.HasValue)
+{
+    <form method="post" class="form-compact mb-3">
+        <div class="form-card">
+            <div class="card-body">
+                <div class="form-section-title"><i class="fas fa-chalkboard-teacher" aria-hidden="true"></i> Assign Class Teacher</div>
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <input type="hidden" asp-for="Year" />
+                <input type="hidden" asp-for="Input.ClassId" />
+                <input type="hidden" asp-for="Input.PreviousAssignmentId" />
+                <p><strong>Class:</strong> @Model.Rows.FirstOrDefault(x => x.Id == Model.Input.ClassId)?.Name · @Model.Year</p>
+                <div class="form-group">
+                    <label asp-for="Input.StaffId" class="form-label">Class teacher</label>
+                    <select asp-for="Input.StaffId" asp-items="Model.Teachers" class="form-control">
+                        <option value="">Leave unassigned</option>
+                    </select>
+                    <span asp-validation-for="Input.StaffId" class="text-danger"></span>
+                    <p class="form-text">Only active teaching staff are available. Previous assignments remain in the history.</p>
+                </div>
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save" aria-hidden="true"></i> Save assignment</button>
+            </div>
+        </div>
+    </form>
+}
+<div class="table-card">
+    <div class="table-count"><i class="fas fa-history me-2" aria-hidden="true"></i> Assignment history · @Model.Year</div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead><tr><th>Class</th><th>Teacher</th><th>Assigned</th><th>Ended</th><th>Assigned by</th></tr></thead>
+            <tbody>
+            @foreach (var item in Model.History)
+            {
+                <tr><td>@item.Class.Name</td><td>@item.Staff.Name @item.Staff.Surname</td>
+                    <td>@item.AssignedAt.AddHours(2).ToString("dd MMM yyyy HH:mm")</td>
+                    <td>@(item.EndedAt?.AddHours(2).ToString("dd MMM yyyy HH:mm") ?? "Current")</td><td>@item.AssignedBy.Name</td></tr>
+            }
+            @if (Model.History.Count == 0) { <tr><td colspan="5">No assignment history for this year.</td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/assignment-filters.js" asp-append-version="true"></script>
+}

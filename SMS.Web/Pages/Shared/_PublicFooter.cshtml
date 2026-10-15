@@ -1,0 +1,17 @@
+@{ var publicHome = User.Identity?.IsAuthenticated == true ? Url.Page("/Index", new { area = "", Website = true }) : Url.Page("/Index", new { area = "" }); }
+<footer class="school-footer">
+    <div>
+        <a class="school-footer-brand" href="@publicHome">St Martin De Porres<small>PRIMARY SCHOOL</small></a>
+        <p>St Martin De Porres Zhombe Mission Parish · Diocese of Gweru</p>
+    </div>
+    <nav aria-label="Footer navigation">
+        <a asp-area="" asp-page="/Notices/Index">School notices</a>
+        <a href="@(publicHome + "#about")">Our school</a>
+        <a href="@(publicHome + "#contact")">Contact</a>
+        <a asp-area="Identity" asp-page="/Account/StaffLogin">Staff portal</a>
+    </nav>
+    <div class="school-footer-bottom">
+        <span>© @DateTime.UtcNow.AddHours(2).Year St Martin De Porres Primary School</span>
+        <span>PBag 8035 Kwekwe</span>
+    </div>
+</footer>

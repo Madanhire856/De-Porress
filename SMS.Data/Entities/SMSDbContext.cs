@@ -29,6 +29,8 @@ public partial class SMSDbContext : DbContext
 
     public virtual DbSet<Currency> Currencies { get; set; }
 
+    public virtual DbSet<DailyExchangeRate> DailyExchangeRates { get; set; }
+
     public virtual DbSet<FeesStructure> FeesStructures { get; set; }
 
     public virtual DbSet<Grade> Grades { get; set; }
@@ -36,6 +38,8 @@ public partial class SMSDbContext : DbContext
     public virtual DbSet<Guardian> Guardians { get; set; }
 
     public virtual DbSet<House> Houses { get; set; }
+
+    public virtual DbSet<HouseTeacher> HouseTeachers { get; set; }
 
     public virtual DbSet<LiturgicalDay> LiturgicalDays { get; set; }
 
@@ -45,7 +49,11 @@ public partial class SMSDbContext : DbContext
 
     public virtual DbSet<Payment> Payments { get; set; }
 
+    public virtual DbSet<PaymentCorrection> PaymentCorrections { get; set; }
+
     public virtual DbSet<Prefect> Prefects { get; set; }
+
+    public virtual DbSet<PrefectNomination> PrefectNominations { get; set; }
 
     public virtual DbSet<Project> Projects { get; set; }
 
@@ -53,9 +61,15 @@ public partial class SMSDbContext : DbContext
 
     public virtual DbSet<ProjectRisk> ProjectRisks { get; set; }
 
+    public virtual DbSet<ReceiptSequence> ReceiptSequences { get; set; }
+
     public virtual DbSet<Sponsorship> Sponsorships { get; set; }
 
     public virtual DbSet<SponsorshipAcquittal> SponsorshipAcquittals { get; set; }
+
+    public virtual DbSet<Sport> Sports { get; set; }
+
+    public virtual DbSet<SportTeacher> SportTeachers { get; set; }
 
     public virtual DbSet<Staff> Staff { get; set; }
 
@@ -89,6 +103,8 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("Activity");
 
+            entity.HasIndex(e => e.CreatorId, "IX_Activity_CreatorId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(50);
@@ -102,6 +118,8 @@ public partial class SMSDbContext : DbContext
         modelBuilder.Entity<Announcement>(entity =>
         {
             entity.ToTable("Announcement");
+
+            entity.HasIndex(e => e.CreatorId, "IX_Announcement_CreatorId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Body).HasColumnType("text");
@@ -126,16 +144,23 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("AuditLog");
 
+            entity.HasIndex(e => new { e.EntityType, e.EntityId }, "IX_AuditLog_EntityType_EntityId");
+
+            entity.HasIndex(e => e.TimeStamp, "IX_AuditLog_TimeStamp");
+
+            entity.HasIndex(e => e.UserId, "IX_AuditLog_UserId");
+
+            entity.HasIndex(e => new { e.UserId, e.TimeStamp }, "IX_AuditLog_UserId_TimeStamp");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Action).HasMaxLength(80);
-            entity.Property(e => e.AfterValue).HasColumnType("json");
-            entity.Property(e => e.BeforeValue).HasColumnType("json");
             entity.Property(e => e.EntityType).HasMaxLength(50);
+            entity.Property(e => e.IpAddress).HasMaxLength(256);
             entity.Property(e => e.TimeStamp).HasColumnType("datetime");
+            entity.Property(e => e.Username).HasMaxLength(50);
 
             entity.HasOne(d => d.User).WithMany(p => p.AuditLogs)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AuditLog_User");
         });
 
@@ -143,13 +168,18 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("Class");
 
+            entity.HasIndex(e => e.ClassTeacherId, "IX_Class_ClassTeacherId");
+
+            entity.HasIndex(e => e.CreatorId, "IX_Class_CreatorId");
+
+            entity.HasIndex(e => e.GradeId, "IX_Class_GradeId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(15);
 
             entity.HasOne(d => d.ClassTeacher).WithMany(p => p.Classes)
                 .HasForeignKey(d => d.ClassTeacherId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Class_Staff");
 
             entity.HasOne(d => d.Creator).WithMany(p => p.Classes)
@@ -167,6 +197,12 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("Competition");
 
+            entity.HasIndex(e => e.CreatorId, "IX_Competition_CreatorId");
+
+            entity.HasIndex(e => e.SportId, "IX_Competition_SportId");
+
+            entity.HasIndex(e => e.TermId, "IX_Competition_TermId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(50);
@@ -176,6 +212,11 @@ public partial class SMSDbContext : DbContext
                 .HasForeignKey(d => d.CreatorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Competition_User");
+
+            entity.HasOne(d => d.Sport).WithMany(p => p.Competitions)
+                .HasForeignKey(d => d.SportId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Competition_Competition");
 
             entity.HasOne(d => d.Term).WithMany(p => p.Competitions)
                 .HasForeignKey(d => d.TermId)
@@ -189,8 +230,15 @@ public partial class SMSDbContext : DbContext
 
             entity.ToTable("Currency");
 
+            entity.HasIndex(e => e.CreatorId, "IX_Currency_CreatorId");
+
+            entity.HasIndex(e => e.IsBase, "UX_Currency_IsBase")
+                .IsUnique()
+                .HasFilter("([IsBase]=(1))");
+
             entity.Property(e => e.Code).HasMaxLength(5);
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
+            entity.Property(e => e.ExchangeRateToBase).HasColumnType("decimal(18, 6)");
             entity.Property(e => e.Name).HasMaxLength(15);
             entity.Property(e => e.Symbol).HasMaxLength(3);
 
@@ -199,11 +247,34 @@ public partial class SMSDbContext : DbContext
                 .HasConstraintName("FK_Currency_User");
         });
 
+        modelBuilder.Entity<DailyExchangeRate>(entity =>
+        {
+            entity.ToTable("DailyExchangeRate");
+
+            entity.HasIndex(e => new { e.CurrencyCode, e.RequestedDate, e.RateType }, "UX_DailyExchangeRate_CurrencyCode_RequestedDate_RateType")
+                .IsUnique()
+                .HasFilter("([RateType] IS NOT NULL)");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.ActualRateDate).HasColumnType("datetime");
+            entity.Property(e => e.CurrencyCode).HasMaxLength(10);
+            entity.Property(e => e.FetchedOn).HasColumnType("datetime");
+            entity.Property(e => e.Rate).HasColumnType("decimal(18, 6)");
+            entity.Property(e => e.RateType).HasMaxLength(20);
+            entity.Property(e => e.RequestedDate).HasColumnType("datetime");
+            entity.Property(e => e.Source).HasMaxLength(20);
+        });
+
         modelBuilder.Entity<FeesStructure>(entity =>
         {
             entity.ToTable("FeesStructure");
 
+            entity.HasIndex(e => e.CreatorId, "IX_FeesStructure_CreatorId");
+
+            entity.HasIndex(e => e.CurrencyId, "IX_FeesStructure_CurrencyId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
             entity.Property(e => e.CurrencyId).HasMaxLength(5);
 
@@ -220,6 +291,8 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("Grade");
 
+            entity.HasIndex(e => e.CreatorId, "IX_Grade_CreatorId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(10);
@@ -233,6 +306,8 @@ public partial class SMSDbContext : DbContext
         modelBuilder.Entity<Guardian>(entity =>
         {
             entity.ToTable("Guardian");
+
+            entity.HasIndex(e => e.CreatorId, "IX_Guardian_CreatorId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
@@ -251,6 +326,8 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("House");
 
+            entity.HasIndex(e => e.CreatorId, "IX_House_CreatorId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Color).HasMaxLength(15);
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
@@ -260,11 +337,34 @@ public partial class SMSDbContext : DbContext
                 .HasForeignKey(d => d.CreatorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_House_User");
+        });
 
-            entity.HasOne(d => d.Master).WithMany(p => p.Houses)
-                .HasForeignKey(d => d.MasterId)
+        modelBuilder.Entity<HouseTeacher>(entity =>
+        {
+            entity.ToTable("HouseTeacher");
+
+            entity.HasIndex(e => e.CreatorId, "IX_HouseTeacher_CreatorId");
+
+            entity.HasIndex(e => e.HouseId, "IX_HouseTeacher_HouseId");
+
+            entity.HasIndex(e => e.StaffId, "IX_HouseTeacher_StaffId");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CreationDate).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Creator).WithMany(p => p.HouseTeachers)
+                .HasForeignKey(d => d.CreatorId)
+                .HasConstraintName("FK_HouseTeacher_User");
+
+            entity.HasOne(d => d.House).WithMany(p => p.HouseTeachers)
+                .HasForeignKey(d => d.HouseId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_House_Staff");
+                .HasConstraintName("FK_HouseTeacher_House");
+
+            entity.HasOne(d => d.Staff).WithMany(p => p.HouseTeachers)
+                .HasForeignKey(d => d.StaffId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_HouseTeacher_Staff");
         });
 
         modelBuilder.Entity<LiturgicalDay>(entity =>
@@ -284,6 +384,8 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("MassEvent");
 
+            entity.HasIndex(e => e.CreatorId, "IX_MassEvent_CreatorId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Celebrant).HasMaxLength(50);
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
@@ -298,6 +400,12 @@ public partial class SMSDbContext : DbContext
         modelBuilder.Entity<MassRoster>(entity =>
         {
             entity.ToTable("MassRoster");
+
+            entity.HasIndex(e => e.MassId, "IX_MassRoster_MassId");
+
+            entity.HasIndex(e => e.StaffId, "IX_MassRoster_StaffId");
+
+            entity.HasIndex(e => e.StudentId, "IX_MassRoster_StudentId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
@@ -320,32 +428,99 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("Payment");
 
+            entity.HasIndex(e => e.CreatorId, "IX_Payment_CreatorId");
+
+            entity.HasIndex(e => e.CurrencyId, "IX_Payment_CurrencyId");
+
+            entity.HasIndex(e => e.LedgerId, "IX_Payment_LedgerId");
+
+            entity.HasIndex(e => e.ReversedById, "IX_Payment_ReversedById");
+
+            entity.HasIndex(e => e.ReversesPaymentId, "IX_Payment_ReversesPaymentId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.CreationDate).HasColumnType("datetime");
+            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.BaseAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CorrectionReason).HasMaxLength(500);
+            entity.Property(e => e.CreatedByName).HasMaxLength(50);
+            entity.Property(e => e.CreationDate)
+                .HasDefaultValueSql("(getdate())", "DF_Payment_CreationDate")
+                .HasColumnType("datetime");
             entity.Property(e => e.CurrencyId).HasMaxLength(5);
-            entity.Property(e => e.PaymentMethodId)
-                .HasMaxLength(10)
-                .IsFixedLength();
+            entity.Property(e => e.ExchangeRate).HasColumnType("decimal(18, 6)");
+            entity.Property(e => e.PaymentDate)
+                .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "DF_Payment_PaymentDate")
+                .HasColumnType("datetime");
             entity.Property(e => e.ProofOfPaymentUrl).HasMaxLength(20);
-            entity.Property(e => e.ReferenceNumber).HasMaxLength(10);
+            entity.Property(e => e.RateSource).HasMaxLength(50);
+            entity.Property(e => e.ReferenceNumber).HasMaxLength(50);
+            entity.Property(e => e.ReversedOn).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Creator).WithMany(p => p.PaymentCreators)
+                .HasForeignKey(d => d.CreatorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Payment_User");
 
             entity.HasOne(d => d.Currency).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.CurrencyId)
                 .HasConstraintName("FK_Payment_Currency");
 
-            entity.HasOne(d => d.IdNavigation).WithOne(p => p.Payment)
-                .HasForeignKey<Payment>(d => d.Id)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Payment_User");
-
             entity.HasOne(d => d.Ledger).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.LedgerId)
                 .HasConstraintName("FK_Payment_StudentLedger");
+
+            entity.HasOne(d => d.ReversedBy).WithMany(p => p.PaymentReversedBies)
+                .HasForeignKey(d => d.ReversedById)
+                .HasConstraintName("FK_Payment_User1");
+
+            entity.HasOne(d => d.ReversesPayment).WithMany(p => p.InverseReversesPayment)
+                .HasForeignKey(d => d.ReversesPaymentId)
+                .HasConstraintName("FK_Payment_Payment");
+        });
+
+        modelBuilder.Entity<PaymentCorrection>(entity =>
+        {
+            entity.ToTable("PaymentCorrection");
+
+            entity.HasIndex(e => e.CorrectedById, "IX_PaymentCorrection_CorrectedById");
+
+            entity.HasIndex(e => e.CorrectedOn, "IX_PaymentCorrection_CorrectedOn");
+
+            entity.HasIndex(e => e.PaymentId, "IX_PaymentCorrection_PaymentId");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CorrectedAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CorrectedBaseAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CorrectedByName).HasMaxLength(50);
+            entity.Property(e => e.CorrectedOn).HasColumnType("datetime");
+            entity.Property(e => e.CorrectedPaymentDate).HasColumnType("datetime");
+            entity.Property(e => e.CorrectedReferenceNumber).HasMaxLength(50);
+            entity.Property(e => e.PreviousAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PreviousBaseAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PreviousPaymentDate).HasColumnType("datetime");
+            entity.Property(e => e.PreviousReferenceNumber).HasMaxLength(50);
+            entity.Property(e => e.Reason).HasMaxLength(500);
+
+            entity.HasOne(d => d.CorrectedBy).WithMany(p => p.PaymentCorrections)
+                .HasForeignKey(d => d.CorrectedById)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PaymentCorrection_User");
+
+            entity.HasOne(d => d.Payment).WithMany(p => p.PaymentCorrections)
+                .HasForeignKey(d => d.PaymentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PaymentCorrection_Payment");
         });
 
         modelBuilder.Entity<Prefect>(entity =>
         {
             entity.ToTable("Prefect");
+
+            entity.HasIndex(e => e.CreatorId, "IX_Prefect_CreatorId");
+
+            entity.HasIndex(e => e.NominatorId, "IX_Prefect_NominatorId");
+
+            entity.HasIndex(e => e.StudentId, "IX_Prefect_StudentId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
@@ -359,11 +534,40 @@ public partial class SMSDbContext : DbContext
             entity.HasOne(d => d.Nominator).WithMany(p => p.Prefects)
                 .HasForeignKey(d => d.NominatorId)
                 .HasConstraintName("FK_Prefect_Staff");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.Prefects)
+                .HasForeignKey(d => d.StudentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Prefect_Student");
+        });
+
+        modelBuilder.Entity<PrefectNomination>(entity =>
+        {
+            entity.ToTable("PrefectNomination");
+
+            entity.HasIndex(e => e.NominatedByUserId, "IX_PrefectNomination_NominatedByUserId");
+
+            entity.HasIndex(e => e.StudentId, "IX_PrefectNomination_StudentId");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CreationDate).HasColumnType("datetime");
+
+            entity.HasOne(d => d.NominatedByUser).WithMany(p => p.PrefectNominations)
+                .HasForeignKey(d => d.NominatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PrefectNomination_User");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.PrefectNominations)
+                .HasForeignKey(d => d.StudentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PrefectNomination_Student");
         });
 
         modelBuilder.Entity<Project>(entity =>
         {
             entity.ToTable("Project");
+
+            entity.HasIndex(e => e.CreatorId, "IX_Project_CreatorId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.BudgetAmount).HasColumnType("decimal(18, 2)");
@@ -386,6 +590,10 @@ public partial class SMSDbContext : DbContext
 
             entity.ToTable("ProjectMilestone");
 
+            entity.HasIndex(e => e.CreatorId, "IX_ProjectMilestone_CreatorId");
+
+            entity.HasIndex(e => e.ProjectId, "IX_ProjectMilestone_ProjectId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(256);
@@ -407,6 +615,10 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("ProjectRisk");
 
+            entity.HasIndex(e => e.CreatorId, "IX_ProjectRisk_CreatorId");
+
+            entity.HasIndex(e => e.ProjectId, "IX_ProjectRisk_ProjectId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
             entity.Property(e => e.DescriptionJson).HasColumnType("text");
@@ -422,9 +634,21 @@ public partial class SMSDbContext : DbContext
                 .HasConstraintName("FK_ProjectRisk_Project");
         });
 
+        modelBuilder.Entity<ReceiptSequence>(entity =>
+        {
+            entity.HasKey(e => e.Year);
+
+            entity.ToTable("ReceiptSequence");
+
+            entity.Property(e => e.Year).ValueGeneratedNever();
+            entity.Property(e => e.LastIssuedOn).HasColumnType("datetime");
+        });
+
         modelBuilder.Entity<Sponsorship>(entity =>
         {
             entity.ToTable("Sponsorship");
+
+            entity.HasIndex(e => e.CreatorId, "IX_Sponsorship_CreatorId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
@@ -441,7 +665,15 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("SponsorshipAcquittal");
 
+            entity.HasIndex(e => e.CreatorId, "IX_SponsorshipAcquittal_CreatorId");
+
+            entity.HasIndex(e => e.CurrencyId, "IX_SponsorshipAcquittal_CurrencyId");
+
+            entity.HasIndex(e => e.SponsorshipId, "IX_SponsorshipAcquittal_SponsorshipId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.AmountDisbursed).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.AmountUtilised).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
             entity.Property(e => e.CurrencyId).HasMaxLength(5);
             entity.Property(e => e.Period).HasMaxLength(15);
@@ -461,8 +693,54 @@ public partial class SMSDbContext : DbContext
                 .HasConstraintName("FK_SponsorshipAcquittal_Sponsorship");
         });
 
+        modelBuilder.Entity<Sport>(entity =>
+        {
+            entity.ToTable("Sport");
+
+            entity.HasIndex(e => e.CreatorId, "IX_Sport_CreatorId");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CreationDate).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(20);
+
+            entity.HasOne(d => d.Creator).WithMany(p => p.Sports)
+                .HasForeignKey(d => d.CreatorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Sport_User");
+        });
+
+        modelBuilder.Entity<SportTeacher>(entity =>
+        {
+            entity.ToTable("SportTeacher");
+
+            entity.HasIndex(e => e.CreatorId, "IX_SportTeacher_CreatorId");
+
+            entity.HasIndex(e => e.SportId, "IX_SportTeacher_SportId");
+
+            entity.HasIndex(e => e.StaffId, "IX_SportTeacher_StaffId");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CreationDate).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Creator).WithMany(p => p.SportTeachers)
+                .HasForeignKey(d => d.CreatorId)
+                .HasConstraintName("FK_SportTeacher_User");
+
+            entity.HasOne(d => d.Sport).WithMany(p => p.SportTeachers)
+                .HasForeignKey(d => d.SportId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SportTeacher_Sport");
+
+            entity.HasOne(d => d.Staff).WithMany(p => p.SportTeachers)
+                .HasForeignKey(d => d.StaffId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SportTeacher_Staff");
+        });
+
         modelBuilder.Entity<Staff>(entity =>
         {
+            entity.HasIndex(e => e.UserId, "IX_Staff_UserId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.DateJoined).HasColumnType("datetime");
             entity.Property(e => e.EcNumber).HasMaxLength(10);
@@ -472,13 +750,18 @@ public partial class SMSDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.Staff)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Staff_User");
         });
 
         modelBuilder.Entity<Student>(entity =>
         {
             entity.ToTable("Student");
+
+            entity.HasIndex(e => e.ClassId, "IX_Student_ClassId");
+
+            entity.HasIndex(e => e.CreatorId, "IX_Student_CreatorId");
+
+            entity.HasIndex(e => e.VillageId, "IX_Student_VillageId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.AllergieNotesJson).HasColumnType("text");
@@ -508,6 +791,10 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("StudentGuardian");
 
+            entity.HasIndex(e => e.GuardianId, "IX_StudentGuardian_GuardianId");
+
+            entity.HasIndex(e => e.StudentId, "IX_StudentGuardian_StudentId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Relationship).HasMaxLength(15);
 
@@ -524,9 +811,19 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("StudentLedger");
 
+            entity.HasIndex(e => e.CreatorId, "IX_StudentLedger_CreatorId");
+
+            entity.HasIndex(e => e.CurrencyId, "IX_StudentLedger_CurrencyId");
+
+            entity.HasIndex(e => e.StudentId, "IX_StudentLedger_StudentId");
+
+            entity.HasIndex(e => e.TermId, "IX_StudentLedger_TermId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.ClosingBalance).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
             entity.Property(e => e.CurrencyId).HasMaxLength(5);
+            entity.Property(e => e.OpeningBalance).HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.Creator).WithMany(p => p.StudentLedgers)
                 .HasForeignKey(d => d.CreatorId)
@@ -550,6 +847,8 @@ public partial class SMSDbContext : DbContext
         modelBuilder.Entity<Subject>(entity =>
         {
             entity.ToTable("Subject");
+
+            entity.HasIndex(e => e.CreatorId, "IX_Subject_CreatorId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Code).HasMaxLength(10);
@@ -580,6 +879,10 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("TeacherSubject");
 
+            entity.HasIndex(e => e.StaffId, "IX_TeacherSubject_StaffId");
+
+            entity.HasIndex(e => e.SubjectId, "IX_TeacherSubject_SubjectId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
 
             entity.HasOne(d => d.Staff).WithMany(p => p.TeacherSubjects)
@@ -597,9 +900,12 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("Term");
 
+            entity.HasIndex(e => e.CreatorId, "IX_Term_CreatorId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
             entity.Property(e => e.EndDate).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.StartDate).HasColumnType("datetime");
 
             entity.HasOne(d => d.Creator).WithMany(p => p.Terms)
@@ -612,6 +918,8 @@ public partial class SMSDbContext : DbContext
         {
             entity.ToTable("User");
 
+            entity.HasIndex(e => e.GroupId, "IX_User_GroupId");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.ActivationDate).HasColumnType("datetime");
             entity.Property(e => e.AuthRecoveryCodes).HasMaxLength(256);
@@ -622,15 +930,22 @@ public partial class SMSDbContext : DbContext
             entity.Property(e => e.LockoutExpiryDate).HasColumnType("datetime");
             entity.Property(e => e.LoginId).HasMaxLength(50);
             entity.Property(e => e.Mobile).HasMaxLength(15);
+            entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.PasswordHash)
                 .HasMaxLength(255)
                 .HasColumnName("Password_Hash");
             entity.Property(e => e.SecurityStamp).HasMaxLength(256);
+
+            entity.HasOne(d => d.Group).WithMany(p => p.Users)
+                .HasForeignKey(d => d.GroupId)
+                .HasConstraintName("FK_User_UserGroup");
         });
 
         modelBuilder.Entity<UserGroup>(entity =>
         {
             entity.ToTable("UserGroup");
+
+            entity.HasIndex(e => e.CreatorId, "IX_UserGroup_CreatorId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
@@ -655,6 +970,8 @@ public partial class SMSDbContext : DbContext
         modelBuilder.Entity<Village>(entity =>
         {
             entity.ToTable("Village");
+
+            entity.HasIndex(e => e.CreatorId, "IX_Village_CreatorId");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Chief).HasMaxLength(50);

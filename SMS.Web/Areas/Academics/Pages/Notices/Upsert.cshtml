@@ -1,0 +1,20 @@
+@page "{id:guid?}"
+@model SMS.Web.Areas.Academics.Pages.Notices.UpsertModel
+@{ ViewData["PageTitle"] = "School Notice"; ViewData["PageSubTitle"] = "Prepare a public or staff-only notice"; }
+<form method="post" class="form-compact">
+    <div class="form-card"><div class="card-body">
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <div class="form-group"><label asp-for="Input.Audience" class="form-label">Audience</label>
+            <select asp-for="Input.Audience" class="form-control"><option value="5">Staff only — staff portal</option><option value="4">Everyone — public school website</option></select>
+            <span asp-validation-for="Input.Audience" class="text-danger"></span>
+        </div>
+        <div class="form-group"><label asp-for="Input.Title" class="form-label">Title</label><input asp-for="Input.Title" class="form-control" maxlength="50" required /><span asp-validation-for="Input.Title" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.Body" class="form-label">Notice text</label><textarea asp-for="Input.Body" class="form-control" rows="12" maxlength="10000" required></textarea><span asp-validation-for="Input.Body" class="text-danger"></span></div>
+        <p class="form-text">Published notices are visible to the selected audience. Staff-only notices require staff sign-in and never appear on the public website. Drafts remain private to notice administrators.</p>
+        @if (Model.Published) { <div class="alert alert-info">This notice is currently published. Saving as a draft withdraws it from its audience.</div> }
+    </div><div class="card-footer">
+        <button type="submit" name="intent" value="publish" class="btn btn-primary">@(Model.Published ? "Update published notice" : "Publish notice")</button>
+        <button type="submit" name="intent" value="draft" class="btn btn-secondary">Save as draft</button>
+    </div></div>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

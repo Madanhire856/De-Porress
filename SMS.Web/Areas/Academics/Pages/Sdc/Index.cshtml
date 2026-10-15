@@ -1,0 +1,27 @@
+@page
+@model SMS.Web.Areas.Academics.Pages.Sdc.IndexModel
+@{ ViewData["PageTitle"] = "SDC Members"; ViewData["PageSubTitle"] = "School Development Committee membership and appointment history"; }
+@section actionbar { <a asp-page="./Member" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Add member</a> }
+@if (TempData["SdcSaved"] is string message) { <div class="alert alert-success" role="status">@message</div> }
+<div class="table-card">
+    <div class="table-count">Total: @Model.Total members</div>
+    <form method="get" class="table-toolbar" data-auto-filter>
+        <div class="toolbar-filters">
+            <div class="filter-wrapper"><select asp-for="TermId" asp-items="Model.Terms" class="filter-dropdown" aria-label="Committee term"><option value="">All committee terms</option></select></div>
+            <div class="filter-wrapper"><select asp-for="Status" class="filter-dropdown" aria-label="Membership status"><option value="">All members</option><option value="current">Currently serving</option><option value="inactive">Inactive members</option></select></div>
+        </div>
+        <div class="search-wrapper"><i class="fas fa-search" aria-hidden="true"></i><input asp-for="SearchTerm" class="search-input" placeholder="Search member or position…" aria-label="Search member or position" /></div>
+    </form>
+    <div class="table-responsive"><table class="table"><thead><tr><th>Member</th><th>Position</th><th>Committee term</th><th>Contact</th><th>Status</th><th>Action</th></tr></thead><tbody>
+        @foreach (var member in Model.Members) {
+            var serving = member.IsActive && member.Term.IsActive && member.Term.StartDate <= Model.Today && member.Term.EndDate >= Model.Today;
+            <tr><td>@member.Name</td><td>@member.Position.Name</td><td>@member.Term.Name<br /><small>@member.Term.StartDate.ToString("dd MMM yyyy") – @member.Term.EndDate.ToString("dd MMM yyyy")</small></td><td>@member.Phone<br />@member.Email</td><td>@(!member.IsActive ? "Inactive" : serving ? "Currently serving" : !member.Term.IsActive ? "Archived term" : member.Term.StartDate > Model.Today ? "Upcoming term" : "Past term")</td><td><a asp-page="./Member" asp-route-id="@member.Id" class="btn btn-sm btn-outline-primary">Edit</a></td></tr>
+        }
+        @if (Model.Members.Count == 0) { <tr><td colspan="6">No SDC members found. Define a committee term and positions before adding members.</td></tr> }
+    </tbody></table></div>
+    <nav class="d-flex justify-content-end gap-2 p-3" aria-label="SDC member pages">
+        @if (Model.PageNumber > 1) { <a asp-route-PageNumber="@(Model.PageNumber - 1)" asp-route-TermId="@Model.TermId" asp-route-Status="@Model.Status" asp-route-SearchTerm="@Model.SearchTerm" class="btn btn-outline-secondary">Previous</a> }
+        @if (Model.HasNext) { <a asp-route-PageNumber="@(Model.PageNumber + 1)" asp-route-TermId="@Model.TermId" asp-route-Status="@Model.Status" asp-route-SearchTerm="@Model.SearchTerm" class="btn btn-outline-secondary">Next</a> }
+    </nav>
+</div>
+@section Scripts { <script src="~/js/assignment-filters.js" asp-append-version="true"></script> }

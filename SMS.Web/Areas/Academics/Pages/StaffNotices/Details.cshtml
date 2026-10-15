@@ -1,0 +1,8 @@
+@page "{id:guid}"
+@model SMS.Web.Areas.Academics.Pages.StaffNotices.DetailsModel
+@{ ViewData["PageTitle"] = Model.Notice.Title; ViewData["PageSubTitle"] = "Staff-only school notice"; }
+@section actionbar { <a asp-page="./Index" class="btn btn-outline-secondary">All staff notices</a> }
+<article class="form-card"><div class="card-body">
+    <p class="text-muted">@Model.Notice.CreationDate.AddHours(2).ToString("dd MMM yyyy") · Staff only</p>
+    <div class="staff-notice-body">@Model.Notice.Body</div>
+</div></article>

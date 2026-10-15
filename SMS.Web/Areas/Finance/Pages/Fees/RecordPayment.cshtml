@@ -1,0 +1,339 @@
+@page
+@using SMS.Lib
+@inject ICurrentUserService CurrentUser
+@model SMS.Web.Areas.Finance.Pages.Fees.RecordPaymentModel
+@{
+    ViewData["Title"] = "Record Payment";
+    ViewData["PageTitle"] = "Record Payment";
+    ViewData["PageSubTitle"] = "Record a new payment for a student";
+}
+
+@section actionbar {
+    <a asp-page="./Ledger" asp-route-id="@Model.LedgerId" class="btn btn-ghost">
+        <i class="fa-solid fa-arrow-left"></i> Back to Ledger
+    </a>
+}
+
+<!-- ===== STUDENT STRIP ===== -->
+<div class="house-stats" style="margin-bottom: 1rem;">
+    <div class="house-stat">
+        <i class="fa-solid fa-user"></i>
+        <div>
+            <div class="house-stat-value" style="font-size: 1.05rem;">@Model.StudentName</div>
+            <div class="house-stat-label">@Model.GradeName · @Model.TermName</div>
+        </div>
+    </div>
+    <div class="house-stat @(Model.CurrentBalance > 0m ? "house-stat-warning" : "")">
+        <i class="fa-solid fa-scale-balanced"></i>
+        <div>
+            <div class="house-stat-value">@Model.CurrentBalance.ToString("N2")</div>
+            <div class="house-stat-label">Current Balance (@Model.BaseCurrency)</div>
+        </div>
+    </div>
+
+    <!-- Live conversion tile -->
+    <div class="house-stat house-stat-accent" id="conversionStatCard" style="display: none;">
+        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+        <div>
+            <div class="house-stat-value" id="conversionAmount">0.00</div>
+            <div class="house-stat-label" id="conversionLabel">
+                Converts to @Model.BaseCurrency
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PAYMENT FORM ===== -->
+@if (Model.Review is { } review)
+{
+    <section class="form-card payment-review"><div class="card-body"><h2>Review payment</h2><p>Check these details before recording. No payment has been saved yet.</p><div asp-validation-summary="All" class="validation-summary"></div>
+    <dl class="payment-review-details"><div><dt>Student</dt><dd>@review.Student</dd></div><div><dt>Payment date</dt><dd>@review.Request.PaymentDate.ToString("dd MMM yyyy")</dd></div><div><dt>Amount</dt><dd>@review.Request.CurrencyId @review.Request.Amount.ToString("N2")</dd></div><div><dt>Payment method</dt><dd>@review.Method</dd></div><div><dt>Exchange rate</dt><dd>@review.Request.ExchangeRate.ToString("0.####")</dd></div><div><dt>Converted amount</dt><dd>@Model.BaseCurrency @Math.Round(review.Request.Amount * review.Request.ExchangeRate, 2, MidpointRounding.AwayFromZero).ToString("N2")</dd></div><div><dt>Reference</dt><dd>@(review.Request.ReferenceNumber ?? "Not provided")</dd></div></dl></div>
+    <form method="post" asp-page-handler="Confirm" class="card-footer payment-submit-form"><input type="hidden" asp-for="ConfirmationToken" /><button type="submit" asp-page-handler="Edit" class="btn btn-secondary">Edit details</button><button type="submit" class="btn btn-primary">Confirm & record payment</button><p class="payment-submit-status" role="status" aria-live="polite"></p></form></section>
+}
+else
+{
+<form method="post" asp-page-handler="Review" class="form-compact payment-submit-form" id="paymentForm">
+    <input type="hidden" asp-for="SubmissionToken" />
+    <div class="form-card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <input type="hidden" asp-for="Input.LedgerId" />
+
+            <div class="form-section-title">
+                <i class="fa-solid fa-money-bill-transfer"></i> Payment Details
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <!-- Payment Date — blank by default, no future dates -->
+                <div class="form-group">
+                    <label class="form-label" for="paymentDateInput">
+                        Payment Date <span class="required">*</span>
+                    </label>
+                    <input type="date"
+                           max="@DateTime.UtcNow.AddHours(2).ToString("yyyy-MM-dd")"
+                           id="paymentDateInput"
+                           name="Input.PaymentDate"
+                           class="form-control"
+                           placeholder="yyyy-mm-dd"
+                           autocomplete="off"
+                           value="@(Model.Input.PaymentDate?.ToString("yyyy-MM-dd") ?? "")"
+                           required />
+                    <small class="currency-hint">From the slip / SMS / POS receipt</small>
+                    <span asp-validation-for="Input.PaymentDate" class="text-danger"></span>
+                </div>
+
+                <!-- Amount -->
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.Amount">
+                        Amount <span class="required">*</span>
+                    </label>
+                    <input asp-for="Input.Amount"
+                           type="number"
+                           step="0.01"
+                           min="0.01"
+                           class="form-control"
+                           id="amountInput" inputmode="decimal"
+                           placeholder="0.00"
+                           required />
+                    <span asp-validation-for="Input.Amount" class="text-danger"></span>
+                </div>
+
+                <!-- Currency -->
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.CurrencyId">
+                        Currency <span class="required">*</span>
+                    </label>
+                    <select asp-for="Input.CurrencyId" class="form-control" id="currencySelect" required>
+                        <option value="">— Select currency —</option>
+                        @foreach (var c in Model.CurrencyOptions)
+                        {
+                            <option value="@c.Code" data-symbol="@c.Symbol">
+                                @c.Code — @c.Name (@c.Symbol)
+                            </option>
+                        }
+                    </select>
+                    <span asp-validation-for="Input.CurrencyId" class="text-danger"></span>
+                </div>
+
+                <!-- Exchange Rate -->
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.ExchangeRate">Exchange Rate</label>
+                    <input asp-for="Input.ExchangeRate"
+                           type="number"
+                           step="0.0001"
+                           min="0.0001"
+                           class="form-control"
+                           id="rateInput" inputmode="decimal"
+                           readonly />
+                    <small class="currency-hint" id="rateHint">
+                        Select a currency and date to load the RBZ rate.
+                    </small>
+                    <span asp-validation-for="Input.ExchangeRate" class="text-danger"></span>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.PaymentMethodId">
+                        Payment Method <span class="required">*</span>
+                    </label>
+                    <select asp-for="Input.PaymentMethodId" class="form-control" required>
+                        <option value="">— Select method —</option>
+                        @foreach (var m in Model.MethodOptions)
+                        {
+                            <option value="@m.Id">@m.Label</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Input.PaymentMethodId" class="text-danger"></span>
+                </div>
+
+                <!-- Reference -->
+                <div class="form-group">
+                    <label class="form-label" asp-for="Input.ReferenceNumber">Reference</label>
+                    <input asp-for="Input.ReferenceNumber"
+                           class="form-control"
+                           placeholder="EcoCash code, bank ref, receipt #..." />
+                    <span asp-validation-for="Input.ReferenceNumber" class="text-danger"></span>
+                </div>
+
+                <!-- Proof URL -->
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="Input.ProofOfPaymentUrl">Proof of Payment URL</label>
+                    <input asp-for="Input.ProofOfPaymentUrl"
+                           class="form-control"
+                           placeholder="Optional link to a scan or photo" />
+                    <span asp-validation-for="Input.ProofOfPaymentUrl" class="text-danger"></span>
+                </div>
+
+            </div>
+
+            <!-- ===== Override section ===== -->
+            <div id="overrideSection" style="display: none; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 1rem;">
+                <label class="right-checkbox" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                    <input asp-for="Input.IsRateOverridden" type="checkbox" id="overrideCheckbox" />
+                    <span style="font-weight: 600; color: #92400E;">Override the RBZ rate (enter manually from your slip)</span>
+                </label>
+
+                <div id="overrideFields" style="display: none; margin-top: 0.75rem;">
+                    <div class="form-group">
+                        <label class="form-label" asp-for="Input.RateOverrideReason">
+                            Reason for override <span class="required">*</span>
+                        </label>
+                        <input asp-for="Input.RateOverrideReason"
+                               class="form-control"
+                               placeholder="e.g. RBZ rate not yet published for this date" />
+                        <span asp-validation-for="Input.RateOverrideReason" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card-footer">
+            <a asp-page="./Ledger" asp-route-id="@Model.LedgerId" class="btn btn-secondary">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i> Review payment
+            </button>
+        </div>
+    </div>
+</form>
+
+}
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/payment-submit.js" asp-append-version="true"></script>
+
+    <script>
+        (function () {
+            const dateInput        = document.getElementById('paymentDateInput');
+            const amountInput      = document.getElementById('amountInput');
+            const currencySelect   = document.getElementById('currencySelect');
+            const rateInput        = document.getElementById('rateInput');
+            const rateHint         = document.getElementById('rateHint');
+            const overrideSection  = document.getElementById('overrideSection');
+            const overrideCheckbox = document.getElementById('overrideCheckbox');
+            const overrideFields   = document.getElementById('overrideFields');
+
+            const conversionStatCard = document.getElementById('conversionStatCard');
+            const conversionAmountEl = document.getElementById('conversionAmount');
+            const conversionLabelEl  = document.getElementById('conversionLabel');
+
+            const BASE_CURRENCY = '@Model.BaseCurrency';
+
+            if (!currencySelect) return;
+
+            // ---- Live conversion stat card ----
+            function updatePreview() {
+                const amt  = parseFloat(amountInput?.value) || 0;
+                const rate = parseFloat(rateInput?.value) || 0;
+                const curr = currencySelect?.value || '';
+
+                if (!conversionStatCard) return;
+
+                const isBase = (curr === BASE_CURRENCY);
+
+                if (amt > 0 && rate > 0 && !isBase) {
+                    conversionAmountEl.textContent = (amt * rate).toFixed(2);
+                    conversionLabelEl.textContent  = 'Converts to ' + BASE_CURRENCY;
+                    conversionStatCard.style.display = '';
+                } else {
+                    conversionStatCard.style.display = 'none';
+                }
+            }
+
+            // ---- Fetch the rate ----
+            let lastFetchKey = '';
+            let fetchSeq = 0;
+
+            function fetchRate() {
+                const currency = currencySelect.value;
+                const date     = dateInput.value;
+
+                if (!currency || !date) {
+                    rateHint.textContent = 'Select a currency and date to load the RBZ rate.';
+                    rateHint.style.color = '';
+                    rateInput.value = '';
+                    overrideSection.style.display = 'none';
+                    updatePreview();
+                    return;
+                }
+
+                const key = currency + '|' + date;
+                if (key === lastFetchKey && !overrideCheckbox.checked) return;
+                lastFetchKey = key;
+
+                const seq = ++fetchSeq;
+
+                rateHint.textContent = 'Fetching RBZ rate...';
+                rateHint.style.color = '#6B7280';
+                rateInput.value = '';
+                overrideSection.style.display = 'none';
+                updatePreview();
+
+                fetch(`?handler=FetchRate&currencyId=${encodeURIComponent(currency)}&paymentDate=${encodeURIComponent(date)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (seq !== fetchSeq) return;
+
+                        if (!data.success) {
+                            rateHint.textContent = data.message || 'Could not fetch the rate.';
+                            rateHint.style.color = '#B91C1C';
+                            overrideSection.style.display = 'block';
+                            updatePreview();
+                            return;
+                        }
+
+                        rateInput.value = data.rate;
+                        rateHint.textContent = data.message || '';
+                        rateHint.style.color = data.isStale ? '#92400E' : '#6B7280';
+
+                        if (data.source !== 'BASE') {
+                            overrideSection.style.display = 'block';
+                        } else {
+                            overrideSection.style.display = 'none';
+                        }
+
+                        updatePreview();
+                    })
+                    .catch(() => {
+                        if (seq !== fetchSeq) return;
+                        rateHint.textContent = 'Network error while fetching the rate.';
+                        rateHint.style.color = '#B91C1C';
+                        overrideSection.style.display = 'block';
+                        updatePreview();
+                    });
+            }
+
+            // ---- Wire up events ----
+            currencySelect.addEventListener('change', function () {
+                lastFetchKey = '';
+                fetchRate();
+            });
+
+            dateInput.addEventListener("change", function () { lastFetchKey = ""; fetchRate(); });
+            amountInput.addEventListener('input', updatePreview);
+            rateInput.addEventListener('input', updatePreview);
+
+            overrideCheckbox.addEventListener('change', function () {
+                if (overrideCheckbox.checked) {
+                    overrideFields.style.display = 'block';
+                    rateInput.readOnly = false;
+                    rateInput.focus();
+                } else {
+                    overrideFields.style.display = 'none';
+                    rateInput.readOnly = true;
+                    lastFetchKey = '';
+                    fetchRate();
+                }
+            });
+
+            if (overrideCheckbox.checked) {
+                overrideSection.style.display = "block"; overrideFields.style.display = "block"; rateInput.readOnly = false; updatePreview();
+            } else { fetchRate(); }
+        })();
+    </script>
+}

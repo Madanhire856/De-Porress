@@ -15,6 +15,10 @@ public partial class Currency
 
     public Guid? CreatorId { get; set; }
 
+    public decimal? ExchangeRateToBase { get; set; }
+
+    public bool IsBase { get; set; }
+
     public virtual User? Creator { get; set; }
 
     public virtual ICollection<FeesStructure> FeesStructures { get; set; } = new List<FeesStructure>();

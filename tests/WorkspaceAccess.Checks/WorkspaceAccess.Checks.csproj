@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../SMS.Web/Pages/Account/Profile.cshtml.cs" Link="Profile.cshtml.cs" />
+    <Compile Include="../../SMS.Web/Services/CognitoIdentity.cs" Link="CognitoIdentity.cs" />
+    <Compile Include="../../SMS.Web/Services/CognitoSettings.cs" Link="CognitoSettings.cs" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../../SMS.Data/SMS.Data.csproj" />
+    <ProjectReference Include="../../SMS.Lib/SMS.Lib.csproj" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/ClassTeacherAssignments/Index.cshtml.cs" Link="ClassTeacherAssignments.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/Staff/AssignSubject.cshtml.cs" Link="AssignSubject.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/SubjectAssignments/Index.cshtml.cs" Link="SubjectAssignments.cs" />
+    <Compile Include="../../SMS.Web/Services/WorkspacePageFilter.cs" Link="WorkspacePageFilter.cs" />
+    <Compile Include="../../SMS.Web/Services/WorkspaceAccess.cs" Link="WorkspaceAccess.cs" />
+    <Compile Include="../../SMS.Web/Services/WeeklyCollectionPeriods.cs" Link="WeeklyCollectionPeriods.cs" />
+    <Compile Include="../../SMS.Web/Services/SchoolNotices.cs" Link="SchoolNotices.cs" />
+    <Compile Include="../../SMS.Web/Services/SdcAccess.cs" Link="SdcAccess.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/Sdc/Member.cshtml.cs" Link="SdcMember.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/Sdc/Terms.cshtml.cs" Link="SdcTerms.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/Sdc/Positions.cshtml.cs" Link="SdcPositions.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/Notices/Upsert.cshtml.cs" Link="NoticeUpsert.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/Notices/Index.cshtml.cs" Link="NoticeIndex.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/StaffNotices/Details.cshtml.cs" Link="StaffNoticeDetails.cs" />
+    <Compile Include="../../SMS.Web/Services/PrefectAccess.cs" Link="PrefectAccess.cs" />
+    <Compile Include="../../SMS.Web/Services/RoleAssignmentPolicy.cs" Link="RoleAssignmentPolicy.cs" />
+    <Compile Include="../../SMS.Web/Services/RightsSelectionPolicy.cs" Link="RightsSelectionPolicy.cs" />
+    <Compile Include="../../SMS.Web/Services/CurrentUserService.cs" Link="CurrentUserService.cs" />
+    <Compile Include="../../SMS.Web/Services/PrefectAppointments.cs" Link="PrefectAppointments.cs" />
+    <Compile Include="../../SMS.Web/Services/PrefectLifecycle.cs" Link="PrefectLifecycle.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/Prefects/Nominate.cshtml.cs" Link="PrefectNominate.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/Prefects/Nominations.cshtml.cs" Link="PrefectNominations.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/Prefects/Upsert.cshtml.cs" Link="PrefectUpsert.cs" />
+    <Compile Include="../../SMS.Web/Areas/Academics/Pages/Prefects/ViewModels/PrefectsVM.cs" Link="PrefectVM.cs" />
+    <Compile Include="../../SMS.Web/Pages/GeneratedNumbers/GeneratedNumberHelper.cs" Link="GeneratedNumberHelper.cs" />
+    <Compile Include="../../SMS.Web/Services/ICurrentUserService.cs" Link="ICurrentUserService.cs" />
+  </ItemGroup>
+</Project>
+

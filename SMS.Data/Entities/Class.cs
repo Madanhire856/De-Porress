@@ -13,13 +13,13 @@ public partial class Class
 
     public int Capacity { get; set; }
 
-    public Guid ClassTeacherId { get; set; }
+    public Guid? ClassTeacherId { get; set; }
 
     public DateTime CreationDate { get; set; }
 
     public Guid CreatorId { get; set; }
 
-    public virtual Staff ClassTeacher { get; set; } = null!;
+    public virtual Staff? ClassTeacher { get; set; }
 
     public virtual User Creator { get; set; } = null!;
 

@@ -1,0 +1,23 @@
+@page
+@model SMS.Web.Pages.Notices.IndexModel
+@using SMS.Web.Services
+@{ Layout = "_PublicLayout"; ViewData["Title"] = "School Notices"; }
+    <section class="school-section">
+        <p class="school-eyebrow">FROM THE SCHOOL OFFICE</p><h1>School notices</h1>
+        <p>Updates for parents, learners and our school community.</p>
+        <div class="school-notices-grid">
+            @foreach (var notice in Model.Notices) {
+                <article class="school-notice-card">
+                    <time datetime="@notice.CreationDate.ToString("yyyy-MM-dd")">@notice.CreationDate.AddHours(2).ToString("dd MMM yyyy")</time>
+                    <h2><a asp-page="./Details" asp-route-id="@notice.Id">@notice.Title</a></h2>
+                    <p>@SchoolNotices.Preview(notice.Body)</p><a class="school-text-link" asp-page="./Details" asp-route-id="@notice.Id">Read notice →</a>
+                </article>
+            }
+        </div>
+        @if (Model.Notices.Count == 0) { <p>No school notices have been published yet. Please check back for updates.</p> }
+        <nav class="school-buttons school-notices-pagination" aria-label="Notice pages">
+            @if (Model.PageNumber > 1) { <a class="school-text-link" asp-route-PageNumber="@(Model.PageNumber - 1)">← Newer notices</a> }
+            @if (Model.HasNext) { <a class="school-text-link" asp-route-PageNumber="@(Model.PageNumber + 1)">Older notices →</a> }
+        </nav>
+        <a class="school-text-link" asp-page="/Index" asp-route-Website="true">← School home</a>
+    </section>

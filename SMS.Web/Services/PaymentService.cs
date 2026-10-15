@@ -1,0 +1,413 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using SMS.Data;
+using SMS.Lib;
+using System;
+using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace SMS.Web.Services
+{
+    public class PaymentService : IPaymentService
+    {
+        private readonly SMSDbContext _context;
+
+        public PaymentService(SMSDbContext context)
+        {
+            _context = context;
+        }
+
+        // =========================================================
+        //  RECORD PAYMENT
+        // =========================================================
+        public async Task<Payment> RecordAsync(RecordPaymentRequest request)
+        {
+            if (request.SubmissionId == Guid.Empty)
+                throw new InvalidOperationException("Reload the payment form before recording a payment.");
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                // SQL Server locks are shared across requests and application instances.
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                var resource = "RecordPayment:" + request.LedgerId.ToString("N");
+                await _context.Database.ExecuteSqlInterpolatedAsync($@"
+                    DECLARE @result int;
+                    EXEC @result = sys.sp_getapplock @Resource={resource}, @LockMode='Exclusive', @LockOwner='Transaction', @LockTimeout=15000;
+                    IF @result < 0 THROW 51000, 'Payment is busy. Retry the same confirmation.', 1;");
+                var existing = await _context.Payments.AsNoTracking().FirstOrDefaultAsync(p => p.Id == request.SubmissionId);
+                if (existing != null)
+                {
+                    if (existing.CreatorId != request.UserId || existing.LedgerId != request.LedgerId)
+                        throw new InvalidOperationException("This submission belongs to another payment.");
+                    if (existing.Amount != request.Amount || existing.CurrencyId != request.CurrencyId
+                        || existing.PaymentDate.Date != request.PaymentDate.Date || existing.PaymentMethodId != request.PaymentMethodId)
+                        throw new InvalidOperationException("This form already recorded a different payment. Open a new payment form.");
+                    await transaction.CommitAsync();
+                    return existing;
+                }
+                // A retry after a rollback must not retain the unsuccessful insert.
+                foreach (var entry in _context.ChangeTracker.Entries<Payment>().Where(e => e.Entity.Id == request.SubmissionId).ToList())
+                    entry.State = EntityState.Detached;
+                var payment = await RecordCoreAsync(request);
+                await transaction.CommitAsync();
+                return payment;
+            });
+        }
+
+        private async Task<Payment> RecordCoreAsync(RecordPaymentRequest request)
+        {
+            ValidateRecordRequest(request);
+
+            // Compute the base-currency amount. Round to 2 decimals — money.
+            var baseAmount = Math.Round(
+                request.Amount * request.ExchangeRate,
+                2,
+                MidpointRounding.AwayFromZero);
+
+            if (baseAmount <= 0m)
+                throw new InvalidOperationException(
+                    "Converted amount is too small. Check the exchange rate.");
+
+            var ledger = await _context.StudentLedgers
+                .FirstOrDefaultAsync(l => l.Id == request.LedgerId)
+                ?? throw new InvalidOperationException("Ledger not found.");
+
+            var currencyExists = await _context.Currencies
+                .AnyAsync(c => c.Code == request.CurrencyId);
+
+            if (!currencyExists)
+                throw new InvalidOperationException(
+                    $"Currency '{request.CurrencyId}' is not configured.");
+
+            var now = DateTime.Now;
+            var receiptYear = now.Year;
+            var receiptNumber = await AllocateReceiptNumberAsync(receiptYear);
+
+            var payment = new Payment
+            {
+                Id = request.SubmissionId,
+                LedgerId = request.LedgerId,
+                PaymentDate = request.PaymentDate.Date,      // ← NEW
+                Amount = request.Amount,
+                CurrencyId = request.CurrencyId,
+                ExchangeRate = request.ExchangeRate,
+                BaseAmount = baseAmount,
+                ReceiptNumber = receiptNumber,
+                ReceiptYear = receiptYear,
+                RateSource = Trim(request.RateSource),
+                IsReversal = false,
+                PaymentMethodId = request.PaymentMethodId,
+                ReferenceNumber = Trim(request.ReferenceNumber),
+                ProofOfPaymentUrl = Trim(request.ProofOfPaymentUrl),
+                CreatorId = request.UserId,
+                CreatedByName = request.UserDisplayName,
+                CreationDate = now
+            };
+
+            _context.Payments.Add(payment);
+
+            // Recompute ledger balance from existing payments, then subtract
+            // the new base amount manually — EF Core doesn't see the unsaved Add().
+            var totalPaidBefore = await _context.Payments
+                .Where(p => p.LedgerId == request.LedgerId)
+                .SumAsync(p => (decimal?)p.BaseAmount ?? 0m);
+
+            var newClosing = ledger.OpeningBalance - totalPaidBefore - baseAmount;
+            ledger.ClosingBalance = newClosing;
+            ledger.StatusId = ComputeStatus(newClosing, totalPaidBefore + baseAmount);
+
+            await _context.SaveChangesAsync();
+
+            return payment;
+        }
+
+        // =========================================================
+        //  CORRECT PAYMENT
+        // =========================================================
+        public async Task<Payment> CorrectAsync(CorrectPaymentRequest request)
+            => await MutatePaymentAsync(request.PaymentId, () => CorrectCoreAsync(request));
+
+        private async Task<Payment> CorrectCoreAsync(CorrectPaymentRequest request)
+        {
+            if (request.PaymentId == Guid.Empty)
+                throw new InvalidOperationException("Payment is required.");
+            if (request.PaymentDate == default || request.PaymentDate.Date > DateTime.Today)
+                throw new InvalidOperationException("Enter a valid payment date that is not in the future.");
+            if (request.Amount <= 0m)
+                throw new InvalidOperationException("Amount must be greater than zero.");
+            if (string.IsNullOrWhiteSpace(request.CorrectionReason) || request.CorrectionReason.Trim().Length < 10)
+                throw new InvalidOperationException("The correction reason must be at least 10 characters.");
+
+            var payment = await _context.Payments
+                .FirstOrDefaultAsync(p => p.Id == request.PaymentId)
+                ?? throw new InvalidOperationException("Payment not found.");
+
+            if (payment.IsReversal)
+                throw new InvalidOperationException("A reversal entry cannot be corrected.");
+
+            if (await _context.Payments.AnyAsync(p => p.ReversesPaymentId == payment.Id))
+                throw new InvalidOperationException("A reversed payment cannot be corrected. Record a new payment instead.");
+
+            var ledger = payment.LedgerId.HasValue
+                ? await _context.StudentLedgers.FirstOrDefaultAsync(l => l.Id == payment.LedgerId.Value)
+                : null;
+
+            var exchangeRate = payment.ExchangeRate ?? 1m;
+            var correctedBaseAmount = Math.Round(request.Amount * exchangeRate, 2, MidpointRounding.AwayFromZero);
+            if (correctedBaseAmount <= 0m)
+                throw new InvalidOperationException("Corrected amount is too small. Check the payment amount.");
+
+            var correction = new PaymentCorrection
+            {
+                Id = Guid.NewGuid(),
+                PaymentId = payment.Id,
+                CorrectedById = request.UserId,
+                CorrectedByName = string.IsNullOrWhiteSpace(request.UserDisplayName) ? "System" : request.UserDisplayName,
+                CorrectedOn = DateTime.Now,
+                Reason = request.CorrectionReason.Trim(),
+                PreviousAmount = payment.Amount ?? 0m,
+                CorrectedAmount = request.Amount,
+                PreviousBaseAmount = payment.BaseAmount ?? payment.Amount ?? 0m,
+                CorrectedBaseAmount = correctedBaseAmount,
+                PreviousPaymentDate = payment.PaymentDate,
+                CorrectedPaymentDate = request.PaymentDate.Date,
+                PreviousPaymentMethodId = payment.PaymentMethodId,
+                CorrectedPaymentMethodId = request.PaymentMethodId,
+                PreviousReferenceNumber = payment.ReferenceNumber,
+                CorrectedReferenceNumber = Trim(request.ReferenceNumber)
+            };
+
+            payment.PaymentDate = request.PaymentDate.Date;
+            payment.Amount = request.Amount;
+            payment.BaseAmount = correctedBaseAmount;
+            payment.PaymentMethodId = request.PaymentMethodId;
+            payment.ReferenceNumber = Trim(request.ReferenceNumber);
+            payment.ProofOfPaymentUrl = Trim(request.ProofOfPaymentUrl);
+            payment.CorrectionReason = request.CorrectionReason.Trim();
+            _context.PaymentCorrections.Add(correction);
+
+            if (ledger != null)
+            {
+                var totalPaid = await _context.Payments
+                    .Where(p => p.LedgerId == ledger.Id && p.Id != payment.Id)
+                    .SumAsync(p => (decimal?)p.BaseAmount ?? 0m);
+                var closingBalance = ledger.OpeningBalance - totalPaid - correctedBaseAmount;
+                ledger.ClosingBalance = closingBalance;
+                ledger.StatusId = ComputeStatus(closingBalance, totalPaid + correctedBaseAmount);
+            }
+
+            await _context.SaveChangesAsync();
+            return payment;
+        }
+
+        // =========================================================
+        //  REVERSE PAYMENT
+        // =========================================================
+        public async Task<Payment> ReverseAsync(ReversePaymentRequest request)
+            => await MutatePaymentAsync(request.OriginalPaymentId, () => ReverseCoreAsync(request));
+
+        // Share the recording lock so corrections, reversals and new payments
+        // cannot calculate competing balances for the same ledger.
+        private async Task<Payment> MutatePaymentAsync(Guid paymentId, Func<Task<Payment>> mutate)
+        {
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                var original = await _context.Payments.AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id == paymentId)
+                    ?? throw new InvalidOperationException("Payment not found.");
+                var resource = "RecordPayment:" + (original.LedgerId ?? original.Id).ToString("N");
+                await _context.Database.ExecuteSqlInterpolatedAsync($@"
+                    DECLARE @result int;
+                    EXEC @result = sys.sp_getapplock @Resource={resource}, @LockMode='Exclusive', @LockOwner='Transaction', @LockTimeout=15000;
+                    IF @result < 0 THROW 51000, 'Payment is busy. Retry the operation.', 1;");
+                // A caller may already have read these rows before obtaining the lock.
+                foreach (var entry in _context.ChangeTracker.Entries<Payment>().Where(e => e.Entity.Id == paymentId).ToList())
+                    await entry.ReloadAsync();
+                foreach (var entry in _context.ChangeTracker.Entries<StudentLedger>().Where(e => e.Entity.Id == original.LedgerId).ToList())
+                    await entry.ReloadAsync();
+                var result = await mutate();
+                await transaction.CommitAsync();
+                return result;
+            });
+        }
+
+        private async Task<Payment> ReverseCoreAsync(ReversePaymentRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Reason))
+                throw new InvalidOperationException("A reversal reason is required.");
+
+            if (request.Reason.Trim().Length < 10)
+                throw new InvalidOperationException(
+                    "The reversal reason must be at least 10 characters.");
+
+            var original = await _context.Payments
+                .FirstOrDefaultAsync(p => p.Id == request.OriginalPaymentId)
+                ?? throw new InvalidOperationException("Original payment not found.");
+
+            if (original.IsReversal)
+                throw new InvalidOperationException(
+                    "Cannot reverse a reversal. Record a new payment instead.");
+
+            var alreadyReversed = await _context.Payments
+                .AnyAsync(p => p.ReversesPaymentId == original.Id);
+
+            if (alreadyReversed)
+                throw new InvalidOperationException(
+                    "This payment has already been reversed.");
+
+            var now = DateTime.Now;
+            var receiptYear = now.Year;
+            var receiptNumber = await AllocateReceiptNumberAsync(receiptYear);
+
+            var reversal = new Payment
+            {
+                Id = Guid.NewGuid(),
+                LedgerId = original.LedgerId,
+                PaymentDate = now.Date,                      // ← NEW: reversal's own date
+                Amount = original.Amount,
+                CurrencyId = original.CurrencyId,
+                ExchangeRate = original.ExchangeRate,
+                BaseAmount = -(original.BaseAmount ?? 0m),
+                ReceiptNumber = receiptNumber,
+                ReceiptYear = receiptYear,
+                RateSource = original.RateSource,
+                IsReversal = true,
+                ReversesPaymentId = original.Id,
+                ReversalReason = request.Reason.Trim(),
+                ReversedById = request.UserId,
+                ReversedOn = now,
+                PaymentMethodId = original.PaymentMethodId,
+                ReferenceNumber = original.ReferenceNumber,
+                ProofOfPaymentUrl = null,
+                CreatorId = request.UserId,
+                CreatedByName = request.UserDisplayName,
+                CreationDate = now
+            };
+
+            _context.Payments.Add(reversal);
+
+            if (original.LedgerId.HasValue)
+            {
+                var ledger = await _context.StudentLedgers
+                    .FirstOrDefaultAsync(l => l.Id == original.LedgerId.Value);
+
+                if (ledger != null)
+                {
+                    var totalPaidBefore = await _context.Payments
+                        .Where(p => p.LedgerId == ledger.Id)
+                        .SumAsync(p => (decimal?)p.BaseAmount ?? 0m);
+
+                    var newClosing = ledger.OpeningBalance
+                                     - totalPaidBefore
+                                     - reversal.BaseAmount!.Value;
+
+                    ledger.ClosingBalance = newClosing;
+                    ledger.StatusId = ComputeStatus(
+                        newClosing,
+                        totalPaidBefore + reversal.BaseAmount!.Value);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return reversal;
+        }
+
+        // =========================================================
+        //  VALIDATION
+        // =========================================================
+        private static void ValidateRecordRequest(RecordPaymentRequest request)
+        {
+            if (request.LedgerId == Guid.Empty)
+                throw new InvalidOperationException("Ledger is required.");
+
+            // ---- NEW: payment date guards ----
+            if (request.PaymentDate == default)
+                throw new InvalidOperationException("Payment date is required.");
+
+            if (request.PaymentDate.Date > DateTime.Today)
+                throw new InvalidOperationException("Payment date cannot be in the future.");
+
+            if (request.Amount <= 0m)
+                throw new InvalidOperationException("Amount must be greater than zero.");
+
+            if (request.ExchangeRate <= 0m)
+                throw new InvalidOperationException("Exchange rate must be greater than zero.");
+
+            if (string.IsNullOrWhiteSpace(request.CurrencyId))
+                throw new InvalidOperationException("Currency is required.");
+
+            if (string.IsNullOrWhiteSpace(request.UserDisplayName))
+                throw new InvalidOperationException("User display name is required.");
+        }
+
+        // =========================================================
+        //  RECEIPT NUMBER ALLOCATION
+        // =========================================================
+        private async Task<int> AllocateReceiptNumberAsync(int year)
+        {
+            await _context.Database.ExecuteSqlRawAsync(
+                @"IF NOT EXISTS (SELECT 1 FROM ReceiptSequence WHERE Year = {0})
+                  INSERT INTO ReceiptSequence (Year, LastNumber, LastIssuedOn)
+                  VALUES ({0}, 0, GETDATE());",
+                year);
+
+            var connection = _context.Database.GetDbConnection();
+            var wasClosed = connection.State == ConnectionState.Closed;
+
+            if (wasClosed)
+                await connection.OpenAsync();
+
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.Transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+
+                cmd.CommandText = @"
+                    UPDATE ReceiptSequence
+                    SET LastNumber = LastNumber + 1,
+                        LastIssuedOn = GETDATE()
+                    OUTPUT INSERTED.LastNumber
+                    WHERE Year = @Year;";
+
+                var p = cmd.CreateParameter();
+                p.ParameterName = "@Year";
+                p.DbType = DbType.Int32;
+                p.Value = year;
+                cmd.Parameters.Add(p);
+
+                var result = await cmd.ExecuteScalarAsync();
+
+                if (result == null || result == DBNull.Value)
+                    throw new InvalidOperationException(
+                        "Failed to allocate a receipt number.");
+
+                return Convert.ToInt32(result);
+            }
+            finally
+            {
+                if (wasClosed)
+                    await connection.CloseAsync();
+            }
+        }
+
+        // =========================================================
+        //  HELPERS
+        // =========================================================
+        private static int ComputeStatus(decimal closingBalance, decimal totalPaid)
+        {
+            if (closingBalance <= 0m)
+                return (int)StudentLedgerStatus.SETTLED;
+
+            return totalPaid > 0m
+                ? (int)StudentLedgerStatus.PARTIALLY_SETTLED
+                : (int)StudentLedgerStatus.OVER_DUE;
+        }
+
+        private static string? Trim(string? s) =>
+            string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+    }
+}

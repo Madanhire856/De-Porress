@@ -1,0 +1,47 @@
+@page "{staffId:guid}"
+@model SMS.Web.Areas.Academics.Pages.Staff.AssignSubjectModel
+@using SMS.Lib
+@{
+    ViewData["PageTitle"] = "Manage Subject Assignments";
+    ViewData["PageSubTitle"] = $"Select subjects taught by {Model.StaffVM.Name} {Model.StaffVM.Surname}";
+}
+@section actionbar {
+    <a asp-page="/SubjectAssignments/Index" class="btn btn-ghost">Back to assignments</a>
+}
+<form method="post" class="form-compact" id="subjectAssignmentForm">
+    <input type="hidden" asp-for="PreviousSelection" />
+    <div class="form-card">
+        <div class="card-body">
+            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+            <div class="form-section-title"><i class="fas fa-book" aria-hidden="true"></i> Teaching subjects
+                <span class="badge bg-secondary" id="subjectsCount" aria-live="polite">@Model.SelectedSubjectIds.Distinct().Count() selected</span>
+            </div>
+            <p class="form-text">Select the subjects this teacher teaches. Clear a selection to remove that subject; clearing all selections leaves the teacher unassigned.</p>
+            @foreach (var group in Model.Subjects.GroupBy(x => x.CategoryId))
+            {
+                <fieldset class="mb-3">
+                    <legend class="fs-6 fw-semibold">@(((SubjectCategory)group.Key).ToDisplayName())</legend>
+                    @foreach (var subject in group)
+                    {
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="subject-@subject.Id" name="SelectedSubjectIds"
+                                value="@subject.Id" checked="@Model.SelectedSubjectIds.Contains(subject.Id)" />
+                            <label class="form-check-label" for="subject-@subject.Id">@subject.Name <span class="text-muted">(@subject.Code)</span></label>
+                        </div>
+                    }
+                </fieldset>
+            }
+            @if (Model.Subjects.Count == 0)
+            {
+                <div class="alert alert-info">No subjects are defined. Add subjects in School Setup before assigning them.</div>
+            }
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary" disabled="@(Model.Subjects.Count == 0)"><i class="fas fa-save" aria-hidden="true"></i> Save assignments</button>
+        </div>
+    </div>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/subject-assignments.js" asp-append-version="true"></script>
+}

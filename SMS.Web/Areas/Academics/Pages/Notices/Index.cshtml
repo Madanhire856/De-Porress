@@ -1,0 +1,38 @@
+@page
+@model SMS.Web.Areas.Academics.Pages.Notices.IndexModel
+@using SMS.Lib
+@{
+    ViewData["PageTitle"] = "School Notices";
+    ViewData["PageSubTitle"] = "Manage public and staff-only notices";
+}
+@section actionbar { <a asp-page="./Upsert" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Create notice</a> }
+@if (TempData["NoticeSaved"] is string message) { <div class="alert alert-success" role="status">@message</div> }
+<div class="table-card">
+    <div class="table-count">Total: @Model.Total notices</div>
+    <form method="get" class="table-toolbar" data-auto-filter>
+        <div class="toolbar-filters"><div class="filter-wrapper"><label for="noticeStatus" class="visually-hidden">Status</label>
+            <select asp-for="Status" id="noticeStatus" class="filter-dropdown"><option value="">All statuses</option><option value="draft">Drafts</option><option value="published">Published</option></select>
+        </div><div class="filter-wrapper"><label for="noticeAudience" class="visually-hidden">Audience</label><select asp-for="Audience" id="noticeAudience" class="filter-dropdown"><option value="">All audiences</option><option value="public">Public website</option><option value="staff">Staff only</option></select></div></div>
+        <div class="search-wrapper"><i class="fas fa-search" aria-hidden="true"></i><input asp-for="SearchTerm" class="search-input" placeholder="Search notices…" aria-label="Search notices" /></div>
+    </form>
+    <div class="table-responsive"><table class="table"><thead><tr><th>Title</th><th>Created</th><th>Audience</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        @foreach (var notice in Model.Notices)
+        {
+            <tr><td>@notice.Title</td><td>@notice.CreationDate.AddHours(2).ToString("dd MMM yyyy")</td><td>@(notice.ChannelId == (int)AnnouncementChannel.STAFF_NOTICE ? "Staff only" : "Public website")</td><td>@(notice.StatusId == (int)AnnouncementStatus.SENT ? "Published" : "Draft")</td><td>
+                <a asp-page="./Upsert" asp-route-id="@notice.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                @if (notice.StatusId == (int)AnnouncementStatus.SENT) {
+                    @if (notice.ChannelId == (int)AnnouncementChannel.STAFF_NOTICE) {
+                        <a asp-page="/StaffNotices/Details" asp-route-id="@notice.Id" class="btn btn-sm btn-outline-secondary">View staff notice</a>
+                    } else { <a asp-area="" asp-page="/Notices/Details" asp-route-id="@notice.Id" class="btn btn-sm btn-outline-secondary">View on website</a> }
+                    <form method="post" asp-page-handler="Withdraw" asp-route-id="@notice.Id" class="d-inline"><button class="btn btn-sm btn-outline-secondary" type="submit">Withdraw</button></form>
+                }
+            </td></tr>
+        }
+        @if (Model.Notices.Count == 0) { <tr><td colspan="5">No notices found.</td></tr> }
+    </tbody></table></div>
+    <nav aria-label="Notice pages" class="d-flex justify-content-end gap-2 p-3">
+        @if (Model.PageNumber > 1) { <a asp-route-PageNumber="@(Model.PageNumber - 1)" asp-route-SearchTerm="@Model.SearchTerm" asp-route-Status="@Model.Status" asp-route-Audience="@Model.Audience" class="btn btn-outline-secondary">Previous</a> }
+        @if (Model.HasNext) { <a asp-route-PageNumber="@(Model.PageNumber + 1)" asp-route-SearchTerm="@Model.SearchTerm" asp-route-Status="@Model.Status" asp-route-Audience="@Model.Audience" class="btn btn-outline-secondary">Next</a> }
+    </nav>
+</div>
+@section Scripts { <script src="~/js/assignment-filters.js" asp-append-version="true"></script> }

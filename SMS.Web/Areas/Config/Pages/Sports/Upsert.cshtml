@@ -1,0 +1,65 @@
+﻿@page "{id:guid?}"
+@model SMS.Web.Areas.Config.Pages.Sports.UpsertModel
+@{
+    ViewData["PageTitle"] = Model.sport.Name != null ? "Edit Sport" : "Add Sport";
+    ViewData["PageSubTitle"] = "Create or modify a sport";
+}
+
+<form method="post" class="form-compact">
+    <div class="form-card">
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <input type="hidden" asp-for="sport.Id" />
+
+            <!-- ===== SPORT DETAILS ===== -->
+            <div class="form-section-title">
+                <i class="fa-solid fa-futbol"></i> Sport Details
+            </div>
+
+            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+
+                <div class="form-group full-width">
+                    <label class="form-label" asp-for="sport.Name">
+                        Sport Name <span class="required">*</span>
+                    </label>
+                    <input asp-for="sport.Name" class="form-control" placeholder="e.g. Football" required />
+                    <span asp-validation-for="sport.Name" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- ===== INFO NOTE (edit mode only) ===== -->
+            @if (Model.sport.Name != null)
+            {
+                <div class="info-row"
+                     style="border-radius: 6px; background: #FFFBEB; border: 1px solid #FDE68A;">
+                    <div style="display: flex; gap: 0.6rem; align-items: flex-start; color: #92400E; font-size: 0.85rem;">
+                        <i class="fa-solid fa-circle-info" style="margin-top: 2px;"></i>
+                        <div>
+                            <strong>Coach assignments are managed in Academics.</strong><br />
+                            To assign coaches to this sport, go to
+                            <a asp-area="Academics"
+                               asp-page="/SportAssignments/Assign"
+                               asp-route-id="@Model.sport.Id"
+                               style="color: inherit; text-decoration: underline;">
+                                Sport Assignments
+                            </a>.
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i>
+                @(Model.sport.Name != null ? "Save Changes" : "Create Sport")
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

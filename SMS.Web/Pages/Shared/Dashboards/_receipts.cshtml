@@ -1,0 +1,11 @@
+@model SMS.Web.Pages.IndexModel
+@using SMS.Lib
+<section class="table-card">
+    <div class="card-body"><h2 class="h5">Recent receipts · last 7 days</h2><p class="text-muted mb-0">Showing the latest @Model.RecentPayments.Count of @Model.RecentReceiptCount.ToString("N0") entries · @(Model.CanViewAllCollections ? "School-wide" : "Your collections") · @Model.ReportingStart.ToString("dd MMM")–@Model.SchoolToday.ToString("dd MMM yyyy")</p></div>
+    <div class="table-responsive"><table class="data-table table-compact"><thead><tr><th>Receipt / student</th><th>Date</th><th>Recorded by</th><th>Type</th><th class="text-end">Original amount</th></tr></thead><tbody>
+        @foreach (var payment in Model.RecentPayments) { <tr><td>
+            @if (payment.LedgerId.HasValue && Model.Can(AccessRights.ViewFeeBalances)) { <a asp-area="Finance" asp-page="/Fees/Ledger" asp-route-id="@payment.LedgerId">RCP-@payment.ReceiptYear-@payment.ReceiptNumber.ToString("D5")</a> } else { <strong>RCP-@payment.ReceiptYear-@payment.ReceiptNumber.ToString("D5")</strong> }
+            <small class="d-block">@(payment.Ledger == null ? "Unlinked receipt" : $"{payment.Ledger.Student.Name} {payment.Ledger.Student.Surname}")</small></td><td>@payment.PaymentDate.ToString("dd MMM yyyy")</td><td>@payment.CreatedByName</td><td>@(payment.IsReversal ? "Reversal" : "Payment")</td><td class="text-end text-nowrap">@payment.CurrencyId @((payment.Amount ?? 0m).ToString("N2"))</td></tr> }
+        @if (Model.RecentPayments.Count == 0) { <tr><td colspan="5" class="empty-state">No receipts in this period.</td></tr> }
+    </tbody></table></div>
+</section>

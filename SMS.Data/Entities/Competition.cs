@@ -19,7 +19,13 @@ public partial class Competition
 
     public Guid CreatorId { get; set; }
 
+    public Guid SportId { get; set; }
+
+    public int LevelId { get; set; }
+
     public virtual User Creator { get; set; } = null!;
+
+    public virtual Sport Sport { get; set; } = null!;
 
     public virtual Term Term { get; set; } = null!;
 }

@@ -26,4 +26,6 @@ public partial class Prefect
     public virtual User? Creator { get; set; }
 
     public virtual Staff? Nominator { get; set; }
+
+    public virtual Student Student { get; set; } = null!;
 }

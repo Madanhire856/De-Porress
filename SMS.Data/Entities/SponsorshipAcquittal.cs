@@ -11,9 +11,9 @@ public partial class SponsorshipAcquittal
 
     public string Period { get; set; } = null!;
 
-    public int? AmountDisbursed { get; set; }
+    public decimal? AmountDisbursed { get; set; }
 
-    public int? AmountUtilised { get; set; }
+    public decimal? AmountUtilised { get; set; }
 
     public string? CurrencyId { get; set; }
 

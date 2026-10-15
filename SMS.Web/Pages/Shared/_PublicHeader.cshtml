@@ -1,0 +1,15 @@
+@{ var publicHome = User.Identity?.IsAuthenticated == true ? Url.Page("/Index", new { area = "", Website = true }) : Url.Page("/Index", new { area = "" }); }
+<header class="school-header">
+    <a class="school-brand" href="@publicHome" aria-label="St Martin De Porres Primary School home">
+        <img src="~/Images/logo.jpeg" alt="School crest" />
+        <span>St Martin De Porres<small>PRIMARY SCHOOL</small></span>
+    </a>
+    <nav aria-label="Main navigation">
+        <a href="@(publicHome + "#about")">Our school</a>
+        <a href="@(publicHome + "#faith")">Our values</a>
+        <a href="@(publicHome + "#learning")">Learning</a>
+        <a asp-area="" asp-page="/Notices/Index">Notices</a>
+        <a href="@(publicHome + "#contact")">Contact</a>
+    </nav>
+    <a class="school-portal" asp-area="Identity" asp-page="/Account/StaffLogin">Staff portal <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+</header>

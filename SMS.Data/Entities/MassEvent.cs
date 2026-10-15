@@ -15,8 +15,6 @@ public partial class MassEvent
 
     public string Celebrant { get; set; } = null!;
 
-    public int TypeId { get; set; }
-
     public Guid? CreatorId { get; set; }
 
     public DateTime? CreationDate { get; set; }

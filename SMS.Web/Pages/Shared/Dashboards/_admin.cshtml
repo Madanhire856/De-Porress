@@ -1,0 +1,46 @@
+@model SMS.Web.Pages.IndexModel
+@using SMS.Lib
+@using System.Globalization
+@using System.Text.Json
+<div class="admin-dashboard">
+<header class="admin-heading"><div><span class="admin-eyebrow">SCHOOL ADMINISTRATION</span><h1>School overview<span>.</span></h1><p>Welcome, @Model.DisplayName. Here’s your school at a glance.</p></div><div class="admin-date"><i class="far fa-calendar-alt" aria-hidden="true"></i><span>@Model.SchoolToday.ToString("dddd, dd MMMM yyyy", CultureInfo.InvariantCulture)</span></div></header>
+@if (Model.Can(AccessRights.ViewTerms)) { <section class="admin-term" aria-label="Current term"><i class="fas fa-graduation-cap" aria-hidden="true"></i><div><span class="admin-eyebrow">ACADEMIC CALENDAR</span><h2>@(Model.CurrentTerm == null ? "No current term configured" : $"{Model.CurrentTerm.Name} · {Model.CurrentTerm.AcademicYear}")</h2><p>@(Model.CurrentTerm == null ? "Set up your academic calendar to keep school operations on track." : $"{Model.CurrentTerm.StartDate:dd MMM} – {Model.CurrentTerm.EndDate:dd MMM yyyy}")</p></div>@if (Model.CanOpen("Config", "/Terms/Index")) { <a asp-area="Config" asp-page="/Terms/Index">Manage terms →</a> }</section> }
+<section class="admin-stats" aria-label="School statistics">
+@if (Model.CanOpen("Academics", "/Students/Index")) { <a class="admin-stat" asp-area="Academics" asp-page="/Students/Index"><div>Active students<i class="fas fa-user-graduate" aria-hidden="true"></i></div><strong>@Model.Students.ToString("N0")</strong><p>Explore student records →</p></a> }
+@if (Model.CanOpen("Academics", "/Staff/Index")) { <a class="admin-stat" asp-area="Academics" asp-page="/Staff/Index"><div>Active staff<i class="fas fa-chalkboard-teacher" aria-hidden="true"></i></div><strong>@Model.ActiveStaff.ToString("N0")</strong><p>Manage your team →</p></a> }
+@if (Model.CanOpen("Config", "/Classes/Index")) { <a class="admin-stat" asp-area="Config" asp-page="/Classes/Index"><div>Classes<i class="fas fa-school" aria-hidden="true"></i></div><strong>@Model.Classes.ToString("N0")</strong><p>View class organisation →</p></a> }
+@if (Model.CanOpen("Config", "/Users/Index")) { <a class="admin-stat" asp-area="Config" asp-page="/Users/Index"><div>Active accounts<i class="fas fa-user-shield" aria-hidden="true"></i></div><strong>@Model.ActiveUsers.ToString("N0")</strong><p>Manage system access →</p></a> }
+</section>
+<div class="admin-columns">
+@if (Model.Can(AccessRights.ViewLearners) && Model.Can(AccessRights.ViewGrades)) { <section class="admin-panel"><header><div><h2>Enrolment by grade</h2><p>Active students across the school</p></div>@if (Model.CanOpen("Config", "/Grades/Index")) { <a asp-area="Config" asp-page="/Grades/Index">View grades →</a> }</header>
+@if (Model.Students == 0) { <div class="admin-empty"><i class="fas fa-chart-bar" aria-hidden="true"></i><h3>Your school’s story starts here</h3><p>Enrol students to see the breakdown.</p>@if (Model.Can(AccessRights.CreateLearners)) { <a asp-area="Academics" asp-page="/Students/Upsert">Enrol a student →</a> }</div> }
+else {
+<div class="admin-chart admin-chart-grades" style="height: @(Math.Max(280, Model.Grades.Count * 38 + 80))px"><canvas id="admin-enrolment-chart" role="img" aria-label="Active student enrolment by grade" data-labels="@JsonSerializer.Serialize(Model.Grades.Select(g => g.Name).Append("Without a class"))" data-values="@JsonSerializer.Serialize(Model.Grades.Select(g => g.Count).Append(Model.UnassignedStudents))"></canvas></div>
+<details class="admin-chart-data"><summary>View enrolment figures</summary><ul>@foreach (var grade in Model.Grades) { <li><span>@grade.Name</span><strong>@grade.Count.ToString("N0")</strong></li> }<li><span>Without a class</span><strong>@Model.UnassignedStudents.ToString("N0")</strong></li></ul></details>
+<p class="admin-note">@Model.Students.ToString("N0") active students · @Model.UnassignedStudents.ToString("N0") awaiting class placement</p>
+}
+</section> }
+@if (Model.Can(AccessRights.ViewLearners) && Model.Can(AccessRights.ViewClasses)) { <section class="admin-panel"><header><div><h2>School readiness</h2><p>Student placements and class teacher coverage</p></div><i class="fas fa-chart-pie" aria-hidden="true"></i></header>
+<div class="admin-readiness">
+<div><h3>Student placement</h3>
+@if (Model.Students > 0) {
+<div class="admin-chart admin-chart-ring"><canvas id="admin-placement-chart" role="img" aria-label="Student class placement" data-labels='["Placed in a class","Awaiting placement"]' data-values="@JsonSerializer.Serialize(new[] { Model.Students - Model.UnassignedStudents, Model.UnassignedStudents })"></canvas><div class="admin-chart-total"><strong>@((100.0 * (Model.Students - Model.UnassignedStudents) / Model.Students).ToString("0", CultureInfo.InvariantCulture))%</strong><span>placed</span></div></div>
+} else { <p class="admin-readiness-empty">No active students yet</p> }
+<p class="admin-chart-caption"><span class="admin-dot"></span>Placed <strong>@(Model.Students - Model.UnassignedStudents)</strong></p><p class="admin-chart-caption"><span class="admin-dot admin-dot-gold"></span>Awaiting placement <strong>@Model.UnassignedStudents</strong></p>
+</div>
+<div><h3>Teacher coverage</h3>
+@if (Model.Classes > 0) {
+<div class="admin-chart admin-chart-ring"><canvas id="admin-teacher-chart" role="img" aria-label="Class teacher assignments" data-labels='["Teacher assigned","Needs a teacher"]' data-values="@JsonSerializer.Serialize(new[] { Model.Classes - Model.ClassesWithoutTeachers, Model.ClassesWithoutTeachers })"></canvas><div class="admin-chart-total"><strong>@((100.0 * (Model.Classes - Model.ClassesWithoutTeachers) / Model.Classes).ToString("0", CultureInfo.InvariantCulture))%</strong><span>covered</span></div></div>
+} else { <p class="admin-readiness-empty">No classes configured yet</p> }
+<p class="admin-chart-caption"><span class="admin-dot"></span>Teacher assigned <strong>@(Model.Classes - Model.ClassesWithoutTeachers)</strong></p><p class="admin-chart-caption"><span class="admin-dot admin-dot-gold"></span>Needs a teacher <strong>@Model.ClassesWithoutTeachers</strong></p>
+</div>
+</div><p class="admin-note">Based on current active students and configured classes.</p></section> }
+</div>
+<div class="dashboard-chart-section">
+    @await Html.PartialAsync("~/Pages/Shared/Dashboards/_collections.cshtml", Model)
+</div>
+@await Html.PartialAsync("~/Pages/Shared/Dashboards/_receipts.cshtml", Model)
+@if (Model.Can(AccessRights.ViewLearners)) { @await Html.PartialAsync("~/Pages/Shared/Dashboards/_enrolments.cshtml", Model) }
+<footer class="admin-footer">St. Martin De Porres <span>School Management System · Admin overview</span></footer>
+</div>
+
