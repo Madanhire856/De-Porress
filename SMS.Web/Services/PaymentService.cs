@@ -126,6 +126,9 @@ namespace SMS.Web.Services
         //  CORRECT PAYMENT
         // =========================================================
         public async Task<Payment> CorrectAsync(CorrectPaymentRequest request)
+            => await MutatePaymentAsync(request.PaymentId, () => CorrectCoreAsync(request));
+
+        private async Task<Payment> CorrectCoreAsync(CorrectPaymentRequest request)
         {
             if (request.PaymentId == Guid.Empty)
                 throw new InvalidOperationException("Payment is required.");
@@ -142,6 +145,9 @@ namespace SMS.Web.Services
 
             if (payment.IsReversal)
                 throw new InvalidOperationException("A reversal entry cannot be corrected.");
+
+            if (await _context.Payments.AnyAsync(p => p.ReversesPaymentId == payment.Id))
+                throw new InvalidOperationException("A reversed payment cannot be corrected. Record a new payment instead.");
 
             var ledger = payment.LedgerId.HasValue
                 ? await _context.StudentLedgers.FirstOrDefaultAsync(l => l.Id == payment.LedgerId.Value)
@@ -199,6 +205,36 @@ namespace SMS.Web.Services
         //  REVERSE PAYMENT
         // =========================================================
         public async Task<Payment> ReverseAsync(ReversePaymentRequest request)
+            => await MutatePaymentAsync(request.OriginalPaymentId, () => ReverseCoreAsync(request));
+
+        // Share the recording lock so corrections, reversals and new payments
+        // cannot calculate competing balances for the same ledger.
+        private async Task<Payment> MutatePaymentAsync(Guid paymentId, Func<Task<Payment>> mutate)
+        {
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                var original = await _context.Payments.AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id == paymentId)
+                    ?? throw new InvalidOperationException("Payment not found.");
+                var resource = "RecordPayment:" + (original.LedgerId ?? original.Id).ToString("N");
+                await _context.Database.ExecuteSqlInterpolatedAsync($@"
+                    DECLARE @result int;
+                    EXEC @result = sys.sp_getapplock @Resource={resource}, @LockMode='Exclusive', @LockOwner='Transaction', @LockTimeout=15000;
+                    IF @result < 0 THROW 51000, 'Payment is busy. Retry the operation.', 1;");
+                // A caller may already have read these rows before obtaining the lock.
+                foreach (var entry in _context.ChangeTracker.Entries<Payment>().Where(e => e.Entity.Id == paymentId).ToList())
+                    await entry.ReloadAsync();
+                foreach (var entry in _context.ChangeTracker.Entries<StudentLedger>().Where(e => e.Entity.Id == original.LedgerId).ToList())
+                    await entry.ReloadAsync();
+                var result = await mutate();
+                await transaction.CommitAsync();
+                return result;
+            });
+        }
+
+        private async Task<Payment> ReverseCoreAsync(ReversePaymentRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Reason))
                 throw new InvalidOperationException("A reversal reason is required.");

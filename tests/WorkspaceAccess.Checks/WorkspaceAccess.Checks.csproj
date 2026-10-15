@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../SMS.Web/Pages/Account/Profile.cshtml.cs" Link="Profile.cshtml.cs" />
+    <Compile Include="../../SMS.Web/Services/CognitoIdentity.cs" Link="CognitoIdentity.cs" />
+    <Compile Include="../../SMS.Web/Services/CognitoSettings.cs" Link="CognitoSettings.cs" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../../SMS.Data/SMS.Data.csproj" />
     <ProjectReference Include="../../SMS.Lib/SMS.Lib.csproj" />

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using SMS.Data;
+using Microsoft.Extensions.Configuration;
 
 namespace SMS.Lib
 {
@@ -11,9 +12,11 @@ namespace SMS.Lib
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly SMSDbContext _context;
+        private readonly IConfiguration? _configuration;
 
         // User cache
         private Guid? _cachedUserId;
+        private string? _cachedName;
         private int? _cachedRoleId;
         private Guid? _cachedGroupId;
         private bool _hasLookedUpUser;
@@ -23,25 +26,36 @@ namespace SMS.Lib
         // Rights cache
         private long? _cachedRights;
 
-        public CurrentUserService(IHttpContextAccessor httpContextAccessor, SMSDbContext context)
+        public CurrentUserService(IHttpContextAccessor httpContextAccessor, SMSDbContext context, IConfiguration? configuration = null)
         {
             _httpContextAccessor = httpContextAccessor;
             _context = context;
+            _configuration = configuration;
         }
 
         // ------------------------------------------------------------
-        // Azure AD Claims
+        // Cognito claims
         // ------------------------------------------------------------
         public string? Email =>
-            _httpContextAccessor.HttpContext?.User?.FindFirstValue("preferred_username")
+            _httpContextAccessor.HttpContext?.User?.FindFirstValue("email")
             ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email);
 
-        public string? Name =>
-            _httpContextAccessor.HttpContext?.User?.FindFirstValue("name")
-            ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("given_name");
+        public string? Name
+        {
+            get
+            {
+                if (IsAuthenticated) EnsureUserLoaded();
+                return _cachedName ?? ClaimName;
+            }
+        }
 
-        public string? AzureId =>
-            _httpContextAccessor.HttpContext?.User?.FindFirstValue("oid");
+        private string? ClaimName =>
+            _httpContextAccessor.HttpContext?.User?.FindFirstValue("name")
+            ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("given_name")
+            ?? Email;
+
+        public string? IdentitySubject =>
+            _httpContextAccessor.HttpContext?.User?.FindFirstValue("sub");
 
         public bool IsAuthenticated =>
             _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
@@ -60,11 +74,12 @@ namespace SMS.Lib
 
             var localUser = _context.Users
                 .AsNoTracking()
-                .FirstOrDefault(u => u.Email == email);
+                .FirstOrDefault(u => u.Email.ToLower() == email.ToLower());
 
             if (localUser != null)
             {
                 _cachedUserId = localUser.Id;
+                _cachedName = localUser.Name;
                 _cachedIsActive = localUser.IsActive;
                 _cachedRoleId = localUser.IsActive ? localUser.RoleId : 0;
                 _cachedGroupId = localUser.IsActive ? localUser.GroupId : null;
@@ -170,7 +185,7 @@ namespace SMS.Lib
                 return null;
 
             var localUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == email);
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
 
             if (localUser != null)
             {
@@ -179,6 +194,7 @@ namespace SMS.Lib
                 await _context.SaveChangesAsync();
 
                 _cachedUserId = localUser.Id;
+                _cachedName = localUser.Name;
                 _cachedIsActive = true;
                 _cachedRoleId = localUser.RoleId;
                 _cachedGroupId = localUser.GroupId;
@@ -187,8 +203,9 @@ namespace SMS.Lib
             }
 
             // --- New user: provision ---
-            bool isFirstUser = !await _context.Users.AnyAsync();
-            var role = isFirstUser ? UserRole.ADMIN : (UserRole)0;
+            bool isBootstrapAdmin = !await _context.Users.AnyAsync()
+                && string.Equals(_configuration?["Authentication:BootstrapAdminEmail"], email, StringComparison.OrdinalIgnoreCase);
+            var role = isBootstrapAdmin ? UserRole.ADMIN : (UserRole)0;
 
             var loginId = email.Contains('@')
                 ? email.Substring(0, email.IndexOf('@'))
@@ -206,11 +223,11 @@ namespace SMS.Lib
                 Id = Guid.NewGuid(),
                 LoginId = loginId,
                 Email = email,
-                Name = Name ?? email,
+                Name = ClaimName ?? email,
                 Mobile = null,
                 PasswordHash = null,
-                IsActive = isFirstUser,
-                ActivationDate = isFirstUser ? DateTime.UtcNow : null,
+                IsActive = isBootstrapAdmin,
+                ActivationDate = isBootstrapAdmin ? DateTime.UtcNow : null,
                 CreationDate = DateTime.UtcNow,
                 CreatorId = null,
                 RoleId = (int)role,
@@ -228,6 +245,7 @@ namespace SMS.Lib
             await _context.SaveChangesAsync();
 
             _cachedUserId = newUser.Id;
+            _cachedName = newUser.Name;
             _cachedIsActive = newUser.IsActive;
             _cachedRoleId = newUser.RoleId;
             _cachedGroupId = newUser.GroupId;

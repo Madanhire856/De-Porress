@@ -1,0 +1,125 @@
+@page
+@model SMS.Web.Pages.Account.ProfileModel
+@{
+    ViewData["Title"] = Model.IsEditing ? "Edit My Profile" : "My Profile";
+    ViewData["PageTitle"] = ViewData["Title"];
+    ViewData["PageSubTitle"] = Model.IsEditing ? "Update your personal details" : $"Viewing details for {Model.DisplayName}";
+}
+
+@section actionbar {
+    @if (Model.IsEditing)
+    {
+        <a asp-page="./Profile" class="btn btn-ghost"><i class="fa-solid fa-arrow-left"></i> Back to Profile</a>
+    }
+    else
+    {
+        <a asp-page="./Profile" asp-route-edit="true" class="btn btn-secondary"><i class="fa-solid fa-pen-to-square"></i> Edit</a>
+        <a asp-page="/Index" class="btn btn-ghost"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+    }
+}
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="alert alert-success" role="status">@Model.StatusMessage</div>
+}
+
+@if (Model.IsEditing)
+{
+    <form method="post" asp-page="./Profile" class="form-compact">
+        <div class="form-card">
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+                <div class="form-section-title"><i class="fa-solid fa-user"></i> Personal Details</div>
+                <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+                    <div class="form-group">
+                        <label asp-for="Input.Name" class="form-label">Full Name <span class="required">*</span></label>
+                        <input asp-for="Input.Name" class="form-control" autocomplete="name" required />
+                        <span asp-validation-for="Input.Name" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Input.Mobile" class="form-label">Mobile Number</label>
+                        <input asp-for="Input.Mobile" class="form-control" autocomplete="tel" type="tel" />
+                        <span asp-validation-for="Input.Mobile" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                <a asp-page="./Profile" class="btn btn-ghost">Cancel</a>
+            </div>
+        </div>
+    </form>
+}
+else
+{
+    <div class="details-compact">
+        <div class="details-single">
+            <div class="profile-card">
+                <div class="profile-avatar"><i class="fa-solid fa-user"></i></div>
+                <div class="profile-info">
+                    <h2 class="profile-name">@Model.DisplayName</h2>
+                    <div class="profile-meta">
+                        <span class="info-value-mono">@Model.UserNumber</span>
+                        <span class="meta-sep">·</span><span>@Model.Role</span>
+                        <span class="meta-sep">·</span><span>Created @Model.Joined.ToString("dd MMM yyyy")</span>
+                    </div>
+                    <div class="profile-badges"><span class="status-badge status-active">Active</span></div>
+                </div>
+            </div>
+            <div class="info-grid">
+                <div class="info-column">
+                    <div class="info-column-header"><i class="fa-solid fa-circle-info"></i><span>Identity</span></div>
+                    <div class="info-row">
+                        <div class="info-label"><i class="fa-solid fa-hashtag"></i> USR ID</div>
+                        <div class="info-value info-value-mono">@Model.UserNumber</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label"><i class="fa-solid fa-user"></i> Full Name</div>
+                        <div class="info-value">@Model.DisplayName</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label"><i class="fa-solid fa-id-badge"></i> Login ID</div>
+                        <div class="info-value info-value-mono">@Model.LoginId</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label"><i class="fa-solid fa-envelope"></i> Email</div>
+                        <div class="info-value text-break">@Model.Email</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label"><i class="fa-solid fa-mobile-screen"></i> Mobile</div>
+                        <div class="info-value">@(string.IsNullOrEmpty(Model.Mobile) ? "—" : Model.Mobile)</div>
+                    </div>
+                </div>
+                <div class="info-column">
+                    <div class="info-column-header"><i class="fa-solid fa-user-shield"></i><span>Account</span></div>
+                    <div class="info-row">
+                        <div class="info-label"><i class="fa-solid fa-circle-check"></i> Status</div>
+                        <div class="info-value"><span class="status-badge status-active">Active</span></div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label"><i class="fa-solid fa-shield-halved"></i> Role</div>
+                        <div class="info-value">@Model.Role</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label"><i class="fa-solid fa-users"></i> User Group</div>
+                        <div class="info-value">@Model.GroupName</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label"><i class="fa-solid fa-clock-rotate-left"></i> Last Login</div>
+                        <div class="info-value">@(Model.LastLogin?.ToString("dd MMM yyyy, HH:mm") ?? "Never")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-card-footer">
+                <div><span>Created On:</span> <strong>@Model.Joined.ToString("dd MMM yyyy, HH:mm")</strong></div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @if (Model.IsEditing)
+    {
+        <partial name="_ValidationScriptsPartial" />
+    }
+}

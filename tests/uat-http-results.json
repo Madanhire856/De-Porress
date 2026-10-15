@@ -1,0 +1,56 @@
+[
+  {
+    "Route": "/",
+    "Status": 200,
+    "RedirectHost": "",
+    "Milliseconds": null
+  },
+  {
+    "Route": "/Notices",
+    "Status": 200,
+    "RedirectHost": "",
+    "Milliseconds": null
+  },
+  {
+    "Route": "/Notices/Details?id=00000000-0000-0000-0000-000000000001",
+    "Status": 404,
+    "RedirectHost": "",
+    "Milliseconds": null
+  },
+  {
+    "Route": "/Academics/Students",
+    "Status": 302,
+    "RedirectHost": "login.microsoftonline.com",
+    "Milliseconds": null
+  },
+  {
+    "Route": "/Config/Users",
+    "Status": 200,
+    "RedirectHost": "",
+    "Milliseconds": null
+  },
+  {
+    "Route": "/Sports/Houses",
+    "Status": 302,
+    "RedirectHost": "login.microsoftonline.com",
+    "Milliseconds": null
+  },
+  {
+    "Route": "/Finance/Fees",
+    "Status": 302,
+    "RedirectHost": "login.microsoftonline.com",
+    "Milliseconds": null
+  },
+  {
+    "Route": "/Finance/Fees/RecordPayment",
+    "Status": 302,
+    "RedirectHost": "login.microsoftonline.com",
+    "Milliseconds": null
+  },
+  {
+    "Route": "/missing-uat-page",
+    "Status": 404,
+    "RedirectHost": "",
+    "Milliseconds": null
+  }
+]

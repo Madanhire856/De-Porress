@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using SMS.Data;
 using SMS.Lib;
 
@@ -345,6 +346,11 @@ namespace SMS.Web.Services
         private void FlushToFile(List<AuditLog>? logs)
         {
             if (logs == null || logs.Count == 0) return;
+            var environment = _serviceProvider.GetService<IWebHostEnvironment>();
+            var config = _serviceProvider.GetService<IConfiguration>();
+            var writeTextFiles = config?.GetValue<bool?>("Audit:WriteTextFiles")
+                ?? environment?.IsDevelopment() ?? false;
+            if (!writeTextFiles) return;
 
             try
             {

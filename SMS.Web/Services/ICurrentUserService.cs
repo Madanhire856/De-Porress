@@ -5,10 +5,10 @@ namespace SMS.Lib
 {
     public interface ICurrentUserService
     {
-        // --- Azure AD Claims ---
+        // --- Identity-provider claims ---
         string? Email { get; }
         string? Name { get; }
-        string? AzureId { get; }
+        string? IdentitySubject { get; }
         bool IsAuthenticated { get; }
 
         // --- Local Database User ---

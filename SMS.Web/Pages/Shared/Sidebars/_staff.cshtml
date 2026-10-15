@@ -10,7 +10,19 @@
     var currentDisplayName = CurrentUser.Name ?? User.FindFirstValue(ClaimTypes.Name) ?? "Staff";
     var currentRoleName = Access.Name;
     var initialMarker = currentDisplayName.Length > 0 ? currentDisplayName[..1].ToUpperInvariant() : "U";
-    var groups = Access.Navigation.GroupBy(f => f.Group).ToList();
+    // Daily school work comes first; occasional administration and setup come last.
+    string[] groupOrder = ["Academics", "Finance", "Notices", "Sports & houses", "SDC", "Administration", "School setup"];
+    string[] itemOrder = [
+        "Students", "Classes", "Staff", "Subjects", "Class teacher assignments", "Subject assignments",
+        "Prefects", "Prefect nominations", "Nominate prefects",
+        "Fees overview", "Student balances", "Cash-up", "Open term", "Fee structures", "Currencies",
+        "Staff notices", "House assignments", "Sports", "Members", "Committee terms", "Positions",
+        "School notices", "Users", "User groups", "Audit logs", "Terms", "Grades", "Houses", "Sport types", "Villages"
+    ];
+    var groups = Access.Navigation
+        .OrderBy(f => Array.IndexOf(groupOrder, f.Group) is var index && index >= 0 ? index : int.MaxValue)
+        .ThenBy(f => Array.IndexOf(itemOrder, f.Title) is var index && index >= 0 ? index : int.MaxValue)
+        .GroupBy(f => f.Group).ToList();
 }
 <div class="sidebar-wrapper">
     <div class="sidebar-header"><img class="logo" src="~/Images/logo.jpeg" alt="School crest" /><h6 class="school-name">St. Martin De Porres</h6></div>
@@ -55,15 +67,9 @@
 
             <ul class="dropdown-menu sidebar-user-menu">
                 <li>
-                    <a class="dropdown-item" href="#">
+                    <a class="dropdown-item" asp-area="" asp-page="/Account/Profile">
                         <i class="fas fa-user-circle"></i>
                         <span>My Profile</span>
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="#">
-                        <i class="fas fa-key"></i>
-                        <span>Change Password</span>
                     </a>
                 </li>
                 <li><hr class="dropdown-divider" /></li>

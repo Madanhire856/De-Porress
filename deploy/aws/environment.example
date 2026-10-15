@@ -1,0 +1,17 @@
+# Configure these in the hosting service. Do not commit real secrets.
+ASPNETCORE_ENVIRONMENT=Production
+ASPNETCORE_HTTP_PORTS=8080
+Cognito__Authority=https://cognito-idp.eu-north-1.amazonaws.com/eu-north-1_LOhGBF9su
+Cognito__ClientId=6ulsn0evv7q8qmoeo69al441sg
+Cognito__ClientSecret=REPLACE_FROM_SECRETS_MANAGER
+Cognito__Domain=https://eu-north-1lohgbf9su.auth.eu-north-1.amazoncognito.com
+Cognito__LogoutUri=https://REPLACE_PUBLIC_HOST/
+Authentication__BootstrapAdminEmail=REPLACE_INITIAL_ADMIN_EMAIL
+ConnectionStrings__SMSDb=Server=REPLACE_RDS_ENDPOINT,1433;Database=SMSDB;User ID=REPLACE_USER;Password=REPLACE_SECRET;Encrypt=True;TrustServerCertificate=False
+# Trust only your actual load balancer subnet CIDRs, not all networks.
+ReverseProxy__KnownNetworks__0=REPLACE_LOAD_BALANCER_SUBNET_CIDR
+# Mount persistent shared storage here and grant the container user write access.
+DataProtection__KeysPath=/keys
+Database__ApplyMigrationsOnStartup=false
+Audit__WriteTextFiles=false
+AllowedHosts=REPLACE_PUBLIC_HOST

@@ -17,6 +17,18 @@ void Check(bool condition, string message)
     if (!condition) throw new Exception(message);
 }
 WorkspaceAccess Access(UserRole roles, long rights = ~0L, bool authenticated = true, bool nominate = false) => new(new FakeUser((int)roles, rights, authenticated, nominate));
+ClaimsPrincipal CognitoUser(params Claim[] claims) => new(new ClaimsIdentity(claims, "oidc"));
+Check(CognitoIdentity.HasVerifiedEmail(CognitoUser(new Claim("email", "staff@example.invalid"), new Claim("email_verified", "true"))), "Verified Cognito email accepted after token validation");
+Check(!CognitoIdentity.HasVerifiedEmail(CognitoUser(new Claim("email", "staff@example.invalid"), new Claim("email_verified", "false"))), "Unverified Cognito email rejected");
+Check(!CognitoIdentity.HasVerifiedEmail(CognitoUser(new Claim("email", "staff@example.invalid"))), "Missing verification claim rejected");
+Check(!CognitoIdentity.HasVerifiedEmail(CognitoUser(new Claim("email_verified", "true"))), "Missing email rejected");
+Check(!CognitoIdentity.HasVerifiedEmail(null), "Missing Cognito principal rejected");
+Check(CognitoSettings.IsHttpsUrl("https://example.auth.eu-north-1.amazoncognito.com"), "HTTPS Cognito domain accepted");
+Check(!CognitoSettings.IsHttpsUrl("http://example.com"), "Plain HTTP Cognito endpoint rejected");
+Check(!CognitoSettings.IsHttpsUrl("https://user:password@example.com"), "Credentials in endpoint URL rejected");
+Check(!CognitoSettings.IsHttpsUrl("https://example.com/#fragment"), "Fragment in endpoint URL rejected");
+Check(!CognitoSettings.IsHttpsUrl("https://example.com/?redirect=other"), "Query in endpoint URL rejected");
+Check(!CognitoSettings.IsHttpsUrl(""), "Missing endpoint rejected");
 var fullMonth = WeeklyCollectionPeriods.Create(new(2026, 10, 1), new(2026, 10, 31));
 Check(fullMonth.Count == 5 && fullMonth[4].Start.Day == 29 && fullMonth[4].End.Day == 31, "31-day month has five bounded weeks");
 var currentMonth = WeeklyCollectionPeriods.Create(new(2026, 10, 1), new(2026, 10, 9));
@@ -268,13 +280,37 @@ using (var db = new SMS.Data.SMSDbContext(new Microsoft.EntityFrameworkCore.DbCo
     Check(script.Contains("INSERT INTO ClassTeacherAssignment") && script.Contains("WHERE ClassTeacherId IS NOT NULL"),
         "Migration retains existing teacher assignments");
 }
+using (var profileDb = new SMS.Data.SMSDbContext(new DbContextOptionsBuilder<SMS.Data.SMSDbContext>()
+    .UseSqlServer("Server=localhost;Database=UnusedChecks;Integrated Security=True;TrustServerCertificate=True").Options))
+{
+    foreach (var authenticated in new[] { false, true })
+    {
+        var profile = new SMS.Web.Pages.Account.ProfileModel(profileDb, new FakeUser(0, 0, authenticated));
+        Check(await profile.OnGetAsync() is ForbidResult, "Profile rejects anonymous or missing local account on GET");
+        Check(await profile.OnPostAsync() is ForbidResult, "Profile rejects anonymous or missing local account on POST");
+    }
+    var inputType = typeof(SMS.Web.Pages.Account.ProfileModel.ProfileInput);
+    Check(inputType.GetProperties().Select(p => p.Name).Order().SequenceEqual(new[] { "Mobile", "Name" }),
+        "Profile binding allows only name and contact number, excluding identity and privileges");
+    foreach (var input in new[] {
+        new SMS.Web.Pages.Account.ProfileModel.ProfileInput { Name = "   " },
+        new SMS.Web.Pages.Account.ProfileModel.ProfileInput { Name = new string('x', 51) },
+        new SMS.Web.Pages.Account.ProfileModel.ProfileInput { Name = "Staff", Mobile = new string('1', 16) },
+        new SMS.Web.Pages.Account.ProfileModel.ProfileInput { Name = "Staff", Mobile = "invalid phone" }
+    })
+        Check(!System.ComponentModel.DataAnnotations.Validator.TryValidateObject(input,
+            new System.ComponentModel.DataAnnotations.ValidationContext(input), [], true),
+            "Profile rejects empty names, oversized values, and invalid phone numbers");
+    Check(typeof(SMS.Web.Pages.Account.ProfileModel).IsDefined(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true),
+        "Profile requires authenticated access");
+}
 Console.WriteLine($"Passed {checkedCases} workspace and assignment checks.");
 
 sealed class FakeUser(int role, long rights, bool authenticated, bool nominate = false) : ICurrentUserService
 {
     public string? Email => "check@example.test";
     public string? Name => "Check user";
-    public string? AzureId => null;
+    public string? IdentitySubject => null;
     public bool IsAuthenticated => authenticated;
     public Guid? UserId => Guid.Empty;
     public int? RoleId => role;
