@@ -31,7 +31,7 @@
                         grid: { color: '#edf1f5' }, ticks: { precision: 0, color: '#788391' },
                         title: { display: true, text: 'Active students', color: '#788391' } },
                     y: { border: { display: false }, grid: { display: false },
-                        ticks: { color: '#526477', autoSkip: false, font: { size: 12 } } }
+                        ticks: { color: '#526477', autoSkip: false } }
                 }
             }
         });
