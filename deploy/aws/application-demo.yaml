@@ -1,0 +1,295 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Demo only - CloudFront HTTPS address, HTTP ALB origin, public Fargate tasks and private SQL. Creates billable resources. Use synthetic data.
+Parameters:
+  VpcId: {Type: 'AWS::EC2::VPC::Id'}
+  PublicSubnetA: {Type: 'AWS::EC2::Subnet::Id'}
+  PublicSubnetB: {Type: 'AWS::EC2::Subnet::Id'}
+  PrivateSubnetA: {Type: 'AWS::EC2::Subnet::Id'}
+  PrivateSubnetB: {Type: 'AWS::EC2::Subnet::Id'}
+  AlbSubnetCidrA: {Type: String, Description: 'CIDR of PublicSubnetA, trusted for proxy headers'}
+  AlbSubnetCidrB: {Type: String, Description: 'CIDR of PublicSubnetB, trusted for proxy headers'}
+  OriginVerifyToken:
+    Type: String
+    NoEcho: true
+    MinLength: 32
+    MaxLength: 64
+    AllowedPattern: '[a-zA-Z0-9]+'
+    Description: Generate a random 32-64 character alphanumeric token; keep private.
+  ImageUri: {Type: String, Description: Existing private ECR image URI with immutable release tag}
+  RuntimeSecretArn: {Type: String, Description: Secrets Manager JSON containing CognitoClientSecret and DatabaseConnectionString}
+  DatabaseSecurityGroupId: {Type: 'AWS::EC2::SecurityGroup::Id'}
+  BootstrapAdminEmail: {Type: String, Default: ''}
+  CognitoAuthority:
+    Type: String
+    Default: https://cognito-idp.eu-north-1.amazonaws.com/eu-north-1_LOhGBF9su
+  CognitoClientId: {Type: String, Default: 6ulsn0evv7q8qmoeo69al441sg}
+  CognitoDomain:
+    Type: String
+    Default: https://eu-north-1lohgbf9su.auth.eu-north-1.amazoncognito.com
+  DesiredCount:
+    Type: Number
+    Default: 0
+    MinValue: 0
+    MaxValue: 4
+    Description: Start at zero; run the migration task before setting to one.
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: CloudFront origin HTTP; listener requires private origin token
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 80, ToPort: 80, CidrIp: 0.0.0.0/0}
+  TaskSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: App traffic only from its load balancer
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          SourceSecurityGroupId: !Ref AlbSecurityGroup
+  DatabaseIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref DatabaseSecurityGroupId
+      IpProtocol: tcp
+      FromPort: 1433
+      ToPort: 1433
+      SourceSecurityGroupId: !Ref TaskSecurityGroup
+  KeysSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: EFS access from app tasks only
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 2049
+          ToPort: 2049
+          SourceSecurityGroupId: !Ref TaskSecurityGroup
+  KeysFileSystem:
+    Type: AWS::EFS::FileSystem
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Encrypted: true
+      BackupPolicy: {Status: DISABLED}
+      FileSystemPolicy:
+        Statement:
+          - Effect: Deny
+            Principal: '*'
+            Action: 'elasticfilesystem:Client*'
+            Resource: '*'
+            Condition: {Bool: {'aws:SecureTransport': 'false'}}
+  KeysAccessPoint:
+    Type: AWS::EFS::AccessPoint
+    Properties:
+      FileSystemId: !Ref KeysFileSystem
+      PosixUser: {Uid: '1654', Gid: '1654'}
+      RootDirectory:
+        Path: /de-porres/keys
+        CreationInfo: {OwnerUid: '1654', OwnerGid: '1654', Permissions: '0700'}
+  KeysMountA:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref KeysFileSystem
+      SubnetId: !Ref PrivateSubnetA
+      SecurityGroups: [!Ref KeysSecurityGroup]
+  KeysMountB:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref KeysFileSystem
+      SubnetId: !Ref PrivateSubnetB
+      SecurityGroups: [!Ref KeysSecurityGroup]
+  Logs:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties: {RetentionInDays: 7}
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: {Service: ecs-tasks.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns: [!Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy']
+      Policies:
+        - PolicyName: RuntimeSecret
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref RuntimeSecretArn
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: {Service: ecs-tasks.amazonaws.com}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AuthenticationKeys
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: ['elasticfilesystem:ClientMount', 'elasticfilesystem:ClientWrite']
+                Resource: !GetAtt KeysFileSystem.Arn
+                Condition:
+                  StringEquals: {'elasticfilesystem:AccessPointArn': !GetAtt KeysAccessPoint.Arn}
+  Task:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      RequiresCompatibilities: [FARGATE]
+      NetworkMode: awsvpc
+      Cpu: '512'
+      Memory: '1024'
+      RuntimePlatform: {CpuArchitecture: X86_64, OperatingSystemFamily: LINUX}
+      ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
+      Volumes:
+        - Name: keys
+          EFSVolumeConfiguration:
+            FilesystemId: !Ref KeysFileSystem
+            TransitEncryption: ENABLED
+            AuthorizationConfig: {AccessPointId: !Ref KeysAccessPoint, IAM: ENABLED}
+      ContainerDefinitions:
+        - Name: web
+          Image: !Ref ImageUri
+          Essential: true
+          PortMappings: [{ContainerPort: 8080}]
+          MountPoints: [{SourceVolume: keys, ContainerPath: /keys, ReadOnly: false}]
+          Environment:
+            - {Name: ASPNETCORE_ENVIRONMENT, Value: Production}
+            - {Name: ASPNETCORE_HTTP_PORTS, Value: '8080'}
+            - {Name: Cognito__Authority, Value: !Ref CognitoAuthority}
+            - {Name: Cognito__ClientId, Value: !Ref CognitoClientId}
+            - {Name: Cognito__Domain, Value: !Ref CognitoDomain}
+            - {Name: Cognito__LogoutUri, Value: !Sub 'https://${Distribution.DomainName}/'}
+            # ALB health checks send the target IP as Host. Public host filtering
+            # is restricted by CloudFront and the origin-token listener below.
+            - {Name: AllowedHosts, Value: '*'}
+            - {Name: ReverseProxy__CloudFront, Value: 'true'}
+            - {Name: Authentication__BootstrapAdminEmail, Value: !Ref BootstrapAdminEmail}
+            - {Name: ReverseProxy__KnownNetworks__0, Value: !Ref AlbSubnetCidrA}
+            - {Name: ReverseProxy__KnownNetworks__1, Value: !Ref AlbSubnetCidrB}
+          Secrets:
+            - Name: Cognito__ClientSecret
+              ValueFrom: !Sub '${RuntimeSecretArn}:CognitoClientSecret::'
+            - Name: ConnectionStrings__SMSDb
+              ValueFrom: !Sub '${RuntimeSecretArn}:DatabaseConnectionString::'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref Logs
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: web
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      Type: application
+      Subnets: [!Ref PublicSubnetA, !Ref PublicSubnetB]
+      SecurityGroups: [!Ref AlbSecurityGroup]
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref VpcId
+      Port: 8080
+      Protocol: HTTP
+      TargetType: ip
+      HealthCheckPath: /health
+      Matcher: {HttpCode: '200'}
+  HttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig: {StatusCode: '403', ContentType: text/plain, MessageBody: Access denied}
+  OriginListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref HttpListener
+      Priority: 1
+      Conditions:
+        - Field: http-header
+          HttpHeaderConfig:
+            HttpHeaderName: X-DePorress-Origin
+            Values: [!Ref OriginVerifyToken]
+        - Field: http-header
+          HttpHeaderConfig:
+            HttpHeaderName: X-DePorress-Viewer-Proto
+            Values: [https]
+      Actions: [{Type: forward, TargetGroupArn: !Ref TargetGroup}]
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    DependsOn: OriginListenerRule
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        PriceClass: PriceClass_100
+        Comment: De Porress synthetic-data demo; caching disabled
+        Origins:
+          - Id: app
+            DomainName: !GetAtt LoadBalancer.DNSName
+            CustomOriginConfig:
+              HTTPPort: 80
+              OriginProtocolPolicy: http-only
+            OriginCustomHeaders:
+              - {HeaderName: X-DePorress-Origin, HeaderValue: !Ref OriginVerifyToken}
+              - {HeaderName: X-DePorress-Viewer-Proto, HeaderValue: https}
+        DefaultCacheBehavior:
+          TargetOriginId: app
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          # Managed CachingDisabled and AllViewer preserve login cookies,
+          # Host, query strings, antiforgery tokens and OIDC callbacks.
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+        CustomErrorResponses:
+          - {ErrorCode: 500, ErrorCachingMinTTL: 0}
+          - {ErrorCode: 502, ErrorCachingMinTTL: 0}
+          - {ErrorCode: 503, ErrorCachingMinTTL: 0}
+          - {ErrorCode: 504, ErrorCachingMinTTL: 0}
+        ViewerCertificate: {CloudFrontDefaultCertificate: true}
+  Service:
+    Type: AWS::ECS::Service
+    DependsOn: [OriginListenerRule, KeysMountA, KeysMountB, DatabaseIngress]
+    Properties:
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref Task
+      DesiredCount: !Ref DesiredCount
+      LaunchType: FARGATE
+      PlatformVersion: '1.4.0'
+      HealthCheckGracePeriodSeconds: 120
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker: {Enable: true, Rollback: true}
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: [!Ref PublicSubnetA, !Ref PublicSubnetB]
+          SecurityGroups: [!Ref TaskSecurityGroup]
+      LoadBalancers:
+        - {ContainerName: web, ContainerPort: 8080, TargetGroupArn: !Ref TargetGroup}
+Outputs:
+  DemoUrl: {Value: !Sub 'https://${Distribution.DomainName}'}
+  CallbackUrl: {Value: !Sub 'https://${Distribution.DomainName}/signin-oidc'}
+  LogoutUrl: {Value: !Sub 'https://${Distribution.DomainName}/'}
+  LoadBalancerDns: {Value: !GetAtt LoadBalancer.DNSName}
+  ClusterName: {Value: !Ref Cluster}
+  ServiceName: {Value: !GetAtt Service.Name}
+  TaskDefinitionArn: {Value: !Ref Task}
+  TaskSecurityGroupId: {Value: !Ref TaskSecurityGroup}
+  LogGroup: {Value: !Ref Logs}

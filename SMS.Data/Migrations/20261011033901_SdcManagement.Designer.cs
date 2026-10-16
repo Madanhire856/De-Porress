@@ -1487,7 +1487,7 @@ namespace SMS.Data.Migrations
 
                     b.Property<string>("PayloadJson")
                         .IsRequired()
-                        .HasColumnType("json");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SyncStatusId")
                         .HasColumnType("int");

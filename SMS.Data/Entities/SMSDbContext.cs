@@ -872,7 +872,8 @@ public partial class SMSDbContext : DbContext
             entity.Property(e => e.EntityId)
                 .HasMaxLength(10)
                 .IsFixedLength();
-            entity.Property(e => e.PayloadJson).HasColumnType("json");
+            // Store JSON as Unicode text for SQL Server versions without a native json type.
+            entity.Property(e => e.PayloadJson).HasColumnType("nvarchar(max)");
         });
 
         modelBuilder.Entity<TeacherSubject>(entity =>

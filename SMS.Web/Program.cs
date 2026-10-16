@@ -77,6 +77,10 @@ builder.Services.AddAuthorization();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // CloudFront terminates viewer HTTPS before the demo ALB's HTTP origin.
+    // Only enable this behind the origin-header-protected demo listener.
+    if (builder.Configuration.GetValue<bool>("ReverseProxy:CloudFront"))
+        options.ForwardedProtoHeaderName = "X-DePorress-Viewer-Proto";
     foreach (var network in builder.Configuration.GetSection("ReverseProxy:KnownNetworks").Get<string[]>() ?? [])
         options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(network));
 });

@@ -123,10 +123,10 @@ namespace SMS.Data.Migrations
                     .HasColumnType("nvarchar(80)");
 
                 b.Property<string>("AfterValue")
-                    .HasColumnType("json");
+                    .HasColumnType("nvarchar(max)");
 
                 b.Property<string>("BeforeValue")
-                    .HasColumnType("json");
+                    .HasColumnType("nvarchar(max)");
 
                 b.Property<Guid>("EntityId")
                     .HasColumnType("uniqueidentifier");
@@ -1247,7 +1247,7 @@ namespace SMS.Data.Migrations
 
                 b.Property<string>("PayloadJson")
                     .IsRequired()
-                    .HasColumnType("json");
+                    .HasColumnType("nvarchar(max)");
 
                 b.Property<int>("SyncStatusId")
                     .HasColumnType("int");

@@ -87,8 +87,8 @@ namespace SMS.Data.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Action = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
-                    AfterValue = table.Column<string>(type: "json", nullable: true),
-                    BeforeValue = table.Column<string>(type: "json", nullable: true),
+                    AfterValue = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    BeforeValue = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EntityId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     EntityType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     IpAddress = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),

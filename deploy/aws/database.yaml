@@ -6,6 +6,12 @@ Parameters:
     Type: List<AWS::EC2::Subnet::Id>
     Description: Private subnets in at least two Availability Zones
   InstanceClass: {Type: String, Default: db.t3.micro}
+  BackupRetentionDays:
+    Type: Number
+    Default: 1
+    MinValue: 1
+    MaxValue: 35
+    Description: Use 1 for the Free plan demo; longer retention requires account-plan support.
   MasterUsername: {Type: String, Default: smsadmin, AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'}
 Resources:
   MasterCredentials:
@@ -46,7 +52,7 @@ Resources:
       Port: '1433'
       PubliclyAccessible: false
       MultiAZ: false
-      BackupRetentionPeriod: 7
+      BackupRetentionPeriod: !Ref BackupRetentionDays
       AutoMinorVersionUpgrade: true
       DeletionProtection: true
       DBSubnetGroupName: !Ref DatabaseSubnetGroup

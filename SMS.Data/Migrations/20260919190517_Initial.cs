@@ -51,7 +51,7 @@ namespace SMS.Data.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DeviceId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     EntityId = table.Column<string>(type: "nchar(10)", fixedLength: true, maxLength: 10, nullable: false),
-                    PayloadJson = table.Column<string>(type: "json", nullable: false),
+                    PayloadJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ClientTimeStamp = table.Column<DateTime>(type: "datetime", nullable: false),
                     SyncStatusId = table.Column<int>(type: "int", nullable: false),
                     ConflictResolutionNotesJson = table.Column<string>(type: "text", nullable: true)
@@ -156,8 +156,8 @@ namespace SMS.Data.Migrations
                     EntityType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     EntityId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Action = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
-                    BeforeValue = table.Column<string>(type: "json", nullable: false),
-                    AfterValue = table.Column<string>(type: "json", nullable: false),
+                    BeforeValue = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AfterValue = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TimeStamp = table.Column<DateTime>(type: "datetime", nullable: false)
                 },
                 constraints: table =>

@@ -1,5 +1,44 @@
 # AWS deployment package
 
+## Demo without a purchased domain
+
+Use `application-demo.yaml` for a synthetic-data demo. It supplies a
+`https://...cloudfront.net` address and the default CloudFront certificate.
+Build a new image containing the `ReverseProxy:CloudFront` support in Program.cs;
+images built before this change will redirect incorrectly behind this template.
+Keep DesiredCount at 0 until the migration task has exited successfully.
+
+Fresh SQL Server deployments store JSON payload/audit fields as `nvarchar(max)`.
+The initial migration and historical target models use this portable type so
+RDS versions without the native `json` type can replay the migration chain.
+Already-applied migrations are not rerun; this change does not convert JSON
+columns in existing databases. Review those separately before schema upgrades.
+
+The template uses public subnets and public IPs for Fargate outbound access,
+avoiding NAT gateways. Task ingress remains limited to its ALB security group;
+RDS and EFS remain in the private subnets. Migration tasks must also use the
+public subnets with a public IP enabled and the output TaskSecurityGroupId.
+PrivateSubnetA/B must be in the same Availability Zones as PublicSubnetA/B.
+
+Generate a private random 32-64 character alphanumeric OriginVerifyToken. The
+ALB only forwards requests bearing this token and the HTTPS viewer marker.
+CloudFront overwrites both origin headers, forwards viewer Host/cookies/query
+strings, and disables caching. Treat the token as a credential; NoEcho masks
+parameter displays but authorized users can read origin/listener configuration.
+Viewer HTTPS ends at CloudFront: CloudFront-to-ALB traffic uses unencrypted HTTP.
+This is a demo tradeoff, not a design for real school or financial data. Use the
+custom-domain HTTPS origin template for sensitive workloads.
+
+Set Cognito callback/sign-out URLs from CallbackUrl/LogoutUrl outputs before
+starting the service. Run migrations with `--migrate-only`, then use a restricted
+SQL principal for runtime. EFS automatic backups are disabled for this demo;
+keys are still retained and encrypted. The stack consumes account credits and
+does not guarantee Free plan eligibility for every resource. Validate it first:
+
+```powershell
+aws cloudformation validate-template --template-body file://deploy/aws/application-demo.yaml --region eu-north-1
+```
+
 The app uses your existing Cognito pool in `eu-north-1`. Do not deploy
 `cognito.yaml` again unless deliberately creating a different pool.
 **No stack has been deployed by Codex. These resources can incur charges.**
@@ -37,7 +76,9 @@ Choose instance sizes and verify costs/Free Plan eligibility before deployment.
    ARN; do not put it in source or command history. SQL Server does not accept
    the CloudFormation DBName option;
    the application migration creates SMSDB. The database has deletion protection,
-   backups and snapshot-on-removal. It is single-AZ for small test workloads,
+   backups and snapshot-on-removal. BackupRetentionDays defaults to 1 for the
+   Free plan demo; increase it only when the account plan supports longer
+   retention. It is single-AZ for small test workloads,
    **not** a production high-availability design. Validate instance/storage
    availability in your account/region before creating it.
 3. Restore/migrate existing data through a supported RDS migration process when
