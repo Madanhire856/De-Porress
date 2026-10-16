@@ -1,6 +1,0 @@
-/* Preview only: reproduces the application's existing base and scroll wrapper.
-   Put all new design styles in school-landing.css, not this file. */
-html, body { height: 100%; margin: 0; overflow: hidden; }
-body { background: #f4f6f8; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-*, *::before, *::after { box-sizing: border-box; }
-.public-wrapper { height: 100vh; overflow-y: auto; overflow-x: hidden; background: #f4f6f8; }
