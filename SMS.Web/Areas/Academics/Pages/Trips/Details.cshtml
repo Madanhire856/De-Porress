@@ -1,0 +1,12 @@
+@page "{id:guid}"
+@using SMS.Web.Services
+@model SMS.Web.Areas.Academics.Pages.Trips.DetailsModel
+@{ ViewData["Title"] = "Trip details"; ViewData["PageTitle"] = Model.Trip.Name; ViewData["PageSubTitle"] = SchoolTrips.StatusName(Model.Trip.StatusId); }
+@section actionbar { <a asp-page="./Index" class="btn btn-secondary">Back to trips</a> @if (Model.CanEdit) { <a asp-page="./Upsert" asp-route-id="@Model.Trip.Id" class="btn btn-primary">Edit trip</a> } }
+@section Styles { <link rel="stylesheet" href="~/css/school-trips.css" asp-append-version="true" /> }
+@if (TempData["TripSaved"] is string message) { <div class="alert alert-success" role="status">@message</div> }
+<div class="form-card"><div class="card-body trip-details">
+    <h2 class="h5">Destination and purpose</h2><dl><dt>Main destination</dt><dd>@Model.Trip.Destination</dd><dt>Purpose</dt><dd>@Model.Trip.Purpose</dd><dt>Places to pass through (in order)</dt><dd>@(Model.Trip.PlacesToPassThrough ?? "Not specified")</dd><dt>Trip leader</dt><dd>@Model.Trip.Leader.Surname @Model.Trip.Leader.Name</dd><dt>Grades</dt><dd>@string.Join(", ", Model.Trip.Grades.OrderBy(x => x.Grade.GradeLevelId).ThenBy(x => x.Grade.Name).Select(x => x.Grade.Name))</dd><dt>Maximum students</dt><dd>@(Model.Trip.Capacity?.ToString() ?? "Not set")</dd></dl>
+    <h2 class="h5">Dates and cost</h2><dl><dt>Departure (Zimbabwe)</dt><dd>@Model.Trip.DepartureAt.ToString("dddd, dd MMM yyyy HH:mm")</dd><dt>Return (Zimbabwe)</dt><dd>@Model.Trip.ReturnAt.ToString("dddd, dd MMM yyyy HH:mm")</dd><dt>Days to be spent</dt><dd>@Model.Trip.Days calendar day(s) · @Model.Trip.Nights night(s)</dd><dt>Total amount per student</dt><dd>@Model.Trip.CurrencyCode @Model.Trip.AmountPerStudent.ToString("N2")</dd><dt>Payment due</dt><dd>@(Model.Trip.PaymentDueDate?.ToString("dd MMM yyyy") ?? "Not required for a free trip")</dd><dt>Meeting / departure point</dt><dd>@(Model.Trip.MeetingPoint ?? "Not specified")</dd></dl>
+    <h2 class="h5">Arrangements and contacts</h2><dl><dt>Transport</dt><dd>@(Model.Trip.TransportDetails ?? "Not specified")</dd><dt>Accommodation</dt><dd>@(Model.Trip.Accommodation ?? "Not specified")</dd><dt>Emergency contact</dt><dd>@(Model.Trip.EmergencyContactName ?? "Not specified") @Model.Trip.EmergencyContactPhone</dd><dt>Parent / guardian consent</dt><dd>@(Model.Trip.ParentConsentRequired ? "Required" : "Not required")</dd><dt>Other information</dt><dd>@(Model.Trip.Notes ?? "None")</dd></dl>
+</div></div>

@@ -5,7 +5,8 @@ using SMS.Data;
 using SMS.Lib;
 using SMS.Web.Services;
 namespace SMS.Web.Pages;
-public partial class IndexModel(SMSDbContext context, ICurrentUserService currentUser, WorkspaceAccess access) : PageModel
+public partial class IndexModel(SMSDbContext context, ICurrentUserService currentUser, WorkspaceAccess access,
+    IGalleryStore gallery, ILogger<IndexModel> logger) : PageModel
 {
     public bool IsAdmin { get; private set; }
     public bool IsBursar { get; private set; }
@@ -71,6 +72,7 @@ public partial class IndexModel(SMSDbContext context, ICurrentUserService curren
     public Term? CurrentTerm { get; private set; }
     public List<GradeSummary> Grades { get; private set; } = [];
     public List<Announcement> PublicNotices { get; private set; } = [];
+    public List<GalleryPhoto> GalleryPhotos { get; private set; } = [];
     [BindProperty(SupportsGet = true)] public bool Website { get; set; }
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
@@ -78,6 +80,8 @@ public partial class IndexModel(SMSDbContext context, ICurrentUserService curren
         {
             PublicNotices = await SchoolNotices.Published(context).OrderByDescending(x => x.CreationDate)
                 .ThenByDescending(x => x.Id).Take(3).ToListAsync(cancellationToken);
+            try { GalleryPhotos = (await gallery.ListAsync(false, cancellationToken)).Take(6).ToList(); }
+            catch (IOException ex) { logger.LogError(ex, "The public school gallery is temporarily unavailable"); }
             return;
         }
         IsAdmin = access.Workspace == SchoolWorkspace.Administration;

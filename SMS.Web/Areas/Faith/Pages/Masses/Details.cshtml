@@ -1,0 +1,27 @@
+@page "{id:guid}"
+@using SMS.Web.Services
+@model SMS.Web.Areas.Faith.Pages.Masses.DetailsModel
+@{ ViewData["Title"] = "Mass details"; ViewData["PageTitle"] = "Mass details"; ViewData["PageSubTitle"] = "Mass times and ministry assignments"; }
+@section actionbar { <a asp-page="./Index" class="btn btn-secondary">Back to timetable</a> @if (Model.CanEdit) { <a asp-page="./Upsert" asp-route-id="@Model.Mass.Id" class="btn btn-primary">Edit Mass</a> } }
+@if (TempData["MassStatus"] is string status) { <div class="alert alert-success" role="status">@status</div> }
+<div class="form-card mb-4"><div class="card-body">
+    <h2 class="h5">@Model.Mass.DateTime.ToString("dddd, dd MMMM yyyy · HH:mm")</h2><p class="text-muted">Zimbabwe time</p>
+    <dl class="row mb-0"><dt class="col-sm-3">Liturgical date</dt><dd class="col-sm-9">@Model.Mass.LiturgicalDate.ToString("dd MMM yyyy")</dd><dt class="col-sm-3">Venue</dt><dd class="col-sm-9">@Model.Mass.Venue</dd><dt class="col-sm-3">Celebrant</dt><dd class="col-sm-9">@Model.Mass.Celebrant</dd></dl>
+</div></div>
+<h2 class="h5">Ministry roster</h2>
+<div class="table-card mb-4"><div class="table-responsive"><table class="data-table table-compact"><thead><tr><th>Participant</th><th>Ministry</th>@if (Model.CanEdit) { <th>Actions</th> }</tr></thead><tbody>
+@foreach (var row in Model.Mass.MassRosters.OrderBy(x => x.RoleId).ThenBy(x => x.CreationDate)) {
+    <tr><td>@(row.Student != null ? $"{row.Student.Surname} {row.Student.Name} (Student)" : row.Staff != null ? $"{row.Staff.Surname} {row.Staff.Name} (Staff)" : "Participant unavailable")</td><td>@SchoolMasses.RoleName(row.RoleId)</td>
+        @if (Model.CanEdit) { <td><form method="post" asp-page-handler="Remove" asp-route-id="@Model.Mass.Id"><input type="hidden" name="rosterId" value="@row.Id" /><button type="submit" class="btn btn-sm btn-secondary">Remove assignment</button></form></td> }
+    </tr>
+}
+@if (Model.Mass.MassRosters.Count == 0) { <tr><td colspan="@(Model.CanEdit ? 3 : 2)" class="empty-state">No ministry assignments yet.</td></tr> }
+</tbody></table></div></div>
+@if (Model.CanEdit) {
+<form method="post" asp-page-handler="Add" asp-route-id="@Model.Mass.Id" class="form-compact"><div class="form-card"><div class="card-body">
+    <h2 class="h5">Add ministry assignment</h2><div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-grid-2"><div class="form-group"><label asp-for="Input.Participant" class="form-label">Participant</label><select asp-for="Input.Participant" asp-items="Model.Participants" class="form-select" required><option value="">Choose a student or staff member</option></select><span asp-validation-for="Input.Participant" class="text-danger"></span></div>
+    <div class="form-group"><label asp-for="Input.RoleId" class="form-label">Ministry</label><select asp-for="Input.RoleId" class="form-select"><option value="2">Reader</option><option value="1">Altar server</option></select><span asp-validation-for="Input.RoleId" class="text-danger"></span></div></div>
+</div><div class="card-footer"><button type="submit" class="btn btn-primary">Add assignment</button></div></div></form>
+}
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

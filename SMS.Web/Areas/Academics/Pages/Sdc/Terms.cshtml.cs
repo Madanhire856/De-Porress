@@ -15,6 +15,10 @@ public class TermsModel(SMSDbContext db, ICurrentUserService user, WorkspaceAcce
     [BindProperty(SupportsGet = true)] public string? Status { get; set; }
     public List<SdcTerm> Terms { get; private set; } = [];
     public bool IsEdit { get; private set; }
+    public bool CanCreate => SdcAccess.CanCreateTerms(access);
+    public bool CanEdit => SdcAccess.CanEditTerms(access);
+    public bool CanSave => IsEdit ? CanEdit : CanCreate;
+    public bool CanViewMembers => SdcAccess.CanViewMembers(access);
     public class TermInput : IValidatableObject
     {
         [Required, StringLength(100)] public string Name { get; set; } = "";
@@ -29,7 +33,7 @@ public class TermsModel(SMSDbContext db, ICurrentUserService user, WorkspaceAcce
     }
     public async Task<IActionResult> OnGetAsync(Guid? id)
     {
-        if (!SdcAccess.CanManage(access)) return Forbid();
+        if (!SdcAccess.CanViewTerms(access) || (id.HasValue && !CanEdit)) return Forbid();
         IsEdit = id.HasValue;
         if (id.HasValue)
         {
@@ -41,7 +45,7 @@ public class TermsModel(SMSDbContext db, ICurrentUserService user, WorkspaceAcce
     }
     public async Task<IActionResult> OnPostAsync(Guid? id)
     {
-        if (!SdcAccess.CanManage(access) || !user.UserId.HasValue) return Forbid();
+        if (!(id.HasValue ? CanEdit : CanCreate) || !user.UserId.HasValue) return Forbid();
         IsEdit = id.HasValue;
         var term = id.HasValue ? await db.SdcTerms.SingleOrDefaultAsync(x => x.Id == id) : null;
         if (id.HasValue && term == null) return NotFound();

@@ -3,6 +3,9 @@ ASPNETCORE_ENVIRONMENT=Production
 ASPNETCORE_HTTP_PORTS=8080
 Cognito__Authority=https://cognito-idp.eu-north-1.amazonaws.com/eu-north-1_LOhGBF9su
 Cognito__ClientId=6ulsn0evv7q8qmoeo69al441sg
+# Enable only after allowing aws.cognito.signin.user.admin on the app client
+# and deploying the scoped Cognito permissions in the application template.
+Cognito__InvitationsEnabled=true
 Cognito__ClientSecret=REPLACE_FROM_SECRETS_MANAGER
 Cognito__Domain=https://eu-north-1lohgbf9su.auth.eu-north-1.amazoncognito.com
 Cognito__LogoutUri=https://REPLACE_PUBLIC_HOST/

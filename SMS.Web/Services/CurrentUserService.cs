@@ -25,6 +25,7 @@ namespace SMS.Lib
 
         // Rights cache
         private long? _cachedRights;
+        private long? _cachedFeatureRights;
 
         public CurrentUserService(IHttpContextAccessor httpContextAccessor, SMSDbContext context, IConfiguration? configuration = null)
         {
@@ -58,7 +59,8 @@ namespace SMS.Lib
             _httpContextAccessor.HttpContext?.User?.FindFirstValue("sub");
 
         public bool IsAuthenticated =>
-            _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
+            _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true
+            && SMS.Web.Services.CognitoIdentity.HasVerifiedEmail(_httpContextAccessor.HttpContext.User);
 
         private void EnsureUserLoaded()
         {
@@ -142,6 +144,20 @@ namespace SMS.Lib
             return (Rights & (long)right) == (long)right;
         }
 
+        public bool HasFeatureRight(FeatureRights right)
+        {
+            EnsureUserLoaded();
+            if (!IsAuthenticated || !_cachedIsActive) return false;
+            if (((_cachedRoleId ?? 0) & (int)UserRole.ADMIN) != 0) return true;
+            if (!_cachedFeatureRights.HasValue)
+            {
+                var configured = _cachedGroupId.HasValue ? _context.UserGroups.AsNoTracking()
+                    .Where(g => g.Id == _cachedGroupId.Value).Select(g => g.FeatureRightsId).FirstOrDefault() : null;
+                _cachedFeatureRights = configured ?? FeatureRightsCatalog.Legacy(Rights);
+            }
+            return (_cachedFeatureRights.Value & (long)right) == (long)right;
+        }
+
         public bool CanNominatePrefects
         {
             get
@@ -190,6 +206,7 @@ namespace SMS.Lib
             if (localUser != null)
             {
                 if (!localUser.IsActive) return null;
+                localUser.IsEmailConfirmed = true;
                 localUser.LastLoginDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 

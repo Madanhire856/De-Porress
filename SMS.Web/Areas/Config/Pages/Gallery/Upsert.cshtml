@@ -1,0 +1,27 @@
+@page "{id:guid?}"
+@model SMS.Web.Areas.Config.Pages.Gallery.UpsertModel
+@{ ViewData["Title"] = Model.IsEdit ? "Edit photo" : "Add photo"; ViewData["PageTitle"] = ViewData["Title"]; ViewData["PageSubTitle"] = "Add a caption, choose an album and decide when your photo goes public"; }
+@section actionbar { <a asp-page="./Index" class="btn btn-secondary">Back to gallery</a> }
+@section Styles { <link rel="stylesheet" href="~/css/school-gallery.css" asp-append-version="true" /> }
+<form method="post" enctype="multipart/form-data" class="form-compact" data-gallery-upload>
+<div class="form-card"><div class="card-body">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    @if (!Model.IsEdit) {
+        <div class="form-group mb-3"><label asp-for="Photo" class="form-label">Photo <span class="required">*</span></label>
+            <input asp-for="Photo" type="file" accept="image/jpeg,image/png" class="form-control" required data-gallery-file />
+            <input asp-for="Thumbnail" type="file" hidden tabindex="-1" aria-hidden="true" data-gallery-thumbnail />
+            <span asp-validation-for="Photo" class="text-danger"></span><small class="text-muted">JPEG or PNG. Large photos are resized before upload; maximum saved size is 2 MB.</small>
+            <p data-gallery-upload-status class="text-muted" role="status" aria-live="polite"></p>
+        </div>
+    }
+    <img class="gallery-upload-preview" data-gallery-preview src="@(Model.IsEdit ? Url.Page("/Gallery/Photo", new { area = "", id = Model.PhotoId }) : null)" alt="Selected photo preview" hidden="@(!Model.IsEdit)" />
+    <div class="form-grid-2">
+        <div class="form-group full-width"><label asp-for="Input.Caption" class="form-label">Caption <span class="required">*</span></label><input asp-for="Input.Caption" class="form-control" maxlength="200" required /><span asp-validation-for="Input.Caption" class="text-danger"></span><small class="text-muted">Describe what is in the photo. This also helps visitors using screen readers.</small></div>
+        <div class="form-group"><label asp-for="Input.Album" class="form-label">Album <span class="required">*</span></label><input asp-for="Input.Album" class="form-control" list="gallery-albums" maxlength="80" required /><datalist id="gallery-albums">@foreach (var album in Model.Albums) { <option value="@album"></option> }</datalist><span asp-validation-for="Input.Album" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.Order" class="form-label">Display order</label><input asp-for="Input.Order" class="form-control" min="0" max="9999" /><span asp-validation-for="Input.Order" class="text-danger"></span><small class="text-muted">Lower numbers appear first.</small></div>
+    </div>
+    @if (Model.CanPublish) { <label class="right-checkbox mt-3"><input asp-for="Input.Published" /><span>Publish on the public school website</span></label> } else { <p class="text-muted">Photos will be saved as drafts for someone with publishing permission.</p> }
+    <p class="text-muted">Published photos can be seen by anyone visiting the school website. Leave this unchecked to save a private draft.</p>
+</div><div class="card-footer"><a asp-page="./Index" class="btn btn-secondary">Cancel</a><button class="btn btn-primary" type="submit">@(Model.IsEdit ? "Save changes" : "Save photo")</button></div></div>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/gallery-upload.js" asp-append-version="true"></script> }

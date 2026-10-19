@@ -16,7 +16,8 @@ namespace SMS.Web.Middleware
         public async Task InvokeAsync(HttpContext context, ICurrentUserService currentUser)
         {
             // Only run for authenticated users
-            if (context.User?.Identity?.IsAuthenticated == true)
+            if (context.User?.Identity?.IsAuthenticated == true
+                && SMS.Web.Services.CognitoIdentity.HasVerifiedEmail(context.User))
             {
                 try
                 {

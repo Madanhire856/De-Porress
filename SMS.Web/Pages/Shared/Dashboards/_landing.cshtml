@@ -207,6 +207,12 @@
             </figure>
         </section>
 
+        <section class="school-section" id="gallery" aria-labelledby="school-gallery-title">
+            <div class="school-section-heading"><div><p class="school-eyebrow">MOMENTS FROM OUR SCHOOL</p><h2 id="school-gallery-title">Our school <em>gallery.</em></h2></div><a class="school-text-link" asp-area="" asp-page="/Gallery/Index">View all photos <span aria-hidden="true">→</span></a></div>
+            <partial name="_SchoolGallery" model="Model.GalleryPhotos" />
+            @if (Model.GalleryPhotos.Count == 0) { <p>Our school photos will appear here soon.</p> }
+        </section>
+
         <!-- ========================== LEADERSHIP ========================== -->
         <section class="school-section school-leadership"
                  id="leadership"

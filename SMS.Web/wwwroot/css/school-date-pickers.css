@@ -1,0 +1,15 @@
+.sms-date-field { position: relative; min-width: 0; }
+.sms-date-field .sms-datepicker-input { padding-right: 44px; min-height: 44px; }
+.sms-datepicker-toggle { position: absolute; right: 1px; top: 1px; bottom: 1px; width: 42px; border: 0; border-left: 1px solid var(--sms-border, #ddd); border-radius: 0 4px 4px 0; background: transparent; color: var(--sms-text-muted, #526170); cursor: pointer; }
+.sms-datepicker-toggle:focus-visible { outline: 2px solid var(--sms-gold, #ae8516); outline-offset: -3px; }
+.sms-datepicker-toggle:disabled { cursor: default; opacity: .5; }
+.sms-datetime-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(105px, .6fr); gap: 10px; align-items: start; }
+.sms-datetime-fields > input[type="time"] { min-height: 44px; min-width: 0; }
+#ui-datepicker-div { z-index: 10020 !important; box-sizing: border-box; width: min(22rem, calc(100vw - 24px)); max-width: calc(100vw - 24px); padding: 8px; border: 1px solid #d4dae0; border-radius: 8px; background: #fff; box-shadow: 0 8px 30px #122c3b26; font-family: inherit; font-size: .875rem; }
+#ui-datepicker-div .ui-datepicker-header { min-height: 42px; padding: 3px 0; }
+#ui-datepicker-div .ui-datepicker-title { margin-inline: 38px; line-height: 34px; }
+#ui-datepicker-div .ui-datepicker-title select { min-height: 34px; color: #243544; }
+#ui-datepicker-div .ui-datepicker-prev, #ui-datepicker-div .ui-datepicker-next { top: 5px; width: 34px; height: 34px; }
+#ui-datepicker-div td a, #ui-datepicker-div td span { display: grid; place-items: center; min-height: 38px; padding: 4px; text-align: center; }
+#ui-datepicker-div .ui-state-active { background: #b28a1c; border-color: #b28a1c; color: #fff; }
+@media print { #ui-datepicker-div, .sms-datepicker-toggle { display: none !important; } }

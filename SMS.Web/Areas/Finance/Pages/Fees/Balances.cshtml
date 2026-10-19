@@ -27,8 +27,11 @@
     </div>
 }
 
-<div class="fees-filter">
-    <form method="get" class="fees-filter-form" id="balancesFilterForm">
+<div class="table-card">
+    <div class="table-count">
+        <i class="fa-solid fa-list-ul me-2"></i>
+        Total: <strong>@Model.Ledgers.Count</strong> student@(Model.Ledgers.Count == 1 ? "" : "s")
+    </div><form method="get" class="table-toolbar" id="balancesFilterForm"><div class="toolbar-filters">
         <div class="filter-wrapper">
             <label class="filter-label">Term</label>
             <select name="TermId" class="filter-dropdown" onchange="this.form.submit();">
@@ -60,9 +63,7 @@
             </select>
         </div>
 
-        <div class="filter-wrapper">
-            <label class="filter-label">Search</label>
-            <div class="search-wrapper fees-search-wrapper">
+</div><div class="search-wrapper">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input type="text"
                        name="Search"
@@ -71,16 +72,7 @@
                        class="search-input"
                        placeholder="Search student name..."
                        autocomplete="off" />
-            </div>
-        </div>
-    </form>
-</div>
-
-<div class="table-card">
-    <div class="table-count">
-        <i class="fa-solid fa-users me-2"></i>
-        Total: <strong>@Model.Ledgers.Count</strong> student@(Model.Ledgers.Count == 1 ? "" : "s")
-    </div>
+            </div></form>
 
     <table class="data-table table-compact">
         <thead>

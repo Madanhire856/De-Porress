@@ -18,20 +18,29 @@ namespace SMS.Web.Areas.Config.Pages.Users
     {
         private readonly SMSDbContext _context;
         private readonly ICurrentUserService _currentUser;
+        private readonly ICognitoUserService _cognito;
+        private readonly ILogger<UpsertModel>? _logger;
 
-        public UpsertModel(SMSDbContext context, ICurrentUserService currentUser)
+        public UpsertModel(SMSDbContext context, ICurrentUserService currentUser, ICognitoUserService cognito,
+            ILogger<UpsertModel>? logger = null)
         {
             _context = context;
             _currentUser = currentUser;
+            _cognito = cognito;
+            _logger = logger;
         }
 
         [BindProperty]
         public UserVM user { get; set; } = new();
+        [BindProperty] public bool SendInvitation { get; set; } = true;
+        public bool InvitationsEnabled => _cognito.InvitationsEnabled;
+        public bool IsEdit { get; private set; }
 
         public List<UserGroup> UserGroups { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync(Guid? id)
         {
+            IsEdit = id.HasValue;
             // ---- Rights guard ----
             if (id == null && !_currentUser.HasRight(AccessRights.CreateUsers))
                 return Forbid();
@@ -79,6 +88,7 @@ namespace SMS.Web.Areas.Config.Pages.Users
 
         public async Task<IActionResult> OnPostAsync(Guid? id)
         {
+            IsEdit = id.HasValue;
             // ---- Same guard on POST ----
             if (id == null && !_currentUser.HasRight(AccessRights.CreateUsers))
                 return Forbid();
@@ -95,6 +105,11 @@ namespace SMS.Web.Areas.Config.Pages.Users
 
             if (!RoleAssignmentPolicy.IsDefined(user.RoleId) || (user.IsActive && user.RoleId == 0))
                 ModelState.AddModelError("user.RoleId", "Choose a valid role for an active account.");
+            user.Email = user.Email?.Trim() ?? "";
+            user.LoginId = user.LoginId?.Trim() ?? "";
+            user.Name = user.Name?.Trim();
+            if (!id.HasValue && InvitationsEnabled && SendInvitation && !user.IsActive)
+                ModelState.AddModelError(nameof(SendInvitation), "Activate the account before sending an invitation.");
             if (user.GroupId == Guid.Empty) user.GroupId = null;
             if (user.GroupId.HasValue && !UserGroups.Any(x => x.Id == user.GroupId))
                 ModelState.AddModelError("user.GroupId", "Choose an existing user group.");
@@ -117,7 +132,7 @@ namespace SMS.Web.Areas.Config.Pages.Users
 
             // Uniqueness — Email
             var clashEmail = await _context.Users
-                .FirstOrDefaultAsync(x => x.Email == user.Email && x.Id != excludeId);
+                .FirstOrDefaultAsync(x => x.Email.ToLower() == user.Email.ToLower() && x.Id != excludeId);
 
             if (clashEmail != null)
             {
@@ -163,7 +178,33 @@ namespace SMS.Web.Areas.Config.Pages.Users
             entity.GroupId = user.GroupId;
             if (entity.IsActive && !entity.ActivationDate.HasValue) entity.ActivationDate = DateTime.UtcNow;
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger?.LogError(ex, "Failed to save user. Request ID: {RequestId}", HttpContext.TraceIdentifier);
+                ModelState.AddModelError(string.Empty,
+                    "The user could not be saved. Check the values and try again. If this continues, contact the administrator with request ID: "
+                    + HttpContext.TraceIdentifier);
+                return Page();
+            }
+
+            if (!id.HasValue && InvitationsEnabled && SendInvitation)
+            {
+                try
+                {
+                    var result = await _cognito.InviteAsync(entity.Email, entity.Name, HttpContext.RequestAborted);
+                    TempData["InvitationStatus"] = result == InvitationResult.Sent
+                        ? "User created and invitation sent. They will set a password and verify their email when they sign in."
+                        : "User created. This email already has a sign-in account and can use its existing login.";
+                }
+                catch (CognitoUserOperationException ex)
+                {
+                    TempData["InvitationError"] = "User created, but no invitation was confirmed. " + ex.Message;
+                }
+            }
 
             return RedirectToPage("./Details", new { area = "Config", id = entity.Id });
         }

@@ -11,23 +11,7 @@
 
 @if (!Model.Houses.Any())
 {
-    <div class="form-card">
-        <div class="card-body">
-            <div class="empty-state">
-                <i class="fa-solid fa-house-circle-xmark fa-2x mb-3 d-block"
-                   style="color: var(--sms-gold); opacity: 0.5;"></i>
-                <div style="font-weight: 600; color: var(--sms-text-main); margin-bottom: 0.4rem;">
-                    No houses defined yet
-                </div>
-                <div style="font-size: 0.85rem; margin-bottom: 1rem;">
-                    Add houses under <strong>Configuration → Sporting → Houses</strong> first.
-                </div>
-                <a asp-area="Config" asp-page="/Houses/Index" class="btn btn-primary">
-                    <i class="fa-solid fa-plus"></i> Configure Houses
-                </a>
-            </div>
-        </div>
-    </div>
+    <div class="table-card"><div class="table-count"><i class="fa-solid fa-list-ul me-2" aria-hidden="true"></i> Total: <strong>0</strong> houses</div><table class="data-table table-compact"><thead><tr><th>House</th><th>House master</th><th>Assignments</th></tr></thead><tbody><tr><td colspan="3" class="empty-state">No houses defined yet. <a asp-area="Config" asp-page="/Houses/Index" class="btn btn-primary">Configure houses</a></td></tr></tbody></table></div>
 }
 else
 {
@@ -58,112 +42,18 @@ else
         </div>
     </div>
 
-    <!-- ===== TOOLBAR ===== -->
-    <div class="house-toolbar">
-        <div class="assignment-search">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="houseSearch"
-                   placeholder="Search houses or teachers..."
-                   autocomplete="off" />
-        </div>
-        <label class="assignment-toggle">
-            <input type="checkbox" id="onlyIncomplete" />
-            <span>Only houses missing a master</span>
-        </label>
-    </div>
-
-    <!-- ===== CARDS ===== -->
-    <div class="house-grid" id="houseGrid">
-        @foreach (var h in Model.Houses)
-        {
-            var blob = (h.Name + " " + string.Join(" ", h.Teachers.Select(t => t.FullName)))
-                        .ToLower();
-
-            <div class="house-card @(h.Master == null ? "house-card-incomplete" : "")"
-                 data-search="@blob"
-                 data-has-master="@(h.Master != null ? "1" : "0")">
-
-                <div class="house-card-header">
-                    <div class="house-card-title">
-                        <span class="house-dot"
-                              style="@(!string.IsNullOrEmpty(h.Color) ? $"background:{h.Color};box-shadow:0 0 0 3px {h.Color}22;" : "")"></span>
-                        <span class="house-name">@h.Name</span>
-                    </div>
-
-                    @if (canEdit)
-                    {
-                        <a asp-area="Sports"
-                           asp-page="/Houses/Assign"
-                           asp-route-houseId="@h.Id"
-                           class="btn btn-primary btn-sm">
-                            <i class="fa-solid fa-user-pen"></i> Manage
-                        </a>
-                    }
-                </div>
-
-                <div class="house-card-body">
-                    @if (!h.Teachers.Any())
-                    {
-                        <div class="house-empty">
-                            <i class="fa-solid fa-user-slash"></i>
-                            No teachers assigned yet
-                        </div>
-                    }
-                    else
-                    {
-                        @if (h.Master != null)
-                        {
-                            <div class="house-teacher house-teacher-master">
-                                <div class="house-teacher-avatar">
-                                    <i class="fa-solid fa-crown"></i>
-                                </div>
-                                <div class="house-teacher-info">
-                                    <div class="house-teacher-name">@h.Master.FullName</div>
-                                    <div class="house-teacher-meta">@h.Master.CategoryName</div>
-                                </div>
-                                <span class="role-pill role-pill-master">House Master</span>
-                            </div>
-                        }
-
-                        @foreach (var a in h.Assistants)
-                        {
-                            <div class="house-teacher">
-                                <div class="house-teacher-avatar">
-                                    <i class="fa-solid fa-user"></i>
-                                </div>
-                                <div class="house-teacher-info">
-                                    <div class="house-teacher-name">@a.FullName</div>
-                                    <div class="house-teacher-meta">@a.CategoryName</div>
-                                </div>
-                                <span class="role-pill">@a.RoleName</span>
-                            </div>
-                        }
-                    }
-                </div>
-
-                <div class="house-card-footer">
-                    <span class="house-count">
-                        <i class="fa-solid fa-users"></i>
-                        @h.TeacherCount assigned
-                    </span>
-                    @if (h.Master == null)
-                    {
-                        <span class="house-warning">
-                            <i class="fa-solid fa-circle-exclamation"></i>
-                            No master
-                        </span>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-
-    <div class="empty-state" id="houseNoResults" style="display: none;">
-        <i class="fa-solid fa-magnifying-glass me-2"></i>
-        No houses match your search.
-    </div>
+    <div class="table-card"><partial name="~/Pages/Shared/Tables/_TableCount.cshtml" model='new SMS.Web.Pages.Shared.Tables.TableCount(Model.Houses.Count, "house", "houses")' />
+    <div class="table-toolbar"><div class="toolbar-filters"><label class="assignment-toggle"><input type="checkbox" id="onlyIncomplete" /><span>Only houses missing a house master</span></label></div><div class="search-wrapper"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input class="search-input" type="search" id="houseSearch" placeholder="Search houses or teachers…" aria-label="Search houses" autocomplete="off" /></div></div>
+    <div class="table-responsive"><table class="data-table table-compact"><thead><tr><th>House</th><th>House master</th><th>Other assignments</th><th>Assigned</th><th>Status</th><th>Actions</th></tr></thead><tbody id="houseGrid">
+    @foreach (var h in Model.Houses) {
+        var blob = (h.Name + " " + string.Join(" ", h.Teachers.Select(person => person.FullName))).ToLower();
+        <tr data-search="@blob" data-has-master="@(h.Master != null ? "1" : "0")"><td><span class="house-dot" style="@(!string.IsNullOrEmpty(h.Color) ? $"background:{h.Color};" : "")"></span> @h.Name</td><td class="table-copy">@(h.Master?.FullName ?? "Unassigned") @if (h.Master != null) { <small class="d-block">@h.Master.CategoryName</small> }</td>
+        <td class="table-copy">@foreach (var person in h.Assistants) { <div>@person.FullName <small>· @person.RoleName · @person.CategoryName</small></div> } @if (!h.Teachers.Any()) { <span>No teachers assigned yet</span> }</td>
+        <td>@h.TeacherCount</td><td><span class="status-badge">@(h.Master == null ? "No house master" : "Assigned")</span></td><td><div class="table-actions">@if (canEdit) { <a asp-area="Sports" asp-page="/Houses/Assign" asp-route-houseId="@h.Id" class="btn btn-sm btn-secondary">Manage</a> }</div></td></tr>
+    }
+    <tr id="houseNoResults" style="display:none"><td colspan="6" class="empty-state">No houses match your search.</td></tr>
+    </tbody></table></div></div>
 }
-
 @section Scripts {
     <script>
         (function () {
@@ -174,7 +64,7 @@ else
 
             if (!grid || !search || !toggle) return;
 
-            const cards = Array.from(grid.querySelectorAll('.house-card'));
+            const cards = Array.from(grid.querySelectorAll('tr[data-search]'));
 
             function apply() {
                 const q = (search.value || '').trim().toLowerCase();
@@ -190,6 +80,11 @@ else
                     if (show) visible++;
                 });
 
+                const total = grid.closest('.table-card').querySelector('.table-count strong');
+                if (total) {
+                    total.textContent = visible;
+                    total.nextSibling.textContent = visible === 1 ? ' house' : ' houses';
+                }
                 if (noResults) {
                     noResults.style.display = (cards.length > 0 && visible === 0) ? '' : 'none';
                 }

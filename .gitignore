@@ -359,6 +359,7 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+SMS.Web/App_Data/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd

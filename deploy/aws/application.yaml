@@ -130,6 +130,15 @@ Resources:
             Principal: {Service: ecs-tasks.amazonaws.com}
             Action: sts:AssumeRole
       Policies:
+        - PolicyName: StaffInvitations
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: ['cognito-idp:AdminCreateUser', 'cognito-idp:AdminGetUser']
+                Resource: !Sub
+                  - 'arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${PoolId}'
+                  - PoolId: !Select [3, !Split ['/', !Ref CognitoAuthority]]
         - PolicyName: AuthenticationKeys
           PolicyDocument:
             Statement:
@@ -166,6 +175,7 @@ Resources:
             - {Name: Cognito__Authority, Value: !Ref CognitoAuthority}
             - {Name: Cognito__ClientId, Value: !Ref CognitoClientId}
             - {Name: Cognito__Domain, Value: !Ref CognitoDomain}
+            - {Name: Cognito__InvitationsEnabled, Value: 'true'}
             - {Name: Cognito__LogoutUri, Value: !Sub 'https://${Hostname}/'}
             # ALB health checks send the target IP as Host. Public host filtering
             # is enforced by the HTTPS listener rule below instead.

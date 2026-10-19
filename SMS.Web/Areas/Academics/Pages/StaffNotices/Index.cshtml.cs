@@ -12,13 +12,18 @@ public class IndexModel(SMSDbContext db, WorkspaceAccess access) : PageModel
     [BindProperty(SupportsGet = true)] public string? SearchTerm { get; set; }
     [BindProperty(SupportsGet = true)] public int PageNumber { get; set; } = 1;
     public List<Announcement> Notices { get; private set; } = [];
+    public int Total { get; private set; }
+    public SMS.Web.Pages.Shared.Pagination.PaginationInfo Pagination => new() { PageNumber = PageNumber, PageSize = 12, TotalCount = Total };
     public bool HasNext { get; private set; }
+    public bool CanCreate => SchoolNotices.CanCreate(access);
+    public bool CanManage => SchoolNotices.CanManage(access);
     public async Task<IActionResult> OnGetAsync()
     {
         if (!SchoolNotices.CanReadStaff(access)) return Forbid();
         var query = SchoolNotices.StaffPublished(db);
         if (!string.IsNullOrWhiteSpace(SearchTerm)) query = query.Where(x => x.Title.Contains(SearchTerm) || (x.Body != null && x.Body.Contains(SearchTerm)));
-        var count = await query.CountAsync();
+        Total = await query.CountAsync();
+        var count = Total;
         PageNumber = Math.Clamp(PageNumber, 1, Math.Max(1, (count + 11) / 12));
         Notices = await query.OrderByDescending(x => x.CreationDate).ThenByDescending(x => x.Id).Skip((PageNumber - 1) * 12).Take(12).ToListAsync();
         HasNext = PageNumber * 12 < count;

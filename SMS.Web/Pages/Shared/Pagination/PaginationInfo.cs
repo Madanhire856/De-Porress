@@ -8,6 +8,7 @@ namespace SMS.Web.Pages.Shared.Pagination
         public int PageSize { get; set; } = 10;
         public int TotalCount { get; set; }
         public string ItemName { get; set; } = "items";
+        public Func<int, string>? PageUrl { get; set; }
 
         public int TotalPages => PageSize > 0
             ? (int)Math.Ceiling(TotalCount / (double)PageSize)

@@ -1,64 +1,52 @@
 ﻿@model SMS.Web.Pages.Shared.Pagination.PaginationInfo
 
 @{
-    var currentPath = Context.Request.Path.Value ?? "";
+    var currentPath = Context.Request.PathBase.Add(Context.Request.Path).Value ?? "";
 
     // Preserve any existing query string (search, filter, etc.) — only swap PageNumber/PageSize
     var existingQuery = Context.Request.Query
-        .Where(kvp => kvp.Key != "PageNumber"
-                   && kvp.Key != "PageSize"
-                   && !string.IsNullOrEmpty(kvp.Value))
-        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString());
+        .Where(kvp => !kvp.Key.Equals("PageNumber", StringComparison.OrdinalIgnoreCase)
+                   && !kvp.Key.Equals("PageSize", StringComparison.OrdinalIgnoreCase))
+        .SelectMany(kvp => kvp.Value.Select(value => new KeyValuePair<string, string?>(kvp.Key, value)))
+        .ToList();
 
     string BuildUrl(int pageNumber)
     {
-        var dict = new Dictionary<string, string>(existingQuery)
-        {
-            ["PageNumber"] = pageNumber.ToString(),
-            ["PageSize"] = Model.PageSize.ToString()
+        if (Model.PageUrl != null) return Model.PageUrl(pageNumber);
+        var query = new List<KeyValuePair<string, string?>>(existingQuery) {
+            new("PageNumber", pageNumber.ToString()), new("PageSize", Model.PageSize.ToString())
         };
-        var qs = string.Join("&",
-            dict.Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value)}"));
-        return string.IsNullOrEmpty(qs) ? currentPath : $"{currentPath}?{qs}";
+        return currentPath + QueryString.Create(query);
     }
+    var totalPages = Math.Max(Model.TotalPages, 1);
+    var pages = Enumerable.Range(Math.Max(1, Model.PageNumber - 2),
+        Math.Max(0, Math.Min(totalPages, Model.PageNumber + 2) - Math.Max(1, Model.PageNumber - 2) + 1))
+        .Append(1).Append(totalPages).Distinct().OrderBy(page => page).ToArray();
+    int previous = 0;
 }
 
 <div class="table-pagination">
-    <div class="pagination-info">
-        @if (Model.TotalCount == 0)
-        {
-            <span>No @Model.ItemName to display.</span>
+    <nav class="pagination-nav" aria-label="Table pages">
+        @if (Model.HasPrevious) {
+            <a class="page-link" href="@BuildUrl(Model.PageNumber - 1)" aria-label="Previous page" rel="prev"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></a>
+        } else {
+            <span class="page-link disabled" aria-disabled="true" aria-label="Previous page"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></span>
         }
-        else
-        {
-            <span>
-                Showing
-                <strong>@Model.FirstItemNumber</strong>
-                –
-                <strong>@Model.LastItemNumber</strong>
-                of
-                <strong>@Model.TotalCount</strong> @Model.ItemName.
-            </span>
-        }
-    </div>
 
-    <nav class="pagination-nav">
-        <a class="page-link @(Model.HasPrevious ? "" : "disabled")"
-           href="@BuildUrl(Model.PageNumber - 1)">
-            <i class="fa-solid fa-chevron-left"></i>
-        </a>
-
-        @for (int i = 1; i <= Math.Max(Model.TotalPages, 1); i++)
+        @foreach (var i in pages)
         {
+            @if (previous > 0 && i > previous + 1) { <span class="page-link disabled" aria-hidden="true">…</span> }
             <a class="page-link @(i == Model.PageNumber ? "active" : "")"
-               href="@BuildUrl(i)">
+               href="@BuildUrl(i)" aria-label="Page @i" aria-current="@(i == Model.PageNumber ? "page" : null)">
                 @i
             </a>
+            previous = i;
         }
 
-        <a class="page-link @(Model.HasNext ? "" : "disabled")"
-           href="@BuildUrl(Model.PageNumber + 1)">
-            <i class="fa-solid fa-chevron-right"></i>
-        </a>
+        @if (Model.HasNext) {
+            <a class="page-link" href="@BuildUrl(Model.PageNumber + 1)" aria-label="Next page" rel="next"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
+        } else {
+            <span class="page-link disabled" aria-disabled="true" aria-label="Next page"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></span>
+        }
     </nav>
 </div>

@@ -887,8 +887,8 @@
 
 .school-reveal {
     opacity: 0;
-    transform: translateY(18px);
-    transition: opacity .55s var(--school-easing), transform .55s var(--school-easing);
+    transform: translateY(28px);
+    transition: opacity .8s cubic-bezier(.22, 1, .36, 1), transform .8s cubic-bezier(.22, 1, .36, 1);
 }
 
 .school-reveal-visible {
@@ -898,12 +898,12 @@
 
 .school-learning-grid .school-reveal:nth-child(2),
 .school-notices-grid .school-reveal:nth-child(2) {
-    transition-delay: 80ms;
+    transition-delay: 100ms;
 }
 
 .school-learning-grid .school-reveal:nth-child(3),
 .school-notices-grid .school-reveal:nth-child(3) {
-    transition-delay: 160ms;
+    transition-delay: 200ms;
 }
 
 /* ==========================================================================
@@ -1229,3 +1229,42 @@
         transform: none;
     }
 }
+
+/* Larger crest; retain the existing school colours, type and page layout. */
+.school-brand img { width: 62px; height: 74px; }
+.school-navigation { display: flex; align-items: center; gap: 20px; }
+.school-menu-toggle { display: none; }
+.school-leadership-grid .school-reveal:nth-child(2),
+.school-values-strip .school-reveal:nth-child(2) { transition-delay: 100ms; }
+.school-values-strip .school-reveal:nth-child(3) { transition-delay: 200ms; }
+.school-site button:focus-visible { outline: 3px solid #aa7f23; outline-offset: 4px; }
+
+/* Navigation stays usable without JavaScript; enhancement collapses it. */
+@media (max-width: 1100px) {
+    .school-header { gap: 12px; }
+    .school-brand { flex: 1; }
+    .school-site.has-navigation .school-menu-toggle {
+        display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+        min-width: 86px; min-height: 48px; padding: 12px 16px;
+        border: 1px solid var(--school-outline); border-radius: 12px;
+        background: var(--school-surface); color: var(--school-ink); font-size: .8125rem;
+    }
+    .school-menu-icon { position: relative; display: block; width: 20px; height: 16px; }
+    .school-menu-icon span { position: absolute; top: 3px; left: 0; right: 0; height: 2px; border-radius: 2px; background: currentColor; transition: transform .2s, top .2s; }
+    .school-menu-icon span + span { top: 11px; }
+    .is-menu-open .school-menu-icon span { top: 7px; transform: rotate(45deg); }
+    .is-menu-open .school-menu-icon span + span { top: 7px; transform: rotate(-45deg); }
+    .school-navigation { width: 100%; flex-basis: 100%; flex-direction: column; align-items: stretch; gap: 16px; padding-top: 12px; border-top: 1px solid var(--school-outline); }
+    .school-site.has-navigation .school-navigation { display: none; }
+    .school-site.has-navigation .is-menu-open .school-navigation { display: flex; animation: school-menu-open .2s ease-out; }
+    .school-header .school-navigation nav { order: initial; width: 100%; flex-direction: column; align-items: stretch; justify-content: flex-start; flex-wrap: nowrap; overflow: visible; gap: 4px; }
+    .school-header .school-navigation nav a { min-height: 48px; padding: 12px 16px; border-radius: 12px; }
+    .school-header .school-navigation nav a:hover { background: var(--school-container); }
+    .school-navigation .school-portal { align-self: flex-start; }
+}
+@media (max-width: 600px) {
+    .school-brand img { width: 52px; height: 64px; }
+    .school-site.has-navigation .school-menu-toggle { min-width: 48px; padding: 12px; }
+    .school-menu-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+}
+@keyframes school-menu-open { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }

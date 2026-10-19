@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using System.Threading.RateLimiting;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.DataProtection;
@@ -19,6 +21,7 @@ builder.Services.AddOptions<CognitoSettings>().BindConfiguration("Cognito")
     .Validate(c => !string.IsNullOrWhiteSpace(c.ClientSecret), "Configure Cognito:ClientSecret using user secrets or AWS Secrets Manager.")
     .Validate(c => CognitoSettings.IsHttpsUrl(c.Domain), "Cognito:Domain must be an HTTPS login domain.")
     .Validate(c => CognitoSettings.IsHttpsUrl(c.LogoutUri), "Cognito:LogoutUri must be an allowed HTTPS sign-out URL.")
+    .Validate(c => !c.InvitationsEnabled || c.HasInvitationAuthority(), "Cognito:Authority must identify the user pool used for invitations.")
     .ValidateOnStart();
 
 builder.Services.AddAuthentication(options =>
@@ -33,6 +36,20 @@ builder.Services.AddAuthentication(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.ExpireTimeSpan = TimeSpan.FromHours(1);
     options.SlidingExpiration = false;
+})
+.AddCookie(CognitoEmailVerification.Scheme, options =>
+{
+    options.Cookie.Name = "SMS.Cognito.EmailVerification";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+    options.SlidingExpiration = false;
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.Redirect("/Identity/Account/StaffLogin");
+        return Task.CompletedTask;
+    };
 })
 .AddOpenIdConnect(options =>
 {
@@ -49,13 +66,22 @@ builder.Services.AddAuthentication(options =>
     options.Scope.Add("openid");
     options.Scope.Add("email");
     options.Scope.Add("profile");
+    if (builder.Configuration.GetValue<bool>("Cognito:InvitationsEnabled"))
+        options.Scope.Add("aws.cognito.signin.user.admin");
     options.TokenValidationParameters.NameClaimType = "name";
     options.Events.OnTokenValidated = context =>
     {
         if (!CognitoIdentity.HasVerifiedEmail(context.Principal))
-            context.Fail("A verified staff email address is required.");
+        {
+            if (!builder.Configuration.GetValue<bool>("Cognito:InvitationsEnabled")
+                || string.IsNullOrWhiteSpace(context.TokenEndpointResponse?.AccessToken))
+                context.Fail("A verified staff email address is required.");
+            else
+                context.Properties.Items[CognitoEmailVerification.TokenKey] = context.TokenEndpointResponse.AccessToken;
+        }
         return Task.CompletedTask;
     };
+    options.Events.OnTicketReceived = CognitoEmailVerification.TicketReceivedAsync;
     options.Events.OnRedirectToIdentityProviderForSignOut = context =>
     {
         // Cognito uses /logout, client_id and logout_uri rather than OIDC's
@@ -74,6 +100,18 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+builder.Services.AddSingleton<ICognitoClientFactory, CognitoClientFactory>();
+builder.Services.AddScoped<ICognitoUserService, CognitoUserService>();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("email-verification", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirst("sub")?.Value ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10, Window = TimeSpan.FromMinutes(1), QueueLimit = 0
+        }));
+});
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -92,6 +130,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<WorkspaceAccess>();
 builder.Services.AddScoped<WorkspacePageFilter>();
+builder.Services.AddScoped<SchoolReportService>();
+builder.Services.AddSingleton<IGalleryStore, GalleryStore>();
 
 builder.Services.AddScoped<AuditInterceptor>();
 
@@ -211,6 +251,8 @@ app.UseRouting();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseRateLimiter();
 
 app.UseMiddleware<UserProvisioningMiddleware>();
 

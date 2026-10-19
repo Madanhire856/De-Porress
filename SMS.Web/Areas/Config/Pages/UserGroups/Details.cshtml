@@ -21,6 +21,7 @@
 }
 
 <div class="details-compact">
+    @if (Model.UsesLegacyFeatureRights) { <p class="alert alert-info">Newer feature permissions currently follow the previous access rules. Edit this group to configure them explicitly.</p> }
     <div class="details-single">
 
         <!-- ===== PROFILE HEADER ===== -->

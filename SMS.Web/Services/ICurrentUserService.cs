@@ -23,5 +23,6 @@ namespace SMS.Lib
         long Rights { get; }
         bool CanNominatePrefects { get; }
         bool HasRight(AccessRights right);
+        bool HasFeatureRight(FeatureRights right);
     }
 }

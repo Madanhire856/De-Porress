@@ -1,0 +1,7 @@
+.trip-grade-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.trip-grade-choices label { display: flex; gap: 10px; align-items: center; min-height: 44px; padding: 10px 12px; border: 1px solid var(--sms-border); border-radius: 6px; cursor: pointer; }
+.trip-grade-choices input { width: 18px; height: 18px; flex-shrink: 0; }
+.trip-details dl { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(0, 3fr); gap: 12px 24px; margin: 20px 0 32px; }
+.trip-details dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.trip-details dt { color: var(--sms-text-muted); font-size: .875rem; }
+@media (max-width: 600px) { .trip-details dl { grid-template-columns: minmax(0, 1fr); gap: 6px; } .trip-details dd { margin-bottom: 14px; } }

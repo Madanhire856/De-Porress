@@ -9,7 +9,7 @@
     <div class="alert alert-success" role="status">@message</div>
 }
 <div class="table-card">
-    <div class="table-count"><i class="fas fa-chalkboard-teacher me-2" aria-hidden="true"></i> @Model.Teachers.Count teaching staff</div>
+    <partial name="~/Pages/Shared/Tables/_TableCount.cshtml" model='new SMS.Web.Pages.Shared.Tables.TableCount(Model.Teachers.Count, "staff member")' />
     <form method="get" class="table-toolbar" data-auto-filter>
         <div class="search-wrapper"><i class="fas fa-search" aria-hidden="true"></i>
             <input asp-for="SearchTerm" class="search-input" aria-label="Search teacher or subject" placeholder="Search teacher or subject" />
@@ -17,7 +17,7 @@
         @if (!string.IsNullOrWhiteSpace(Model.SearchTerm)) { <a asp-page="./Index" class="btn btn-outline-secondary">Clear</a> }
     </form>
     <div class="table-responsive">
-        <table class="table">
+        <table class="data-table table-compact">
             <thead><tr><th>Teacher</th><th>Status</th><th>Assigned subjects</th>@if (Model.CanManage) { <th>Action</th> }</tr></thead>
             <tbody>
             @foreach (var teacher in Model.Teachers)
@@ -32,7 +32,7 @@
                     }
                 </tr>
             }
-            @if (Model.Teachers.Count == 0) { <tr><td colspan="4">No teaching staff found.</td></tr> }
+            @if (Model.Teachers.Count == 0) { <tr><td colspan="4" class="empty-state">No teaching staff found.</td></tr> }
             </tbody>
         </table>
     </div>

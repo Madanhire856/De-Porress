@@ -29,6 +29,8 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
 
         [BindProperty]
         public List<long> SelectedRights { get; set; } = new();
+        [BindProperty] public List<long> SelectedFeatureRights { get; set; } = new();
+        public bool UsesLegacyFeatureRights { get; private set; }
 
         public List<RightCategory> RightsCategories { get; set; } = new();
 
@@ -64,6 +66,10 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                 return NotFound();
 
             UserGroupVM = existing;
+            UsesLegacyFeatureRights = existing.FeatureRightsId == null;
+            long features = existing.FeatureRightsId ?? FeatureRightsCatalog.Legacy(existing.RightsId ?? 0);
+            SelectedFeatureRights = Enum.GetValues<FeatureRights>().Where(right => right != FeatureRights.None
+                && (features & (long)right) == (long)right).Select(right => (long)right).ToList();
 
             if (existing.RightsId.HasValue)
             {
@@ -96,6 +102,8 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
 
             SelectedRights ??= new();
             if (SelectedRights.Any(value => !RightsSelectionPolicy.IsValid(value))) ModelState.AddModelError("", "An invalid permission was submitted.");
+            SelectedFeatureRights ??= new();
+            if (SelectedFeatureRights.Any(value => !FeatureRightsCatalog.IsValid(value))) ModelState.AddModelError("", "An invalid feature permission was submitted.");
 
             if (!ModelState.IsValid)
             {
@@ -108,6 +116,7 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                 foreach (var value in SelectedRights) combinedRights |= value;
 
             UserGroupVM.RightsId = combinedRights == 0 ? null : combinedRights;
+            UserGroupVM.FeatureRightsId = SelectedFeatureRights.Aggregate(0L, (rights, value) => rights | value);
 
             var existing = isEdit ? await _context.UserGroups.FirstOrDefaultAsync(g => g.Id == id) : null;
             if (isEdit && existing == null) return NotFound();
@@ -118,7 +127,13 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                 UserGroupVM.CreationDate = DateTime.UtcNow;
                 UserGroupVM.Id = Guid.NewGuid();
                 UserGroupVM.CreatorId = _currentUser.UserId ?? Guid.Empty;
-                _context.UserGroups.Add(UserGroupVM);
+                // Persist only the editable group fields, never posted navigation objects.
+                _context.UserGroups.Add(new UserGroup {
+                    Id = UserGroupVM.Id, Name = UserGroupVM.Name, Description = UserGroupVM.Description,
+                    CreationDate = UserGroupVM.CreationDate, CreatorId = UserGroupVM.CreatorId,
+                    RightsId = UserGroupVM.RightsId, FeatureRightsId = UserGroupVM.FeatureRightsId,
+                    CanNominatePrefects = UserGroupVM.CanNominatePrefects
+                });
             }
             else
             {
@@ -126,6 +141,7 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                 existing.Description = UserGroupVM.Description;
                 existing.RightsId = UserGroupVM.RightsId;
                 existing.CanNominatePrefects = UserGroupVM.CanNominatePrefects;
+                existing.FeatureRightsId = UserGroupVM.FeatureRightsId;
             }
 
             await _context.SaveChangesAsync();

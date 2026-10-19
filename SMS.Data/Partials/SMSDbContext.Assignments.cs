@@ -9,6 +9,9 @@ public partial class SMSDbContext
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
         ConfigureSdc(modelBuilder);
+        ConfigureTrips(modelBuilder);
+        // A draft editor must not overwrite a notice published concurrently.
+        modelBuilder.Entity<Announcement>().Property(x => x.StatusId).IsConcurrencyToken();
         modelBuilder.Entity<PrefectNomination>(entity =>
         {
             entity.Property(x => x.ReviewNotes).HasMaxLength(1000);

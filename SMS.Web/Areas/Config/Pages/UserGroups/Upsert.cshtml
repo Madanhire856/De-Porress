@@ -46,6 +46,8 @@
                 <span class="rights-counter" id="rightsCount">0 selected</span>
             </div>
 
+            <p class="form-text">Permissions apply within each user's role. Administrator accounts retain full access. View permission is required alongside create, edit, print or export permission.</p>
+            @if (Model.UsesLegacyFeatureRights) { <p class="alert alert-info">The newer feature permissions below reflect this group's existing access rules. Saving makes these selections explicit.</p> }
             <div class="rights-grid">
                 @foreach (var category in Model.RightsCategories)
                 {
@@ -76,6 +78,21 @@
                                     @(isChecked ? "checked" : "") />
                                     <span>@right.DisplayName</span>
                                 </label>
+                            }
+                        </div>
+                    </div>
+                }
+                @foreach (var category in SMS.Lib.FeatureRightsCatalog.Categories)
+                {
+                    var featureCatId = "feature-" + category.Title.Replace(" ", "-").ToLowerInvariant();
+                    <div class="rights-category">
+                        <h4 class="rights-category-title"><i class="fa-solid @category.Icon"></i> @category.Title
+                            <label class="select-all-label"><input type="checkbox" class="select-all-checkbox" data-target="@featureCatId" /> Select All</label>
+                        </h4>
+                        <div class="rights-list" id="@featureCatId">
+                            @foreach (var right in category.Rights)
+                            {
+                                <label class="right-checkbox"><input type="checkbox" name="SelectedFeatureRights" value="@((long)right.Right)" checked="@Model.SelectedFeatureRights.Contains((long)right.Right)" /><span>@right.DisplayName</span></label>
                             }
                         </div>
                     </div>

@@ -1,5 +1,14 @@
 # AWS deployment package
 
+## Invitations from the app
+
+See [user invitations and email verification](../../docs/aws-user-invitations.md)
+for the one-time scope/email configuration and release procedure. The updated
+application templates enable invitations and add pool-scoped Cognito permissions
+to the task role. Deploy those templates together with the new app image after
+allowing `aws.cognito.signin.user.admin` on the existing app client. No database
+migration is needed for this feature.
+
 ## Demo without a purchased domain
 
 Use `application-demo.yaml` for a synthetic-data demo. It supplies a
@@ -38,6 +47,27 @@ does not guarantee Free plan eligibility for every resource. Validate it first:
 ```powershell
 aws cloudformation validate-template --template-body file://deploy/aws/application-demo.yaml --region eu-north-1
 ```
+
+After migrations, `setup-runtime-user.ps1` launches an isolated Fargate setup
+task using the .NET SDK image. It installs the official RDS CA bundle, compiles
+`runtime-user/`, creates/updates the dedicated `smsapp` SQL login, grants
+db_datareader/db_datawriter and verifies access without db_owner or table
+creation. It needs outbound access to Microsoft images, Ubuntu mirrors, the RDS
+trust bundle and NuGet. No extra image push or AWS API permission in the task is
+needed; the existing execution role injects values from the runtime secret.
+
+Before running it, add a temporary `RuntimeDatabasePassword` key to the existing
+runtime secret, containing a private 32-64 character alphanumeric password with
+upper/lowercase letters and digits. Keep DatabaseConnectionString on the
+migration principal until setup exits 0. Run the script with RuntimeSecretArn
+and the two PublicSubnets. Inspect the printed task/log locations. On success,
+edit DatabaseConnectionString to use User ID=smsapp and the new password, and
+remove the temporary RuntimeDatabasePassword key. Keep the master credentials
+secret for future migrations. Never run migrations using the restricted user.
+Future migration task definitions should inject a separate migration connection
+secret and scope their execution role to that secret; normal tasks should only
+receive the runtime secret. Save the old master connection privately for this
+purpose; never commit or print it. No secrets are written by the launcher.
 
 The app uses your existing Cognito pool in `eu-north-1`. Do not deploy
 `cognito.yaml` again unless deliberately creating a different pool.

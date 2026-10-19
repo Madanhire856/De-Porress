@@ -16,6 +16,9 @@ public partial class UserGroup
     public Guid CreatorId { get; set; }
 
     public long? RightsId { get; set; }
+    // Null on pre-existing rows preserves legacy access until the group is saved.
+    // New groups start with no additional permissions.
+    public long? FeatureRightsId { get; set; } = 0;
     public bool CanNominatePrefects { get; set; }
 
     public virtual User Creator { get; set; } = null!;

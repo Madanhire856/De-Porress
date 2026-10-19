@@ -14,6 +14,8 @@ public class NominationsModel(SMSDbContext db, ICurrentUserService user, Workspa
     [BindProperty(SupportsGet = true)] public int? Status { get; set; }
     [BindProperty(SupportsGet = true)] public int PageNumber { get; set; } = 1;
     public List<PrefectNomination> Nominations { get; private set; } = [];
+    public int Total { get; private set; }
+    public SMS.Web.Pages.Shared.Pagination.PaginationInfo Pagination => new() { PageNumber = PageNumber, PageSize = 15, TotalCount = Total };
     public bool HasNext { get; private set; }
     public bool CanAppoint => access.Can(AccessRights.ViewPrefects) && PrefectAccess.CanManage(access, AccessRights.CreatePrefects);
     public bool CanReview => access.Can(AccessRights.ViewPrefects) && PrefectAccess.CanManage(access, AccessRights.EditPrefects);
@@ -27,7 +29,7 @@ public class NominationsModel(SMSDbContext db, ICurrentUserService user, Workspa
         if (!PrefectAccess.CanManage(access, AccessRights.ViewPrefects)) query = query.Where(x => user.UserId.HasValue && x.NominatedByUserId == user.UserId);
         if (Status.HasValue) query = query.Where(x => x.StatusId == Status);
         if (!string.IsNullOrWhiteSpace(SearchTerm)) query = query.Where(x => (x.Student.Name + " " + x.Student.Surname).Contains(SearchTerm));
-        var count = await query.CountAsync(); PageNumber = Math.Clamp(PageNumber, 1, Math.Max(1, (count + 14) / 15));
+        Total = await query.CountAsync(); var count = Total; PageNumber = Math.Clamp(PageNumber, 1, Math.Max(1, (count + 14) / 15));
         Nominations = await query.Include(x => x.Student).ThenInclude(x => x.Class).Include(x => x.NominatedByUser)
             .OrderByDescending(x => x.CreationDate).ThenBy(x => x.Id).Skip((PageNumber - 1) * 15).Take(15).ToListAsync();
         HasNext = PageNumber * 15 < count; return Page();

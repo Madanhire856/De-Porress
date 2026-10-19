@@ -26,7 +26,7 @@ public class MemberModel(SMSDbContext db, ICurrentUserService user, WorkspaceAcc
     }
     public async Task<IActionResult> OnGetAsync(Guid? id)
     {
-        if (!SdcAccess.CanManage(access)) return Forbid();
+        if (!(id.HasValue ? SdcAccess.CanEditMembers(access) : SdcAccess.CanCreateMembers(access))) return Forbid();
         IsEdit = id.HasValue;
         if (id.HasValue)
         {
@@ -39,7 +39,7 @@ public class MemberModel(SMSDbContext db, ICurrentUserService user, WorkspaceAcc
     }
     public async Task<IActionResult> OnPostAsync(Guid? id)
     {
-        if (!SdcAccess.CanManage(access) || !user.UserId.HasValue) return Forbid();
+        if (!(id.HasValue ? SdcAccess.CanEditMembers(access) : SdcAccess.CanCreateMembers(access)) || !user.UserId.HasValue) return Forbid();
         IsEdit = id.HasValue;
         var member = id.HasValue ? await db.SdcMembers.SingleOrDefaultAsync(x => x.Id == id) : null;
         if (id.HasValue && member == null) return NotFound();

@@ -14,23 +14,7 @@
 
 @if (!Model.Sports.Any())
 {
-    <div class="form-card">
-        <div class="card-body">
-            <div class="empty-state">
-                <i class="fa-solid fa-futbol fa-2x mb-3 d-block"
-                   style="color: var(--sms-navy); opacity: 0.35;"></i>
-                <div style="font-weight: 600; color: var(--sms-text-main); margin-bottom: 0.4rem;">
-                    No sports defined yet
-                </div>
-                <div style="font-size: 0.85rem; margin-bottom: 1rem;">
-                    Add sports under <strong>Configuration → Sporting → Sport Types</strong> first.
-                </div>
-                <a asp-area="Config" asp-page="/SportTypes/Index" class="btn btn-primary">
-                    <i class="fa-solid fa-plus"></i> Configure Sport Types
-                </a>
-            </div>
-        </div>
-    </div>
+    <div class="table-card"><div class="table-count"><i class="fa-solid fa-list-ul me-2" aria-hidden="true"></i> Total: <strong>0</strong> sports</div><table class="data-table table-compact"><thead><tr><th>Sport</th><th>Head coach</th><th>Assignments</th></tr></thead><tbody><tr><td colspan="3" class="empty-state">No sports defined yet. <a asp-area="Config" asp-page="/Sports/Index" class="btn btn-primary">Configure sports</a></td></tr></tbody></table></div>
 }
 else
 {
@@ -63,133 +47,19 @@ else
         </div>
     </div>
 
-    <!-- ===== TOOLBAR ===== -->
-    <div class="house-toolbar">
-        <div class="assignment-search">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="sportSearch"
-                   placeholder="Search sports or coaches..."
-                   autocomplete="off" />
-        </div>
-        <label class="assignment-toggle">
-            <input type="checkbox" id="onlyIncomplete" />
-            <span>Only sports missing a head coach</span>
-        </label>
-    </div>
-
-    <!-- ===== CARDS ===== -->
-    <div class="house-grid" id="sportGrid">
-        @foreach (var s in Model.Sports)
-        {
-            var blob = (s.Name + " " + string.Join(" ", s.Coaches.Select(c => c.FullName)))
-                        .ToLower();
-
-            <div class="house-card @(s.HeadCoach == null ? "house-card-incomplete" : "")"
-                 data-search="@blob"
-                 data-has-master="@(s.HeadCoach != null ? "1" : "0")">
-
-                <div class="house-card-header">
-                    <div class="house-card-title">
-                        <span class="house-dot"></span>
-                        <span class="house-name">@s.Name</span>
-                    </div>
-
-                    @if (showActions)
-                    {
-                        <div class="sport-actions">
-                            @if (canEditSports)
-                            {
-                                <a asp-area="Sports"
-                                   asp-page="/Sporting/AddCompetition"
-                                   asp-route-sportId="@s.Id"
-                                   class="btn btn-primary btn-sm"
-                                   title="Add a competition for this sport">
-                                    <i class="fa-solid fa-plus"></i> Competition
-                                </a>
-                            }
-                            @if (canAssignCoaches)
-                            {
-                                <a asp-area="Sports"
-                                   asp-page="/Sporting/Assign"
-                                   asp-route-sportId="@s.Id"
-                                   class="btn btn-secondary btn-sm"
-                                   title="Manage coaches for this sport">
-                                    <i class="fa-solid fa-user-pen"></i> Coaches
-                                </a>
-                            }
-                        </div>
-                    }
-                </div>
-
-                <div class="house-card-body">
-                    @if (!s.Coaches.Any())
-                    {
-                        <div class="house-empty">
-                            <i class="fa-solid fa-user-slash"></i>
-                            No coaches assigned yet
-                        </div>
-                    }
-                    else
-                    {
-                        @if (s.HeadCoach != null)
-                        {
-                            <div class="house-teacher house-teacher-master">
-                                <div class="house-teacher-avatar">
-                                    <i class="fa-solid fa-whistle"></i>
-                                </div>
-                                <div class="house-teacher-info">
-                                    <div class="house-teacher-name">@s.HeadCoach.FullName</div>
-                                    <div class="house-teacher-meta">@s.HeadCoach.CategoryName</div>
-                                </div>
-                                <span class="role-pill role-pill-master">Head Coach</span>
-                            </div>
-                        }
-
-                        @foreach (var c in s.Assistants)
-                        {
-                            <div class="house-teacher">
-                                <div class="house-teacher-avatar">
-                                    <i class="fa-solid fa-user"></i>
-                                </div>
-                                <div class="house-teacher-info">
-                                    <div class="house-teacher-name">@c.FullName</div>
-                                    <div class="house-teacher-meta">@c.CategoryName</div>
-                                </div>
-                                <span class="role-pill">@c.RoleName</span>
-                            </div>
-                        }
-                    }
-                </div>
-
-                <div class="house-card-footer">
-                    <span class="house-count">
-                        <i class="fa-solid fa-users"></i>
-                        @s.CoachCount @(s.CoachCount == 1 ? "coach" : "coaches")
-                    </span>
-
-                    <span class="house-count">
-                        <i class="fa-solid fa-trophy"></i>
-                        @s.CompetitionCount @(s.CompetitionCount == 1 ? "competition" : "competitions")
-                    </span>
-
-                    @if (s.HeadCoach == null)
-                    {
-                        <span class="house-warning">
-                            <i class="fa-solid fa-circle-exclamation"></i>
-                            No head coach
-                        </span>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-
-    <div class="empty-state" id="sportNoResults" style="display: none;">
-        <i class="fa-solid fa-magnifying-glass me-2"></i>
-        No sports match your search.
-    </div>
+    <div class="table-card"><partial name="~/Pages/Shared/Tables/_TableCount.cshtml" model='new SMS.Web.Pages.Shared.Tables.TableCount(Model.Sports.Count, "sport", "sports")' />
+    <div class="table-toolbar"><div class="toolbar-filters"><label class="assignment-toggle"><input type="checkbox" id="onlyIncomplete" /><span>Only sports missing a head coach</span></label></div><div class="search-wrapper"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input class="search-input" type="search" id="sportSearch" placeholder="Search sports or coaches…" aria-label="Search sports" autocomplete="off" /></div></div>
+    <div class="table-responsive"><table class="data-table table-compact"><thead><tr><th>Sport</th><th>Head coach</th><th>Other assignments</th><th>Assigned</th><th>Competitions</th><th>Status</th><th>Actions</th></tr></thead><tbody id="sportGrid">
+    @foreach (var s in Model.Sports) {
+        var blob = (s.Name + " " + string.Join(" ", s.Coaches.Select(person => person.FullName))).ToLower();
+        <tr data-search="@blob" data-has-master="@(s.HeadCoach != null ? "1" : "0")"><td>@s.Name</td><td class="table-copy">@(s.HeadCoach?.FullName ?? "Unassigned") @if (s.HeadCoach != null) { <small class="d-block">@s.HeadCoach.CategoryName</small> }</td>
+        <td class="table-copy">@foreach (var person in s.Assistants) { <div>@person.FullName <small>· @person.RoleName · @person.CategoryName</small></div> } @if (!s.Coaches.Any()) { <span>No coaches assigned yet</span> }</td>
+        <td>@s.CoachCount</td><td>@s.CompetitionCount</td><td><span class="status-badge">@(s.HeadCoach == null ? "No head coach" : "Assigned")</span></td><td><div class="table-actions">@if (canEditSports) { <a asp-area="Sports" asp-page="/Sporting/AddCompetition" asp-route-sportId="@s.Id" class="btn btn-sm btn-primary">Competition</a> }
+        @if (canAssignCoaches) { <a asp-area="Sports" asp-page="/Sporting/Assign" asp-route-sportId="@s.Id" class="btn btn-sm btn-secondary">Coaches</a> }</div></td></tr>
+    }
+    <tr id="sportNoResults" style="display:none"><td colspan="7" class="empty-state">No sports match your search.</td></tr>
+    </tbody></table></div></div>
 }
-
 @section Scripts {
     <script>
         (function () {
@@ -200,7 +70,7 @@ else
 
             if (!grid || !search || !toggle) return;
 
-            const cards = Array.from(grid.querySelectorAll('.house-card'));
+            const cards = Array.from(grid.querySelectorAll('tr[data-search]'));
 
             function apply() {
                 const q = (search.value || '').trim().toLowerCase();
@@ -216,6 +86,11 @@ else
                     if (show) visible++;
                 });
 
+                const total = grid.closest('.table-card').querySelector('.table-count strong');
+                if (total) {
+                    total.textContent = visible;
+                    total.nextSibling.textContent = visible === 1 ? ' sport' : ' sports';
+                }
                 if (noResults) {
                     noResults.style.display = (cards.length > 0 && visible === 0) ? '' : 'none';
                 }

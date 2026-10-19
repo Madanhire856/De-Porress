@@ -8,7 +8,7 @@
 {
     <div class="alert alert-success" role="status">@message</div>
 }
-<div class="table-card mb-3">
+<div class="table-card mb-3"><partial name="~/Pages/Shared/Tables/_TableCount.cshtml" model='new SMS.Web.Pages.Shared.Tables.TableCount(Model.Rows.Count, "class", "classes")' />
     <form method="get" class="table-toolbar assignment-year-filter" data-auto-filter>
         <div class="toolbar-filters">
         <label for="yearFilter" class="form-label">Academic year</label>
@@ -16,7 +16,7 @@
         </div>
     </form>
     <div class="table-responsive">
-        <table class="table">
+        <table class="data-table table-compact">
             <thead><tr><th>Class</th><th>Grade</th><th>Class teacher</th>@if (Model.CanManage && Model.Year == Model.CurrentYear) { <th>Action</th> }</tr></thead>
             <tbody>
             @foreach (var row in Model.Rows)
@@ -28,7 +28,7 @@
                 }
                 </tr>
             }
-            @if (Model.Rows.Count == 0) { <tr><td colspan="4">No class assignments to display for this year.</td></tr> }
+            @if (Model.Rows.Count == 0) { <tr><td colspan="4" class="empty-state">No class assignments to display for this year.</td></tr> }
             </tbody>
         </table>
     </div>
@@ -60,9 +60,9 @@
     </form>
 }
 <div class="table-card">
-    <div class="table-count"><i class="fas fa-history me-2" aria-hidden="true"></i> Assignment history · @Model.Year</div>
+    <partial name="~/Pages/Shared/Tables/_TableCount.cshtml" model='new SMS.Web.Pages.Shared.Tables.TableCount(Model.History.Count, "assignment")' /><p class="table-context">Assignment history · @Model.Year</p>
     <div class="table-responsive">
-        <table class="table">
+        <table class="data-table table-compact">
             <thead><tr><th>Class</th><th>Teacher</th><th>Assigned</th><th>Ended</th><th>Assigned by</th></tr></thead>
             <tbody>
             @foreach (var item in Model.History)
@@ -71,7 +71,7 @@
                     <td>@item.AssignedAt.AddHours(2).ToString("dd MMM yyyy HH:mm")</td>
                     <td>@(item.EndedAt?.AddHours(2).ToString("dd MMM yyyy HH:mm") ?? "Current")</td><td>@item.AssignedBy.Name</td></tr>
             }
-            @if (Model.History.Count == 0) { <tr><td colspan="5">No assignment history for this year.</td></tr> }
+            @if (Model.History.Count == 0) { <tr><td colspan="5" class="empty-state">No assignment history for this year.</td></tr> }
             </tbody>
         </table>
     </div>

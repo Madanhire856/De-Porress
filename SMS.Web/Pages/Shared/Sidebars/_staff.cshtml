@@ -11,13 +11,13 @@
     var currentRoleName = Access.Name;
     var initialMarker = currentDisplayName.Length > 0 ? currentDisplayName[..1].ToUpperInvariant() : "U";
     // Daily school work comes first; occasional administration and setup come last.
-    string[] groupOrder = ["Academics", "Finance", "Notices", "Sports & houses", "SDC", "Administration", "School setup"];
+    string[] groupOrder = ["Academics", "Finance", "Reports", "Notices", "Faith", "Sports & houses", "SDC", "Administration", "School setup"];
     string[] itemOrder = [
-        "Students", "Classes", "Staff", "Subjects", "Class teacher assignments", "Subject assignments",
+        "Students", "Classes", "Staff", "Subjects", "Class teacher assignments", "Subject assignments", "Trips", "Reports",
         "Prefects", "Prefect nominations", "Nominate prefects",
         "Fees overview", "Student balances", "Cash-up", "Open term", "Fee structures", "Currencies",
-        "Staff notices", "House assignments", "Sports", "Members", "Committee terms", "Positions",
-        "School notices", "Users", "User groups", "Audit logs", "Terms", "Grades", "Houses", "Sport types", "Villages"
+        "Staff notices", "Mass timetable", "House assignments", "Sports", "Members", "Committee terms", "Positions",
+        "School notices", "School gallery", "Users", "User groups", "Audit logs", "Terms", "Grades", "Houses", "Sport types", "Villages"
     ];
     var groups = Access.Navigation
         .OrderBy(f => Array.IndexOf(groupOrder, f.Group) is var index && index >= 0 ? index : int.MaxValue)
@@ -29,7 +29,7 @@
     <div class="sidebar-top"><div class="sidebar-menu">
         @if (Access.CanViewDashboard)
         {
-            <a asp-area="" asp-page="/Index" class="sidebar-link @(isDashboard ? "active" : "")"><i class="fas fa-tachometer-alt" aria-hidden="true"></i><span>@Access.Name dashboard</span></a>
+            <a asp-area="" asp-page="/Index" class="sidebar-link @(isDashboard ? "active" : "")"><i class="fas fa-tachometer-alt" aria-hidden="true"></i><span>Dashboard</span></a>
         }
         @foreach (var group in groups)
         {

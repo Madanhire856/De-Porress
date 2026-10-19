@@ -1,0 +1,14 @@
+@page "{id:guid?}"
+@model SMS.Web.Areas.Faith.Pages.Masses.UpsertModel
+@{ ViewData["Title"] = Model.IsEdit ? "Edit Mass" : "Add Mass"; ViewData["PageTitle"] = ViewData["Title"]; ViewData["PageSubTitle"] = "Set the school Mass date, time, venue and celebrant"; }
+@section actionbar { <a asp-page="./Index" class="btn btn-secondary">Back to timetable</a> }
+<form method="post" class="form-compact"><div class="form-card"><div class="card-body">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-grid-2">
+        <div class="form-group"><label asp-for="Input.DateTime" class="form-label">Mass date and time (Zimbabwe)</label><input asp-for="Input.DateTime" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" class="form-control" required /><span asp-validation-for="Input.DateTime" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.LiturgicalDate" class="form-label">Liturgical date</label><input asp-for="Input.LiturgicalDate" type="date" class="form-control" required /><span asp-validation-for="Input.LiturgicalDate" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.Venue" class="form-label">Venue</label><input asp-for="Input.Venue" class="form-control" maxlength="20" required /><span asp-validation-for="Input.Venue" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.Celebrant" class="form-label">Celebrant</label><input asp-for="Input.Celebrant" class="form-control" maxlength="50" required /><span asp-validation-for="Input.Celebrant" class="text-danger"></span></div>
+    </div>
+</div><div class="card-footer"><a asp-page="./Index" class="btn btn-secondary">Cancel</a><button type="submit" class="btn btn-primary">Save Mass</button></div></div></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

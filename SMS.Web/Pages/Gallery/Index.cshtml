@@ -1,0 +1,17 @@
+@page
+@model SMS.Web.Pages.Gallery.IndexModel
+@{ Layout = "_PublicLayout"; ViewData["Title"] = "School gallery"; }
+<section class="school-section">
+    <p class="school-eyebrow">MOMENTS FROM OUR SCHOOL</p><h1>School gallery</h1><p>Explore school life, events and the moments we share.</p>
+    <nav class="school-gallery-albums" aria-label="Gallery albums">
+        <a asp-page="./Index" class="@(string.IsNullOrWhiteSpace(Model.Album) ? "is-selected" : "")" aria-current="@(string.IsNullOrWhiteSpace(Model.Album) ? "page" : null)">All photos</a>
+        @foreach (var album in Model.Albums) { <a asp-route-Album="@album" class="@(string.Equals(album, Model.Album, StringComparison.OrdinalIgnoreCase) ? "is-selected" : "")" aria-current="@(string.Equals(album, Model.Album, StringComparison.OrdinalIgnoreCase) ? "page" : null)">@album</a> }
+    </nav>
+    <partial name="_SchoolGallery" model="Model.Photos" />
+    @if (Model.Photos.Count == 0) { <p>No photos have been published in this album yet.</p> }
+    <nav class="school-buttons" aria-label="Gallery pages">
+        @if (Model.PageNumber > 1) { <a class="school-text-link" asp-route-Album="@Model.Album" asp-route-PageNumber="@(Model.PageNumber - 1)">← Previous photos</a> }
+        @if (Model.HasNext) { <a class="school-text-link" asp-route-Album="@Model.Album" asp-route-PageNumber="@(Model.PageNumber + 1)">More photos →</a> }
+    </nav>
+    <a class="school-text-link" asp-page="/Index" asp-route-Website="true">← School home</a>
+</section>

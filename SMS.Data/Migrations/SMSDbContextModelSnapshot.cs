@@ -67,6 +67,7 @@ namespace SMS.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("StatusId")
+                        .IsConcurrencyToken()
                         .HasColumnType("int");
 
                     b.Property<Guid?>("TemplateId")
@@ -1007,6 +1008,138 @@ namespace SMS.Data.Migrations
                     b.ToTable("ReceiptSequence", (string)null);
                 });
 
+            modelBuilder.Entity("SMS.Data.SchoolTrip", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Accommodation")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("AmountPerStudent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<DateTime>("DepartureAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Destination")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("EmergencyContactName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("EmergencyContactPhone")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid>("LeaderStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("MeetingPoint")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<bool>("ParentConsentRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<DateOnly?>("PaymentDueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("PlacesToPassThrough")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("ReturnAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TransportDetails")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .IsConcurrencyToken()
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UpdatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.HasIndex("CurrencyCode");
+
+                    b.HasIndex("LeaderStaffId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("StatusId", "DepartureAt");
+
+                    b.ToTable("SchoolTrip", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SchoolTrip_Amount", "[AmountPerStudent] >= 0");
+
+                            t.HasCheckConstraint("CK_SchoolTrip_Capacity", "[Capacity] IS NULL OR [Capacity] > 0");
+
+                            t.HasCheckConstraint("CK_SchoolTrip_Dates", "[ReturnAt] > [DepartureAt]");
+
+                            t.HasCheckConstraint("CK_SchoolTrip_DueDate", "([AmountPerStudent] = 0 OR [PaymentDueDate] IS NOT NULL) AND ([PaymentDueDate] IS NULL OR [PaymentDueDate] <= CAST([DepartureAt] AS date))");
+
+                            t.HasCheckConstraint("CK_SchoolTrip_Status", "[StatusId] IN (0,1,2,3)");
+                        });
+                });
+
+            modelBuilder.Entity("SMS.Data.SchoolTripGrade", b =>
+                {
+                    b.Property<Guid>("TripId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("GradeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("TripId", "GradeId");
+
+                    b.HasIndex("GradeId");
+
+                    b.ToTable("SchoolTripGrade", (string)null);
+                });
+
             modelBuilder.Entity("SMS.Data.SdcMember", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1662,6 +1795,9 @@ namespace SMS.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long?>("FeatureRightsId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -2135,6 +2271,56 @@ namespace SMS.Data.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("SMS.Data.SchoolTrip", b =>
+                {
+                    b.HasOne("SMS.Data.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SMS.Data.Currency", "Currency")
+                        .WithMany()
+                        .HasForeignKey("CurrencyCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SMS.Data.Staff", "Leader")
+                        .WithMany()
+                        .HasForeignKey("LeaderStaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SMS.Data.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Currency");
+
+                    b.Navigation("Leader");
+                });
+
+            modelBuilder.Entity("SMS.Data.SchoolTripGrade", b =>
+                {
+                    b.HasOne("SMS.Data.Grade", "Grade")
+                        .WithMany()
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SMS.Data.SchoolTrip", "Trip")
+                        .WithMany("Grades")
+                        .HasForeignKey("TripId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Grade");
+
+                    b.Navigation("Trip");
+                });
+
             modelBuilder.Entity("SMS.Data.SdcMember", b =>
                 {
                     b.HasOne("SMS.Data.User", null)
@@ -2456,6 +2642,11 @@ namespace SMS.Data.Migrations
                     b.Navigation("ProjectMilestones");
 
                     b.Navigation("ProjectRisks");
+                });
+
+            modelBuilder.Entity("SMS.Data.SchoolTrip", b =>
+                {
+                    b.Navigation("Grades");
                 });
 
             modelBuilder.Entity("SMS.Data.SdcPosition", b =>

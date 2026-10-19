@@ -21,6 +21,21 @@
 }
 
 <div class="details-compact">
+    @if (TempData["InvitationStatus"] is string status)
+    {
+        <div class="alert alert-success" role="status">@status</div>
+    }
+    @if (TempData["InvitationError"] is string error)
+    {
+        <div class="alert alert-warning" role="alert">@error</div>
+    }
+    @if (Model.CanInvite)
+    {
+        <form method="post" asp-page-handler="Invite" asp-route-id="@Model.UserVM.Id" class="mb-3">
+            <button type="submit" class="btn btn-secondary"><i class="fa-solid fa-envelope"></i> Send invitation</button>
+            <p class="mt-2">Use this for a new or expired invitation. Existing users keep their current login.</p>
+        </form>
+    }
     <div class="details-single">
 
         <!-- ===== PROFILE HEADER ===== -->

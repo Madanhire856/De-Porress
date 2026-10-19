@@ -1,10 +1,10 @@
 @page
 @model SMS.Web.Pages.IndexModel
 @{
-    ViewData["Title"] = Model.IsAdmin ? "Admin Dashboard" : Model.IsBursar ? "Bursar Dashboard" : Model.IsTeacher ? "Teacher Dashboard" : "Home";
+    ViewData["Title"] = "Dashboard";
     if (Model.IsBursar)
     {
-        ViewData["PageTitle"] = "Bursar Dashboard";
+        ViewData["PageTitle"] = "Dashboard";
         ViewData["PageSubTitle"] = $"Welcome, {Model.DisplayName}. School finances at a glance.";
     }
 

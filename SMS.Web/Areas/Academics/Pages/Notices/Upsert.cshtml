@@ -13,7 +13,7 @@
         <p class="form-text">Published notices are visible to the selected audience. Staff-only notices require staff sign-in and never appear on the public website. Drafts remain private to notice administrators.</p>
         @if (Model.Published) { <div class="alert alert-info">This notice is currently published. Saving as a draft withdraws it from its audience.</div> }
     </div><div class="card-footer">
-        <button type="submit" name="intent" value="publish" class="btn btn-primary">@(Model.Published ? "Update published notice" : "Publish notice")</button>
+        @if (Model.CanPublish) { <button type="submit" name="intent" value="publish" class="btn btn-primary">@(Model.Published ? "Update published notice" : "Publish notice")</button> }
         <button type="submit" name="intent" value="draft" class="btn btn-secondary">Save as draft</button>
     </div></div>
 </form>

@@ -1,4 +1,4 @@
-﻿@page "{id:guid}"
+@page "{id:guid}"
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
 @model SMS.Web.Areas.Finance.Pages.Fees.LedgerModel
@@ -177,7 +177,7 @@
                     @if (p.IsReversal)
                     {
                         <tr class="ledger-reversal-note">
-                            <td colspan="7">
+                            <td colspan="7" class="empty-state">
                                 <i class="fa-solid fa-link"></i>
                                 Reversal of <strong>@p.ReversedPaymentReceiptDisplay</strong>
                                 by <strong>@p.ReversedByName</strong>
@@ -189,7 +189,7 @@
                     else if (p.AlreadyReversed)
                     {
                         <tr class="ledger-reversal-note">
-                            <td colspan="7">
+                            <td colspan="7" class="empty-state">
                                 <i class="fa-solid fa-link"></i>
                                 Reversed by linked receipt <strong>@p.ReversalReceiptDisplay</strong>.
                             </td>
@@ -206,7 +206,7 @@
                         @Model.TotalPaid.ToString("N2")
                         <small class="info-value-mono">@Model.BaseCurrency</small>
                     </td>
-                    <td colspan="2"></td>
+                    <td colspan="2" class="empty-state"></td>
                 </tr>
                 @if (Model.TotalReversed > 0m)
                 {
@@ -218,7 +218,7 @@
                             −@Model.TotalReversed.ToString("N2")
                             <small class="info-value-mono">@Model.BaseCurrency</small>
                         </td>
-                        <td colspan="2"></td>
+                        <td colspan="2" class="empty-state"></td>
                     </tr>
                 }
             </tfoot>

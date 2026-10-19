@@ -1,0 +1,17 @@
+@page
+@using SMS.Web.Services
+@model SMS.Web.Areas.Academics.Pages.Trips.IndexModel
+@{ ViewData["Title"] = "Trips"; ViewData["PageTitle"] = "Trips"; ViewData["PageSubTitle"] = "School trips, destinations, grades, costs and travel dates"; }
+@section actionbar { @if (Model.CanCreate) { <a asp-page="./Upsert" class="btn btn-primary">Add trip</a> } }
+<div class="table-card"><partial name="~/Pages/Shared/Tables/_TableCount.cshtml" model='new SMS.Web.Pages.Shared.Tables.TableCount(Model.Pagination.TotalCount, "trip")' /><form method="get" class="table-toolbar" data-auto-filter>
+    <div class="toolbar-filters"><div class="filter-wrapper"><label asp-for="StatusId" class="visually-hidden">Status</label><select asp-for="StatusId" class="filter-dropdown"><option value="">All statuses</option>@foreach (var status in Enum.GetValues<TripStatus>()) { @if (status != TripStatus.Draft || Model.CanManage) { <option value="@((int)status)">@status</option> } }</select></div>
+    <div class="filter-wrapper"><label asp-for="GradeId" class="visually-hidden">Grade</label><select asp-for="GradeId" class="filter-dropdown"><option value="">All grades</option>@foreach (var grade in Model.Grades) { <option value="@grade.Id">@grade.Name</option> }</select></div></div>
+    <div class="search-wrapper"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input asp-for="SearchTerm" class="search-input" placeholder="Search trips…" aria-label="Search trips" autocomplete="off" /></div><input asp-for="PageSize" type="hidden" />
+</form><div class="table-responsive"><table class="data-table table-compact"><caption class="visually-hidden">School trips. Times are Zimbabwe time.</caption><thead><tr><th>Trip</th><th>Destination</th><th>Leader</th><th>Grades</th><th>Departure</th><th>Return</th><th>Per student</th><th>Payment due</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+@foreach (var trip in Model.Trips) {
+    <tr><td><a asp-page="./Details" asp-route-id="@trip.Id" class="reg-link">@trip.Name <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a></td><td>@trip.Destination</td><td>@trip.Leader.Surname @trip.Leader.Name</td><td>@string.Join(", ", trip.Grades.OrderBy(x => x.Grade.GradeLevelId).ThenBy(x => x.Grade.Name).Select(x => x.Grade.Name))</td><td>@trip.DepartureAt.ToString("dd MMM yyyy HH:mm")</td><td>@trip.ReturnAt.ToString("dd MMM yyyy HH:mm")</td><td>@trip.CurrencyCode @trip.AmountPerStudent.ToString("N2")</td><td>@(trip.PaymentDueDate?.ToString("dd MMM yyyy") ?? "—")</td><td>@SchoolTrips.StatusName(trip.StatusId)</td><td><a asp-page="./Details" asp-route-id="@trip.Id" class="btn btn-sm btn-secondary">View trip</a></td></tr>
+}
+@if (Model.Trips.Count == 0) { <tr><td colspan="10" class="empty-state">No trips found.</td></tr> }
+</tbody></table></div><partial name="Pagination/_pagination" model="Model.Pagination" /></div>
+
+@section Scripts { <script src="~/js/assignment-filters.js" asp-append-version="true"></script> }

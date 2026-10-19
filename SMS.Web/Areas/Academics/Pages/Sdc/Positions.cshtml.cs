@@ -15,6 +15,10 @@ public class PositionsModel(SMSDbContext db, ICurrentUserService user, Workspace
     [BindProperty(SupportsGet = true)] public string? Status { get; set; }
     public List<SdcPosition> Positions { get; private set; } = [];
     public bool IsEdit { get; private set; }
+    public bool CanCreate => SdcAccess.CanCreatePositions(access);
+    public bool CanEdit => SdcAccess.CanEditPositions(access);
+    public bool CanSave => IsEdit ? CanEdit : CanCreate;
+    public bool CanViewMembers => SdcAccess.CanViewMembers(access);
     public class PositionInput
     {
         [Required, StringLength(80)] public string Name { get; set; } = "";
@@ -22,7 +26,7 @@ public class PositionsModel(SMSDbContext db, ICurrentUserService user, Workspace
     }
     public async Task<IActionResult> OnGetAsync(Guid? id)
     {
-        if (!SdcAccess.CanManage(access)) return Forbid();
+        if (!SdcAccess.CanViewPositions(access) || (id.HasValue && !CanEdit)) return Forbid();
         IsEdit = id.HasValue;
         if (id.HasValue)
         {
@@ -34,7 +38,7 @@ public class PositionsModel(SMSDbContext db, ICurrentUserService user, Workspace
     }
     public async Task<IActionResult> OnPostAsync(Guid? id)
     {
-        if (!SdcAccess.CanManage(access) || !user.UserId.HasValue) return Forbid();
+        if (!(id.HasValue ? CanEdit : CanCreate) || !user.UserId.HasValue) return Forbid();
         IsEdit = id.HasValue;
         var position = id.HasValue ? await db.SdcPositions.SingleOrDefaultAsync(x => x.Id == id) : null;
         if (id.HasValue && position == null) return NotFound();

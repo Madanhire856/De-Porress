@@ -11,7 +11,7 @@ public class WorkspacePageFilter(WorkspaceAccess access) : IAsyncPageFilter
     {
         var area = context.RouteData.Values["area"]?.ToString() ?? "";
         var page = context.RouteData.Values["page"]?.ToString() ?? "";
-        if (area is not ("Academics" or "Config" or "Sports" or "Finance"))
+        if (area is not ("Academics" or "Config" or "Sports" or "Finance" or "Faith"))
         {
             await next();
             return;
@@ -34,7 +34,7 @@ public class WorkspacePageFilter(WorkspaceAccess access) : IAsyncPageFilter
                 && f.Page.Equals(page, StringComparison.OrdinalIgnoreCase))
                 ?? WorkspaceAccess.Features.FirstOrDefault(f => f.Area.Equals(area, StringComparison.OrdinalIgnoreCase)
                     && f.Page.Equals(page[..(page.LastIndexOf('/') + 1)] + "Index", StringComparison.OrdinalIgnoreCase));
-            if (feature == null || !access.Can(feature.Right))
+            if (feature == null || !access.Can(feature.Right) || !access.Can(feature.FeatureRight))
             {
                 context.Result = new ForbidResult();
                 return;

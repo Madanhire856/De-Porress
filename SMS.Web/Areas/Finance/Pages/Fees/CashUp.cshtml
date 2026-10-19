@@ -1,4 +1,4 @@
-﻿@page
+@page
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
 @model SMS.Web.Areas.Finance.Pages.Fees.CashUpModel
@@ -256,7 +256,7 @@
                 Totals by Currency
             </div>
 
-            <table class="cashup-table">
+            <table class="data-table table-compact cashup-table">
                 <thead>
                     <tr>
                         <th>Currency</th>
@@ -305,7 +305,7 @@
 
         @if (Model.MethodGroups.Any())
         {
-            <table class="cashup-table">
+            <table class="data-table table-compact cashup-table">
                 <thead>
                     <tr>
                         <th>Method</th>
@@ -335,7 +335,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="2"><strong>Total</strong></td>
+                        <td colspan="2" class="empty-state"><strong>Total</strong></td>
                         <td style="text-align:right;"><strong>@Model.TotalPaymentsCount</strong></td>
                         <td></td>
                         <td style="text-align:right;">
@@ -361,7 +361,7 @@
                 Breakdown by Bursar
             </div>
 
-            <table class="cashup-table">
+            <table class="data-table table-compact cashup-table">
                 <thead>
                     <tr>
                         <th>Bursar</th>
@@ -394,7 +394,7 @@
                 Payment Detail (@Model.Payments.Count entries)
             </div>
 
-            <table class="cashup-table cashup-table-compact">
+            <table class="data-table table-compact cashup-table cashup-table-compact">
                 <thead>
                     <tr>
                         <th>Receipt</th>
@@ -470,7 +470,7 @@
                         <td style="text-align:right; font-weight:700;">
                             @Model.TotalCollected.ToString("N2")
                         </td>
-                        <td colspan="2"></td>
+                        <td colspan="2" class="empty-state"></td>
                     </tr>
                 </tfoot>
             </table>
@@ -486,7 +486,7 @@
                 Reversals (@Model.Reversals.Count entries)
             </div>
 
-            <table class="cashup-table cashup-table-compact">
+            <table class="data-table table-compact cashup-table cashup-table-compact">
                 <thead>
                     <tr>
                         <th>Receipt</th>

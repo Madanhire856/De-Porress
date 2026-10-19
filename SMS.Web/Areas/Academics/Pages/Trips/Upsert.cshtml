@@ -1,0 +1,47 @@
+@page "{id:guid?}"
+@using SMS.Web.Services
+@model SMS.Web.Areas.Academics.Pages.Trips.UpsertModel
+@{ ViewData["Title"] = Model.IsEdit ? "Edit trip" : "Add trip"; ViewData["PageTitle"] = ViewData["Title"]; ViewData["PageSubTitle"] = "Plan the destination, learners, travel arrangements and cost"; }
+@section actionbar { <a asp-page="./Index" class="btn btn-secondary">Back to trips</a> }
+@section Styles { <link rel="stylesheet" href="~/css/school-trips.css" asp-append-version="true" /> }
+<form method="post" class="form-compact" data-trip-form><div class="form-card"><div class="card-body">
+    <input asp-for="Input.OriginalUpdatedAt" type="hidden" asp-format="{0:O}" />
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <fieldset class="mb-4"><legend class="h5">Trip and route</legend><div class="form-grid-2">
+        <div class="form-group full-width"><label asp-for="Input.Name" class="form-label">Trip name *</label><input asp-for="Input.Name" class="form-control" maxlength="100" required /><span asp-validation-for="Input.Name" class="text-danger"></span></div>
+        <div class="form-group full-width"><label asp-for="Input.Destination" class="form-label">Main destination *</label><input asp-for="Input.Destination" class="form-control" maxlength="200" required /><span asp-validation-for="Input.Destination" class="text-danger"></span></div>
+        <div class="form-group full-width"><label asp-for="Input.Purpose" class="form-label">Purpose of the trip *</label><textarea asp-for="Input.Purpose" class="form-control" rows="3" maxlength="2000" required></textarea><span asp-validation-for="Input.Purpose" class="text-danger"></span></div>
+        <div class="form-group full-width"><label asp-for="Input.PlacesToPassThrough" class="form-label">Places to pass through</label><textarea asp-for="Input.PlacesToPassThrough" class="form-control" rows="3" maxlength="2000"></textarea><small class="text-muted">List stops in travel order, one per line. Include planned activities or stop times if known.</small><span asp-validation-for="Input.PlacesToPassThrough" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.LeaderStaffId" class="form-label">Trip leader (staff) *</label><select asp-for="Input.LeaderStaffId" asp-items="Model.Leaders" class="form-select" required><option value="">Choose a staff member</option></select><span asp-validation-for="Input.LeaderStaffId" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.StatusId" class="form-label">Status</label><select asp-for="Input.StatusId" class="form-select">@foreach (var status in Enum.GetValues<TripStatus>()) { <option value="@((int)status)">@status</option> }</select><small class="text-muted">Drafts are visible only to administrators. Planned, completed and cancelled trips are visible to signed-in staff.</small><span asp-validation-for="Input.StatusId" class="text-danger"></span></div>
+    </div></fieldset>
+    <fieldset class="mb-4"><legend class="h5">Dates and duration</legend><div class="form-grid-2">
+        <div class="form-group"><label asp-for="Input.DepartureAt" class="form-label">Departure date and time *</label><input asp-for="Input.DepartureAt" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" class="form-control" required data-trip-departure /><span asp-validation-for="Input.DepartureAt" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.ReturnAt" class="form-label">Return date and time *</label><input asp-for="Input.ReturnAt" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" class="form-control" required data-trip-return /><span asp-validation-for="Input.ReturnAt" class="text-danger"></span></div>
+        <p class="full-width text-muted" data-trip-duration aria-live="polite">All times are Zimbabwe time. Days and nights are calculated from departure and return dates.</p>
+        <div class="form-group full-width"><label asp-for="Input.MeetingPoint" class="form-label">Meeting / departure point</label><input asp-for="Input.MeetingPoint" class="form-control" maxlength="200" /><span asp-validation-for="Input.MeetingPoint" class="text-danger"></span></div>
+    </div></fieldset>
+    <fieldset class="mb-4"><legend class="h5">Grades and capacity</legend>
+        <p class="text-muted">Select every grade the trip is intended for. *</p>
+        <div class="trip-grade-choices">@foreach (var grade in Model.Grades) { <label><input type="checkbox" name="Input.GradeIds" value="@grade.Id" checked="@(Model.Input.GradeIds.Contains(grade.Id))" /> <span>@grade.Name</span></label> }</div>
+        @if (Model.Grades.Count == 0) { <p class="text-danger">Set up school grades before saving a trip.</p> }
+        <span asp-validation-for="Input.GradeIds" class="text-danger"></span>
+        <div class="form-group mt-3"><label asp-for="Input.Capacity" class="form-label">Maximum number of students</label><input asp-for="Input.Capacity" class="form-control" min="1" max="100000" /><small class="text-muted">Leave blank if the limit has not been set.</small><span asp-validation-for="Input.Capacity" class="text-danger"></span></div>
+    </fieldset>
+    <fieldset class="mb-4"><legend class="h5">Cost and payment deadline</legend><div class="form-grid-2">
+        <div class="form-group"><label asp-for="Input.AmountPerStudent" class="form-label">Total amount per student *</label><input asp-for="Input.AmountPerStudent" class="form-control" type="number" min="0" max="999999999.99" step="0.01" required /><small class="text-muted">Enter 0 for a free trip.</small><span asp-validation-for="Input.AmountPerStudent" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.CurrencyCode" class="form-label">Currency *</label><select asp-for="Input.CurrencyCode" asp-items="Model.Currencies" class="form-select" required><option value="">Choose a currency</option></select><span asp-validation-for="Input.CurrencyCode" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.PaymentDueDate" class="form-label">Payment due date</label><input asp-for="Input.PaymentDueDate" type="date" class="form-control" /><small class="text-muted">Required for paid trips; on or before departure.</small><span asp-validation-for="Input.PaymentDueDate" class="text-danger"></span></div>
+    </div></fieldset>
+    <fieldset class="mb-4"><legend class="h5">Travel and accommodation</legend><div class="form-grid-2">
+        <div class="form-group"><label asp-for="Input.TransportDetails" class="form-label">Transport arrangements</label><textarea asp-for="Input.TransportDetails" class="form-control" rows="3" maxlength="500"></textarea><small class="text-muted">Vehicle/provider, driver contact and travel arrangements.</small><span asp-validation-for="Input.TransportDetails" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.Accommodation" class="form-label">Accommodation</label><textarea asp-for="Input.Accommodation" class="form-control" rows="3" maxlength="500"></textarea><span asp-validation-for="Input.Accommodation" class="text-danger"></span></div>
+    </div></fieldset>
+    <fieldset><legend class="h5">Contacts, consent and notes</legend><div class="form-grid-2">
+        <div class="form-group"><label asp-for="Input.EmergencyContactName" class="form-label">Emergency contact name</label><input asp-for="Input.EmergencyContactName" class="form-control" maxlength="100" /><span asp-validation-for="Input.EmergencyContactName" class="text-danger"></span></div>
+        <div class="form-group"><label asp-for="Input.EmergencyContactPhone" class="form-label">Emergency contact phone</label><input asp-for="Input.EmergencyContactPhone" class="form-control" type="tel" maxlength="30" /><span asp-validation-for="Input.EmergencyContactPhone" class="text-danger"></span></div>
+        <div class="form-group full-width"><label class="right-checkbox"><input asp-for="Input.ParentConsentRequired" /><span>Parent / guardian consent required</span></label></div>
+        <div class="form-group full-width"><label asp-for="Input.Notes" class="form-label">Other important information</label><textarea asp-for="Input.Notes" class="form-control" rows="4" maxlength="4000"></textarea><small class="text-muted">Include supervising staff, packing lists, meals, accessibility arrangements and other instructions. Keep individual medical details in the appropriate learner records.</small><span asp-validation-for="Input.Notes" class="text-danger"></span></div>
+    </div></fieldset>
+</div><div class="card-footer"><a asp-page="./Index" class="btn btn-secondary">Cancel</a><button type="submit" class="btn btn-primary">Save trip</button></div></div></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/school-trips.js" asp-append-version="true"></script> }

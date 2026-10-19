@@ -1,0 +1,29 @@
+@page
+@model SMS.Web.Areas.Identity.Pages.Account.VerifyEmailModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "/Pages/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Verify your email";
+    ViewData["UseFullWidthLayout"] = true;
+}
+<main class="container py-5" style="max-width: 620px;">
+    <h1>Verify your email</h1>
+    <p>Confirm <strong>@Model.Email</strong> before opening your school workspace.</p>
+    <p>Request a code, then enter the six-digit code from your email. This page expires after ten minutes.</p>
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="alert alert-success" role="status">@Model.StatusMessage</div>
+    }
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <form method="post" asp-page-handler="Send" class="mb-4">
+        <button type="submit" class="btn btn-secondary">Send verification code</button>
+    </form>
+    <form method="post">
+        <div class="mb-3">
+            <label asp-for="Code" class="form-label">Verification code</label>
+            <input asp-for="Code" class="form-control" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Verify and continue</button>
+    </form>
+    <p class="mt-4"><a href="/Identity/Account/StaffLogin">Start sign-in again</a></p>
+</main>

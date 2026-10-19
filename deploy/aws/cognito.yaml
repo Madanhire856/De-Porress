@@ -11,6 +11,9 @@ Parameters:
   LogoutUrl:
     Type: String
     Default: https://localhost:7246/
+  AppLoginUrl:
+    Type: String
+    Default: https://localhost:7246/Identity/Account/StaffLogin
 Resources:
   StaffPool:
     Type: AWS::Cognito::UserPool
@@ -22,6 +25,9 @@ Resources:
       AutoVerifiedAttributes: [email]
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
+        InviteMessageTemplate:
+          EmailSubject: Your school account invitation
+          EmailMessage: !Sub 'Your school account is ready. Sign in at ${AppLoginUrl} with username {username} and temporary password {####}. Set a new password, then verify your email before opening your workspace.'
       UserAttributeUpdateSettings:
         AttributesRequireVerificationBeforeUpdate: [email]
       AccountRecoverySetting:
@@ -51,7 +57,7 @@ Resources:
       SupportedIdentityProviders: [COGNITO]
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthFlows: [code]
-      AllowedOAuthScopes: [openid, email, profile]
+      AllowedOAuthScopes: [openid, email, profile, aws.cognito.signin.user.admin]
       CallbackURLs: [!Ref CallbackUrl]
       LogoutURLs: [!Ref LogoutUrl]
       PreventUserExistenceErrors: ENABLED

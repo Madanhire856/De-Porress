@@ -3,7 +3,7 @@
 @using SMS.Lib
 @inject ICurrentUserService CurrentUser
 @{
-    ViewData["PageTitle"] = Model.user.LoginId != null ? "Edit User" : "Add User";
+    ViewData["PageTitle"] = Model.IsEdit ? "Edit User" : "Add user";
     ViewData["PageSubTitle"] = "Create or modify a system user and assign their role and user group";
 }
 
@@ -98,18 +98,26 @@
             <div class="rights-list" style="margin-top: 0.5rem;">
                 <label class="right-checkbox">
                     <input asp-for="user.IsActive" />
-                    <span>Account is active (user can sign in)</span>
+                    <span>Account is active</span>
                 </label>
             </div>
 
-            <!-- Hidden: admin-created users are considered pre-confirmed -->
-            <input type="hidden" asp-for="user.IsEmailConfirmed" value="true" />
+            @if (!Model.IsEdit && Model.InvitationsEnabled)
+            {
+                <div class="form-section-title"><i class="fa-solid fa-envelope"></i> Sign-in invitation</div>
+                <label class="right-checkbox">
+                    <input asp-for="SendInvitation" />
+                    <span>Send an email invitation</span>
+                </label>
+                <p>The user will set their own password and verify their email before opening the app.</p>
+                <span asp-validation-for="SendInvitation" class="text-danger"></span>
+            }
         </div>
 
         <div class="card-footer">
             <button type="submit" class="btn btn-primary">
                 <i class="fa-solid fa-floppy-disk"></i>
-                @(Model.user.LoginId != null ? "Save Changes" : "Create User")
+                @(Model.IsEdit ? "Save Changes" : "Create user")
             </button>
         </div>
     </div>

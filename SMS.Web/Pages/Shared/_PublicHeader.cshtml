@@ -4,12 +4,19 @@
         <img src="~/Images/logo.jpeg" alt="School crest" />
         <span>St Martin De Porres<small>PRIMARY SCHOOL</small></span>
     </a>
+    <button class="school-menu-toggle" type="button" aria-controls="school-navigation" aria-expanded="false">
+        <span class="school-menu-icon" aria-hidden="true"><span></span><span></span></span>
+        <span class="school-menu-label">Menu</span>
+    </button>
+    <div class="school-navigation" id="school-navigation">
     <nav aria-label="Main navigation">
         <a href="@(publicHome + "#about")">Our school</a>
         <a href="@(publicHome + "#faith")">Our values</a>
         <a href="@(publicHome + "#learning")">Learning</a>
         <a asp-area="" asp-page="/Notices/Index">Notices</a>
+        <a asp-area="" asp-page="/Gallery/Index">Gallery</a>
         <a href="@(publicHome + "#contact")">Contact</a>
     </nav>
     <a class="school-portal" asp-area="Identity" asp-page="/Account/StaffLogin">Staff portal <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
 </header>

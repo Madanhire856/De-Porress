@@ -1,0 +1,23 @@
+@model IReadOnlyList<SMS.Web.Services.GalleryPhoto>
+@if (Model.Count > 0) {
+<div class="school-gallery" data-school-gallery>
+    <div class="school-gallery-grid">
+    @foreach (var photo in Model) {
+        <figure class="school-gallery-card">
+            <a href="@Url.Page("/Gallery/Photo", new { area = "", id = photo.Id })" data-gallery-open data-caption="@photo.Caption" data-album="@photo.Album" aria-label="Enlarge photo: @photo.Caption">
+                <img src="@Url.Page("/Gallery/Photo", new { area = "", id = photo.Id, thumbnail = true })" alt="@photo.Caption" width="480" height="320" loading="lazy" decoding="async" />
+                <span class="school-gallery-enlarge" aria-hidden="true"><i class="fas fa-expand"></i></span>
+            </a>
+            <figcaption><span>@photo.Album</span><h3>@photo.Caption</h3></figcaption>
+        </figure>
+    }
+    </div>
+    <dialog class="school-gallery-dialog" aria-label="School photo viewer" data-gallery-dialog>
+        <div class="school-gallery-viewer">
+            <button class="school-gallery-close" type="button" data-gallery-close aria-label="Close photo viewer"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+            <img data-gallery-large alt="" />
+            <div class="school-gallery-viewer-footer"><button type="button" data-gallery-previous aria-label="Previous photo">←</button><div><p data-gallery-caption></p><span data-gallery-position></span></div><button type="button" data-gallery-next aria-label="Next photo">→</button></div>
+        </div>
+    </dialog>
+</div>
+}

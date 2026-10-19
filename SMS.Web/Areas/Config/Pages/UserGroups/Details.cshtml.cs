@@ -25,6 +25,7 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
         public List<CategoryGroup> RightsByCategory { get; set; } = new();
         public int TotalRightsGranted { get; set; }
         public int TotalPossibleRights { get; set; }
+        public bool UsesLegacyFeatureRights => UserGroup.FeatureRightsId == null;
 
         // Helper class for grouping the granted rights per category
         public class CategoryGroup
@@ -78,6 +79,18 @@ namespace SMS.Web.Areas.Config.Pages.UserGroups
                 RightsByCategory.Add(group);
             }
 
+            var featureRights = UserGroup.FeatureRightsId ?? FeatureRightsCatalog.Legacy(rights);
+            foreach (var category in FeatureRightsCatalog.Categories)
+            {
+                var group = new CategoryGroup { Title = category.Title, Icon = category.Icon, Total = category.Rights.Length };
+                foreach (var right in category.Rights)
+                {
+                    TotalPossibleRights++;
+                    if ((featureRights & (long)right.Right) == (long)right.Right)
+                    { group.Granted.Add(right.DisplayName); TotalRightsGranted++; }
+                }
+                RightsByCategory.Add(group);
+            }
             return Page();
         }
     }

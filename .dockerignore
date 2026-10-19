@@ -29,6 +29,7 @@ README.md
 !.git/packed-refs
 !.git/refs/heads/**
 artifacts/
+**/App_Data/
 tests/
 docs/
 landing-page-handoff/

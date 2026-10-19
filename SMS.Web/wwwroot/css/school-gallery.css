@@ -1,0 +1,49 @@
+.school-gallery-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.school-gallery-card { margin: 0; min-width: 0; overflow: hidden; border: 1px solid var(--school-outline, #dce5eb); border-radius: 24px; background: #fff; box-shadow: 0 2px 8px #18364b08; }
+.school-gallery-card > a { position: relative; display: block; overflow: hidden; aspect-ratio: 3 / 2; }
+.school-gallery-card img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s cubic-bezier(.2, 0, 0, 1); }
+.school-gallery-card > a:hover img { transform: scale(1.04); }
+.school-gallery-enlarge { position: absolute; right: 12px; bottom: 12px; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #ffffffec; color: #18364b; }
+.school-gallery-card figcaption { padding: 20px; }
+.school-gallery-card figcaption > span { display: block; margin-bottom: 8px; font-size: .6875rem; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--school-gold, #876418); }
+.school-site .school-gallery-card h3 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin: 0; font-size: 1rem; line-height: 1.5; }
+.school-gallery-albums { display: flex; flex-wrap: wrap; gap: 10px; margin: 28px 0; }
+.school-gallery-albums a { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 18px; border: 1px solid var(--school-outline); border-radius: 999px; background: #fff; font-size: .85rem; }
+.school-site .school-gallery-albums .is-selected { color: #fff; background: var(--school-ink); border-color: var(--school-ink); }
+.school-gallery-dialog { width: min(1100px, 96vw); max-width: 96vw; max-height: 94vh; max-height: 94dvh; padding: 0; border: 0; border-radius: 16px; color: #fff; background: #112b3c; overflow: auto; }
+.school-gallery-dialog::backdrop { background: #06141cdd; }
+.school-gallery-viewer { position: relative; padding: 56px 20px 16px; }
+.school-gallery-viewer > img { display: block; width: 100%; height: min(65vh, 720px); height: min(65dvh, 720px); object-fit: contain; }
+.school-gallery-close { position: absolute; top: 8px; right: 8px; }
+.school-gallery-viewer button { display: grid; place-items: center; min-width: 44px; min-height: 44px; border: 1px solid #ffffff55; border-radius: 50%; background: #183e52; color: #fff; font-size: 1.3rem; }
+.school-gallery-viewer button:focus-visible { outline: 3px solid #e4c57d; outline-offset: 3px; }
+.school-gallery-viewer-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; }
+.school-gallery-viewer-footer > div { min-width: 0; flex: 1; text-align: center; }
+.school-site .school-gallery-viewer-footer p { color: #fff; margin: 0 0 5px; font-size: .95rem; line-height: 1.5; overflow-wrap: anywhere; }
+.school-gallery-viewer-footer span { color: #c6d7e2; font-size: .75rem; }
+.gallery-management-tabs { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.gallery-management-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 20px; }
+.gallery-management-card { min-width: 0; overflow: hidden; border: 1px solid var(--sms-border); border-radius: 8px; background: #fff; }
+.gallery-management-card > img { display: block; width: 100%; height: 190px; object-fit: cover; }
+.gallery-management-copy { padding: 18px; }
+.gallery-management-copy h2 { margin: 14px 0 8px; font-size: 1rem; line-height: 1.4; overflow-wrap: anywhere; }
+.gallery-management-copy p { font-size: .8125rem; color: var(--sms-text-muted); overflow-wrap: anywhere; }
+.gallery-management-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.gallery-management-actions form { margin: 0; }
+.gallery-management-actions .btn { min-height: 44px; padding-inline: 12px; font-size: .8rem; }
+.gallery-upload-preview { display: block; width: min(100%, 600px); max-height: 350px; object-fit: contain; margin: 0 0 24px; border-radius: 8px; background: #f3f5f7; }
+.gallery-upload-preview[hidden], .school-gallery-viewer button[hidden] { display: none; }
+@media (max-width: 900px) { .school-gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }
+@media (max-width: 600px) {
+    .school-gallery-card { border-radius: 16px; }
+    .school-gallery-card figcaption { padding: 14px; }
+    .school-site .school-gallery-card h3 { font-size: .875rem; }
+    .school-gallery-card figcaption > span { font-size: .6rem; }
+    .school-gallery-enlarge { width: 32px; height: 32px; right: 8px; bottom: 8px; font-size: .8rem; }
+    .school-gallery-viewer { padding-inline: 12px; }
+    .school-gallery-viewer-footer { gap: 10px; }
+    .school-site .school-gallery-viewer-footer p { font-size: .8125rem; }
+    .gallery-management-actions form { flex: 1 1 auto; }
+}
+@media (max-width: 360px) { .school-gallery-grid { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .school-gallery-card img { transition: none; } .school-gallery-card > a:hover img { transform: none; } }

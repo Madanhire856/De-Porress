@@ -17,6 +17,10 @@ public class IndexModel(SMSDbContext db, WorkspaceAccess access) : PageModel
     [BindProperty(SupportsGet = true)] public int PageNumber { get; set; } = 1;
     public List<Announcement> Notices { get; private set; } = [];
     public int Total { get; private set; }
+    public bool CanCreate => SchoolNotices.CanCreate(access);
+    public bool CanEdit => SchoolNotices.CanEdit(access);
+    public bool CanPublish => SchoolNotices.CanPublish(access);
+    public SMS.Web.Pages.Shared.Pagination.PaginationInfo Pagination => new() { PageNumber = PageNumber, PageSize = 15, TotalCount = Total };
     public bool HasNext => PageNumber * 15 < Total;
     public async Task<IActionResult> OnGetAsync()
     {
@@ -34,11 +38,12 @@ public class IndexModel(SMSDbContext db, WorkspaceAccess access) : PageModel
     }
     public async Task<IActionResult> OnPostWithdrawAsync(Guid id)
     {
-        if (!SchoolNotices.CanManage(access)) return Forbid();
+        if (!CanPublish) return Forbid();
         var notice = await SchoolNotices.Managed(db).SingleOrDefaultAsync(x => x.Id == id);
         if (notice == null) return NotFound();
         notice.StatusId = (int)AnnouncementStatus.DRAFT;
-        await db.SaveChangesAsync();
+        try { await db.SaveChangesAsync(); }
+        catch (DbUpdateConcurrencyException) { return new ConflictObjectResult("The notice's publication status changed. Reload the list before withdrawing it."); }
         TempData["NoticeSaved"] = "Notice withdrawn and kept as a draft.";
         return RedirectToPage();
     }

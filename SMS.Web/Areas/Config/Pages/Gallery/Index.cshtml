@@ -1,0 +1,27 @@
+@page
+@model SMS.Web.Areas.Config.Pages.Gallery.IndexModel
+@{ ViewData["Title"] = "School gallery"; ViewData["PageTitle"] = "School gallery"; ViewData["PageSubTitle"] = "Manage photos, captions and albums on the school website"; }
+@section actionbar {
+    @if (Model.CanCreate) { <a asp-page="./Upsert" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Add photo</a> }
+    <a asp-area="" asp-page="/Gallery/Index" class="btn btn-secondary">View public gallery</a>
+}
+@section Styles { <link rel="stylesheet" href="~/css/school-gallery.css" asp-append-version="true" /> }
+@if (Model.StatusMessage != null) { <div class="alert alert-info" role="status">@Model.StatusMessage</div> }
+
+<p class="text-muted">Published photos are visible to everyone. Drafts and archived photos are only visible to gallery administrators.</p>
+<div class="table-card"><partial name="~/Pages/Shared/Tables/_TableCount.cshtml" model='new SMS.Web.Pages.Shared.Tables.TableCount(Model.Photos.Count, "photo")' />
+<form method="get" class="table-toolbar" data-auto-filter><div class="toolbar-filters"><div class="filter-wrapper"><select asp-for="Archived" class="filter-dropdown" aria-label="Photo status"><option value="false">Active photos</option><option value="true">Archived photos</option></select></div><div class="filter-wrapper"><select asp-for="Album" class="filter-dropdown" aria-label="Album"><option value="">All albums</option>@foreach (var album in Model.Albums) { <option value="@album">@album</option> }</select></div></div><div class="search-wrapper"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input asp-for="SearchTerm" class="search-input" placeholder="Search photo captions…" aria-label="Search photos" autocomplete="off" /></div></form>
+<div class="table-responsive"><table class="data-table table-compact"><thead><tr><th>Photo</th><th>Caption</th><th>Album</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+@foreach (var photo in Model.Photos) {
+    <tr><td><img class="table-photo" src="@Url.Page("/Gallery/Photo", new { area = "", id = photo.Id, thumbnail = true })" alt="@photo.Caption" loading="lazy" width="96" height="64" /></td><td class="table-copy">@photo.Caption</td><td>@photo.Album</td><td>@photo.Order</td><td><span class="status-badge @(photo.Published && !photo.Archived ? "status-active" : "")">@(photo.Archived ? "Archived" : photo.Published ? "Published" : "Draft")</span></td><td><div class="table-actions">@if (!photo.Archived) {
+                @if (Model.CanEdit && (!photo.Published || Model.CanPublish)) { <a asp-page="./Upsert" asp-route-id="@photo.Id" class="btn btn-secondary">Edit</a> }
+                @if (Model.CanPublish) { <form method="post" asp-page-handler="State"><input type="hidden" name="id" value="@photo.Id" /><button class="btn btn-secondary" name="action" value="@(photo.Published ? "unpublish" : "publish")">@(photo.Published ? "Move to draft" : "Publish")</button></form> }
+                @if (Model.CanArchive && (!photo.Published || Model.CanPublish)) { <form method="post" asp-page-handler="State"><input type="hidden" name="id" value="@photo.Id" /><button class="btn btn-secondary" name="action" value="archive">Archive</button></form> }
+            } else if (Model.CanArchive) {
+                <form method="post" asp-page-handler="State"><input type="hidden" name="id" value="@photo.Id" /><button class="btn btn-secondary" name="action" value="restore">Restore as draft</button></form>
+            }
+</div></td></tr>
+}
+@if (Model.Photos.Count == 0) { <tr><td colspan="6" class="empty-state">@(Model.Archived ? "No archived photos." : "No photos yet. Add your first school photo.")</td></tr> }
+</tbody></table></div></div>
+@section Scripts { <script src="~/js/assignment-filters.js" asp-append-version="true"></script> }

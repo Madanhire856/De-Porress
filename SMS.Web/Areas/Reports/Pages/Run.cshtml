@@ -1,0 +1,45 @@
+@page "{key}"
+@model SMS.Web.Areas.Reports.Pages.RunModel
+@{ ViewData["Title"] = Model.Definition.Title; ViewData["PageTitle"] = Model.Definition.Title; ViewData["PageSubTitle"] = Model.Definition.Description; }
+@section Styles { <link rel="stylesheet" href="~/css/school-reports.css" asp-append-version="true" /> }
+@section actionbar {
+    <a asp-page="./Index" class="btn btn-secondary">All reports</a>
+    @if (Model.ModelState.IsValid) {
+        @if (Model.CanExport) { <a href="@Model.Link("Export")" class="btn btn-primary">Export CSV</a> }
+        @if (Model.CanPrint) { <a href="@Model.Link("Print")" class="btn btn-secondary" target="_blank" rel="noopener">Print / Save PDF</a> }
+    }
+}
+<div class="report-page" data-report-print="@(Model.IsPrint && Model.ModelState.IsValid ? "true" : "false")">
+    <form method="get" class="report-filters form-card"><div class="card-body">
+        <div asp-validation-summary="All" class="text-danger"></div><div class="report-filter-grid">
+        @if (Model.Has(ReportFields.Dates)) {
+            <div><label asp-for="Filters.From" class="form-label">From</label><input asp-for="Filters.From" type="date" class="form-control" /></div>
+            <div><label asp-for="Filters.To" class="form-label">To (inclusive)</label><input asp-for="Filters.To" type="date" class="form-control" /></div>
+        }
+        @if (Model.Has(ReportFields.Grade)) { <div><label asp-for="Filters.GradeId" class="form-label">Grade</label><select asp-for="Filters.GradeId" asp-items="Model.Grades" class="form-select"><option value="">All grades</option></select></div> }
+        @if (Model.Has(ReportFields.Class)) { <div><label asp-for="Filters.ClassId" class="form-label">Class</label><select asp-for="Filters.ClassId" asp-items="Model.Classes" class="form-select"><option value="">All classes</option></select></div> }
+        @if (Model.Has(ReportFields.Term)) { <div><label asp-for="Filters.TermId" class="form-label">@(Model.Definition.Key == "sdc" ? "Committee term" : "Term")</label><select asp-for="Filters.TermId" asp-items="Model.Terms" class="form-select"><option value="">All terms</option></select></div> }
+        @if (Model.Has(ReportFields.Status)) { <div><label asp-for="Filters.Status" class="form-label">Status</label><select asp-for="Filters.Status" class="form-select"><option value="">All statuses</option>@foreach (var status in ReportCatalog.Statuses(Model.Definition.Key)) { <option value="@status.Key">@status.Value</option> }</select></div> }
+        <div><label asp-for="PageSize" class="form-label">Rows per page</label><select asp-for="PageSize" class="form-select"><option>25</option><option>50</option><option>100</option></select></div>
+        </div>
+    </div><div class="card-footer"><a asp-page="./Run" asp-route-key="@Model.Definition.Key" class="btn btn-secondary">Reset</a><button type="submit" class="btn btn-primary">Apply filters</button></div></form>
+    <header class="report-print-heading"><h1>St Martin De Porres Primary School</h1><h2>@Model.Definition.Title</h2><p>@Model.Definition.Description</p></header>
+    <p class="report-generated">Generated @Model.GeneratedAt.ToString("dd MMM yyyy HH:mm") (Zimbabwe) by @Model.GeneratedBy</p>
+    <dl class="report-applied-filters" aria-label="Applied report filters">
+        @if (Model.Has(ReportFields.Dates)) { <div><dt>Period</dt><dd>@(Model.Filters.From?.ToString("dd MMM yyyy") ?? "Any start") – @(Model.Filters.To?.ToString("dd MMM yyyy") ?? "Any end")</dd></div> }
+        @if (Model.Has(ReportFields.Grade)) { <div><dt>Grade</dt><dd>@(Model.Filters.GradeId.HasValue ? Model.Grades.FirstOrDefault(x => x.Value == Model.Filters.GradeId.ToString())?.Text ?? "Unknown grade" : "All grades")</dd></div> }
+        @if (Model.Has(ReportFields.Class)) { <div><dt>Class</dt><dd>@(Model.Filters.ClassId.HasValue ? Model.Classes.FirstOrDefault(x => x.Value == Model.Filters.ClassId.ToString())?.Text ?? "Unknown class" : "All classes")</dd></div> }
+        @if (Model.Has(ReportFields.Term)) { <div><dt>Term</dt><dd>@(Model.Filters.TermId.HasValue ? Model.Terms.FirstOrDefault(x => x.Value == Model.Filters.TermId.ToString())?.Text ?? "Unknown term" : "All terms")</dd></div> }
+        @if (Model.Has(ReportFields.Status)) { <div><dt>Status</dt><dd>@(Model.Filters.Status.HasValue ? ReportCatalog.Statuses(Model.Definition.Key).GetValueOrDefault(Model.Filters.Status.Value, "Unknown") : "All statuses")</dd></div> }
+    </dl>
+    @if (Model.Data.Metrics.Count > 0) { <dl class="report-metrics">@foreach (var metric in Model.Data.Metrics) { <div><dt>@metric.Label</dt><dd>@metric.Value</dd></div> }</dl> }
+    @foreach (var note in Model.Data.Notes) { <p class="report-note">@note</p> }
+    <div class="table-card"><partial name="~/Pages/Shared/Tables/_TableCount.cshtml" model='new SMS.Web.Pages.Shared.Tables.TableCount(Model.Data.Rows.Count, "record")' /><div class="table-responsive"><table class="data-table table-compact report-table"><caption class="visually-hidden">@Model.Definition.Title</caption><thead><tr>@foreach (var column in Model.Data.Headers) { <th scope="col">@column</th> }</tr></thead><tbody>
+    @foreach (var row in Model.Rows) { <tr>@foreach (var cell in row) { <td>@cell</td> }</tr> }
+    @if (Model.Data.Rows.Count == 0 && Model.ModelState.IsValid) { <tr><td colspan="@Math.Max(Model.Data.Headers.Length, 1)" class="empty-state">No records match these filters.</td></tr> }
+    </tbody></table></div>
+    @if (!Model.IsPrint) { <partial name="~/Pages/Shared/Pagination/_pagination.cshtml" model="Model.Pagination" /> }
+    </div>
+    @if (!Model.IsPrint) { <p class="report-note">Totals, CSV exports and printed reports include every matching record across all pages.</p> }
+</div>
+@section Scripts { <script src="~/js/school-reports.js" asp-append-version="true"></script> }

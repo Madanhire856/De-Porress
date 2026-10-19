@@ -16,11 +16,14 @@ public class IndexModel(SMSDbContext db, WorkspaceAccess access) : PageModel
     public List<SdcMember> Members { get; private set; } = [];
     public List<SelectListItem> Terms { get; private set; } = [];
     public int Total { get; private set; }
+    public bool CanCreate => SdcAccess.CanCreateMembers(access);
+    public bool CanEdit => SdcAccess.CanEditMembers(access);
+    public SMS.Web.Pages.Shared.Pagination.PaginationInfo Pagination => new() { PageNumber = PageNumber, PageSize = 20, TotalCount = Total };
     public bool HasNext => PageNumber * 20 < Total;
     public DateTime Today => DateTime.UtcNow.AddHours(2).Date;
     public async Task<IActionResult> OnGetAsync()
     {
-        if (!SdcAccess.CanManage(access)) return Forbid();
+        if (!SdcAccess.CanViewMembers(access)) return Forbid();
         Terms = await db.SdcTerms.AsNoTracking().OrderByDescending(x => x.StartDate).Select(x => new SelectListItem(x.Name, x.Id.ToString())).ToListAsync();
         var query = db.SdcMembers.AsNoTracking();
         if (TermId.HasValue) query = query.Where(x => x.TermId == TermId);
